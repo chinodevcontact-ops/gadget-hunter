@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GADGET HUNTER v2- Tech News Leaks</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: #1a1a26;
+            --neon-purple: #bf00ff;
+            --cyber-green: #00ff41;
+            --text-primary: #e8e8f0;
+            --text-secondary: #a0a0b8;
+            --accent-glow: rgba(191, 0, 255, 0.3);
+            --green-glow: rgba(0, 255, 65, 0.3);
+        }
+
+        body {
+            font-family: 'Roboto Mono', monospace;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(circle at 20% 50%, rgba(191, 0, 255, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(0, 255, 65, 0.05) 0%, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        .header {
+            background: var(--bg-secondary);
+            border-bottom: 2px solid var(--neon-purple);
+            box-shadow: 0 0 20px var(--accent-glow);
+            padding: 1.5rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--neon-purple), var(--cyber-green));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px var(--accent-glow);
+            letter-spacing: 2px;
+        }
+
+        .tagline {
+            color: var(--cyber-green);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 0 0 10px var(--green-glow);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        .loading-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 60vh;
+            gap: 2rem;
+        }
+
+        .loading-spinner {
+            width: 80px;
+            height: 80px;
+            border: 4px solid var(--bg-card);
+            border-top: 4px solid var(--neon-purple);
+            border-right: 4px solid var(--cyber-green);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 1.2rem;
+            color: var(--cyber-green);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        .news-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 2rem;
+            animation: fadeIn 0.6s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .news-card {
+            background: var(--bg-card);
+            border: 1px solid rgba(191, 0, 255, 0.2);
+            border-radius: 12px;
+            padding: 1.8rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .news-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, var(--neon-purple), var(--cyber-green));
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
+        }
+
+        .news-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--neon-purple);
+            box-shadow: 
+                0 10px 30px rgba(191, 0, 255, 0.2),
+                0 0 50px rgba(191, 0, 255, 0.1);
+        }
+
+        .news-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .news-date {
+            color: var(--cyber-green);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 1rem;
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            background: rgba(0, 255, 65, 0.1);
+            border-radius: 4px;
+            border: 1px solid rgba(0, 255, 65, 0.3);
+        }
+
+        .news-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            line-height: 1.4;
+        }
+
+        .news-title a {
+            color: var(--text-primary);
+            text-decoration: none;
+            background: linear-gradient(135deg, var(--neon-purple), var(--cyber-green));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .news-title a::after {
+            content: ' ↗';
+            font-size: 0.9rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .news-title a:hover {
+            text-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        .news-title a:hover::after {
+            opacity: 1;
+        }
+
+        .news-summary {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.7;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(191, 0, 255, 0.1);
+        }
+
+        .error-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 60vh;
+            gap: 1.5rem;
+        }
+
+        .error-icon {
+            font-size: 4rem;
+            color: #ff0055;
+        }
+
+        .error-text {
+            font-size: 1.3rem;
+            color: #ff0055;
+            text-align: center;
+            max-width: 600px;
+        }
+
+        .retry-btn {
+            padding: 0.8rem 2rem;
+            background: linear-gradient(135deg, var(--neon-purple), #ff0055);
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(191, 0, 255, 0.3);
+        }
+
+        .retry-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(191, 0, 255, 0.5);
+        }
+
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            border-top: 1px solid rgba(191, 0, 255, 0.1);
+            margin-top: 4rem;
+        }
+
+        @media (max-width: 768px) {
+            .news-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .logo {
+                font-size: 1.5rem;
+            }
+
+            .header-content {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .container {
+                padding: 2rem 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <h1 class="logo">GADGET HUNTER</h1>
+            <div class="tagline">[ Confidential Tech Leaks ]</div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div id="loading" class="loading-container">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Decrypting data...</div>
+        </div>
+
+        <div id="news-container" class="news-grid" style="display: none;"></div>
+
+        <div id="error-container" class="error-container" style="display: none;">
+            <div class="error-icon">⚠</div>
+            <div class="error-text">Failed to retrieve classified information. Connection compromised.</div>
+            <button class="retry-btn" onclick="fetchNews()">Retry Connection</button>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p>© 2026 GADGET HUNTER - All leaks are confidential • Powered by underground intelligence</p>
+    </footer>
+
+    <script>
+        const API_URL = 'https://script.google.com/macros/s/AKfycbza50Pqomha1PTuINRm3bP9fp-4U5swhI61MGSMK_xuvrzUVB1Z0bwZKG5l9cl4rBBsqQ/exec';
+
+        async function fetchNews() {
+            const loadingElement = document.getElementById('loading');
+            const newsContainer = document.getElementById('news-container');
+            const errorContainer = document.getElementById('error-container');
+
+            // リセット表示
+            loadingElement.style.display = 'flex';
+            newsContainer.style.display = 'none';
+            errorContainer.style.display = 'none';
+            newsContainer.innerHTML = '';
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'GET',
+                    redirect: 'follow',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (!Array.isArray(data) || data.length === 0) {
+                    throw new Error('No data received');
+                }
+
+                // ニュースカードを生成
+                data.forEach((news, index) => {
+                    const card = createNewsCard(news, index);
+                    newsContainer.appendChild(card);
+                });
+
+                // 表示切り替え
+                loadingElement.style.display = 'none';
+                newsContainer.style.display = 'grid';
+
+            } catch (error) {
+                console.error('Error fetching news:', error);
+                loadingElement.style.display = 'none';
+                errorContainer.style.display = 'flex';
+            }
+        }
+
+        function createNewsCard(news, index) {
+            const card = document.createElement('div');
+            card.className = 'news-card';
+            card.style.animationDelay = `${index * 0.1}s`;
+
+            const date = document.createElement('div');
+            date.className = 'news-date';
+            date.textContent = news.date || 'Unknown Date';
+
+            const title = document.createElement('h2');
+            title.className = 'news-title';
+            
+            const link = document.createElement('a');
+            link.href = news.url || '#';
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            link.textContent = news.title || 'Untitled';
+            
+            title.appendChild(link);
+
+            const summary = document.createElement('div');
+            summary.className = 'news-summary';
+            summary.textContent = news.summary || 'No summary available.';
+
+            card.appendChild(date);
+            card.appendChild(title);
+            card.appendChild(summary);
+
+            return card;
+        }
+
+        // ページ読み込み時に実行
+        document.addEventListener('DOMContentLoaded', fetchNews);
+    </script>
+</body>
+</html>
