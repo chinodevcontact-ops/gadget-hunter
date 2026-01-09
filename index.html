@@ -594,6 +594,66 @@
         let currentCategory = 'all';
         let searchQuery = '';
 
+        // カテゴリー自動判定関数
+        function detectCategory(title, summary = '') {
+            const text = `${title} ${summary}`.toLowerCase();
+
+            // GPU関連のキーワード（大幅に拡充）
+            const gpuKeywords = [
+                'rtx', 'gtx', 'geforce', 'nvidia', 'radeon', 'rx ', 'arc', 'intel arc',
+                'gpu', 'graphics card', 'vram', 'cuda', 'ray tracing', 'dlss', 'fsr',
+                'グラフィック', 'グラボ', 'ビデオカード', 'グラフィックスカード'
+            ];
+
+            // Smartphone関連のキーワード（大幅に拡充）
+            const smartphoneKeywords = [
+                'iphone', 'galaxy', 'pixel', 'redmagic', 'oneplus', 'oppo', 'vivo',
+                'xiaomi', 'poco', 'realme', 'huawei', 'honor', 'asus rog phone',
+                'sony xperia', 'motorola', 'nothing phone', 'smartphone', 'phone',
+                'スマホ', 'スマートフォン', '携帯', 'モバイル', 'android', 'ios'
+            ];
+
+            // CPU関連のキーワード（大幅に拡充）
+            const cpuKeywords = [
+                'ryzen', 'threadripper', 'epyc', 'core i', 'core ultra', 'xeon', 
+                'snapdragon', 'dimensity', 'exynos', 'tensor', 'bionic', 'apple m',
+                'cpu', 'processor', 'プロセッサ', 'チップ', 'soc'
+            ];
+
+            // Gaming関連のキーワード（大幅に拡充）
+            const gamingKeywords = [
+                'ps5', 'playstation', 'xbox', 'nintendo', 'switch', 'steam deck',
+                'gaming console', 'game', 'ゲーム', 'console', 'gaming pc',
+                'esports', 'fps', 'mmorpg', 'battle royale'
+            ];
+
+            // AI関連のキーワード（大幅に拡充）
+            const aiKeywords = [
+                'chatgpt', 'gpt', 'claude', 'gemini', 'copilot', 'ai', 'artificial intelligence',
+                'machine learning', 'deep learning', 'neural network', 'llm', 'generative ai',
+                'stable diffusion', 'midjourney', 'dall-e', '機械学習', '人工知能', 'ニューラル'
+            ];
+
+            // キーワードマッチング（優先順位順）
+            for (const keyword of gpuKeywords) {
+                if (text.includes(keyword)) return 'GPU';
+            }
+            for (const keyword of smartphoneKeywords) {
+                if (text.includes(keyword)) return 'Smartphone';
+            }
+            for (const keyword of cpuKeywords) {
+                if (text.includes(keyword)) return 'CPU';
+            }
+            for (const keyword of gamingKeywords) {
+                if (text.includes(keyword)) return 'Gaming';
+            }
+            for (const keyword of aiKeywords) {
+                if (text.includes(keyword)) return 'AI';
+            }
+
+            return 'General';
+        }
+
         async function loadNews() {
             const loadingElement = document.getElementById('loading');
             const newsContainer = document.getElementById('news-container');
@@ -619,10 +679,10 @@
                 if (response.ok) {
                     const data = await response.json();
                     if (Array.isArray(data) && data.length > 0) {
-                        // APIデータにcategoryとleakScoreを追加
+                        // APIデータにcategoryとleakScoreを自動判定して追加
                         allNews = data.map(item => ({
                             ...item,
-                            category: item.category || 'General',
+                            category: item.category || detectCategory(item.title || '', item.summary || ''),
                             leakScore: item.leakScore || Math.floor(Math.random() * 30) + 70
                         }));
                     } else {
