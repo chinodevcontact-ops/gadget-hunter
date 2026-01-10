@@ -490,6 +490,254 @@
             margin-top: 4rem;
         }
 
+        /* ===== 記事リーダーモーダル（Article Reader Overlay） ===== */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            z-index: 2000;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 1;
+        }
+
+        .modal-container {
+            background: #050505;
+            border: 1px solid var(--neon-green);
+            box-shadow: 0 0 40px var(--green-glow-strong);
+            border-radius: 12px;
+            width: 90%;
+            max-width: 900px;
+            max-height: 90vh;
+            overflow: hidden;
+            position: relative;
+            transform: translateY(50px);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .modal-overlay.active .modal-container {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .modal-header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--neon-green);
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .modal-header-content {
+            flex: 1;
+        }
+
+        .modal-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--neon-green);
+            margin-bottom: 0.8rem;
+            line-height: 1.3;
+        }
+
+        .modal-meta {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            align-items: center;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .modal-date {
+            color: var(--neon-green);
+            font-weight: 700;
+        }
+
+        .modal-score {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .modal-score-bar {
+            width: 60px;
+            height: 6px;
+            background: rgba(0, 255, 65, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .modal-score-fill {
+            height: 100%;
+            border-radius: 10px;
+            box-shadow: 0 0 10px currentColor;
+        }
+
+        .modal-close-btn {
+            background: transparent;
+            border: 2px solid var(--neon-green);
+            color: var(--neon-green);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            line-height: 1;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-close-btn:hover {
+            background: var(--neon-green);
+            color: #000;
+            box-shadow: 0 0 20px var(--green-glow-strong);
+            transform: rotate(90deg);
+        }
+
+        .modal-body {
+            padding: 2rem;
+            overflow-y: auto;
+            max-height: calc(90vh - 200px);
+        }
+
+        .modal-body::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .modal-body::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+
+        .modal-body::-webkit-scrollbar-thumb {
+            background: var(--neon-green);
+            border-radius: 10px;
+        }
+
+        .modal-content {
+            font-size: 1.05rem;
+            line-height: 1.8;
+            color: var(--text-primary);
+        }
+
+        .modal-content p {
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-content h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--neon-green);
+            margin: 2rem 0 1rem;
+            padding-left: 1rem;
+            border-left: 4px solid var(--neon-green);
+            box-shadow: -5px 0 15px var(--green-glow);
+        }
+
+        .modal-content strong {
+            color: var(--neon-green);
+            font-weight: 700;
+        }
+
+        .modal-content ul {
+            margin-left: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-content li {
+            margin-bottom: 0.5rem;
+        }
+
+        .modal-footer {
+            background: var(--bg-secondary);
+            border-top: 1px solid rgba(0, 255, 65, 0.2);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-source {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .modal-source a {
+            color: var(--neon-green);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .modal-source a:hover {
+            text-shadow: 0 0 10px var(--green-glow);
+        }
+
+        /* モバイル用モーダル調整 */
+        @media (max-width: 768px) {
+            .modal-container {
+                width: 100%;
+                max-width: 100%;
+                max-height: 100vh;
+                border-radius: 0;
+            }
+
+            .modal-header {
+                padding: 1rem;
+            }
+
+            .modal-title {
+                font-size: 1.2rem;
+            }
+
+            .modal-body {
+                padding: 1rem;
+                max-height: calc(100vh - 180px);
+            }
+
+            .modal-content {
+                font-size: 1rem;
+                line-height: 1.7;
+            }
+
+            .modal-content h3 {
+                font-size: 1.1rem;
+            }
+
+            .modal-footer {
+                padding: 1rem;
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+        }
+
+        /* body固定用 */
+        body.modal-open {
+            overflow: hidden;
+        }
+
         /* ===== モバイル専用スタイル (768px以下) ===== */
         @media (max-width: 768px) {
             /* モバイルではアコーディオン動作（超軽量版） */
@@ -749,8 +997,38 @@
         <p>© 2026 GADGET HUNTER - All leaks are confidential • Powered by underground intelligence</p>
     </footer>
 
+    <!-- 記事リーダーモーダル -->
+    <div id="article-modal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <div class="modal-header-content">
+                    <h2 id="modal-title" class="modal-title"></h2>
+                    <div class="modal-meta">
+                        <span id="modal-date" class="modal-date"></span>
+                        <div class="modal-score">
+                            <span>Credibility:</span>
+                            <div class="modal-score-bar">
+                                <div id="modal-score-fill" class="modal-score-fill"></div>
+                            </div>
+                            <span id="modal-score-value"></span>
+                        </div>
+                    </div>
+                </div>
+                <button class="modal-close-btn" onclick="closeModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div id="modal-content" class="modal-content"></div>
+            </div>
+            <div class="modal-footer">
+                <div class="modal-source">
+                    Source: <a id="modal-source-link" href="#" target="_blank" rel="noopener noreferrer">View Original Article ↗</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
-        const API_URL = 'https://script.google.com/macros/s/AKfycbza50Pqomha1PTuINRm3bP9fp-4U5swhI61MGSMK_xuvrzUVB1Z0bwZKG5l9cl4rBBsqQ/exec';
+        const API_URL = 'https://script.google.com/macros/s/AKfycbxzHB4EUxoa7HlycS6zASg_gcVMG7rYLc1ajtyEL4968kDdIERgMxudjXcoFOII-i9X/exec';
         const CACHE_KEY = 'gadget_hunter_cache';
         const CACHE_TIMESTAMP_KEY = 'gadget_hunter_cache_timestamp';
         const CACHE_DURATION = 5 * 60 * 1000; // 5分間キャッシュ
@@ -763,7 +1041,8 @@
                 url: 'https://example.com/redmagic-10-pro',
                 category: 'Smartphone',
                 leakScore: 92,
-                summary: '• Massive 7500mAh battery with 100W fast charging\n• Snapdragon 8 Elite processor with advanced cooling\n• 6.85" AMOLED display with 165Hz refresh rate'
+                summary: '• Massive 7500mAh battery with 100W fast charging\n• Snapdragon 8 Elite processor with advanced cooling\n• 6.85" AMOLED display with 165Hz refresh rate',
+                content: '<p><strong>RedMagic 10 Pro</strong> is set to revolutionize mobile gaming with its unprecedented 7500mAh battery capacity, the largest ever in a flagship gaming phone.</p><h3>Battery & Charging</h3><p>The massive 7500mAh battery paired with 100W fast charging technology ensures all-day gaming sessions without interruption. Full charge in just 35 minutes.</p><h3>Performance</h3><p>Powered by the latest Snapdragon 8 Elite processor with advanced vapor chamber cooling system, maintaining peak performance even during intensive gaming.</p><h3>Display</h3><p>Features a stunning 6.85" AMOLED display with 165Hz refresh rate and 1200Hz touch sampling rate for ultra-responsive gaming.</p>'
             },
             {
                 date: '2026/01/09 20:15',
@@ -771,7 +1050,8 @@
                 url: 'https://example.com/rtx-5090',
                 category: 'GPU',
                 leakScore: 85,
-                summary: '• 32GB GDDR7 memory with 1.5TB/s bandwidth\n• 21,760 CUDA cores on 4nm process\n• 600W TDP requiring new 16-pin connector'
+                summary: '• 32GB GDDR7 memory with 1.5TB/s bandwidth\n• 21,760 CUDA cores on 4nm process\n• 600W TDP requiring new 16-pin connector',
+                content: '<p><strong>NVIDIA RTX 5090</strong> leak reveals a monster GPU that pushes the boundaries of graphics performance.</p><h3>Memory Architecture</h3><p>Equipped with 32GB of next-generation GDDR7 memory running at 28Gbps, delivering a staggering 1.5TB/s memory bandwidth for 4K and 8K gaming.</p><h3>Core Specifications</h3><p>Built on TSMC 4nm process node with 21,760 CUDA cores, representing a 30% increase over RTX 4090. Ray tracing performance expected to double.</p><h3>Power Requirements</h3><p>The 600W TDP requires a new 16-pin power connector and robust PSU. NVIDIA recommends at least 1000W power supply.</p>'
             },
             {
                 date: '2026/01/09 18:45',
@@ -779,7 +1059,8 @@
                 url: 'https://example.com/iphone-17-pro',
                 category: 'Smartphone',
                 leakScore: 78,
-                summary: '• Periscope telephoto with 10x optical zoom\n• A19 chip built on 2nm process technology\n• Titanium frame with new "Space Black" color option'
+                summary: '• Periscope telephoto with 10x optical zoom\n• A19 chip built on 2nm process technology\n• Titanium frame with new "Space Black" color option',
+                content: '<p><strong>iPhone 17 Pro</strong> brings revolutionary camera technology and unprecedented processing power.</p><h3>Camera System</h3><p>The periscope telephoto lens offers true 10x optical zoom without quality loss, powered by advanced computational photography algorithms.</p><h3>A19 Bionic Chip</h3><p>Built on TSMC 2nm process technology, the A19 chip delivers 25% better performance and 40% improved power efficiency compared to A18.</p><h3>Design Evolution</h3><p>Features a refined titanium frame in new Space Black color, 20% lighter than previous generation while maintaining durability.</p>'
             },
             {
                 date: '2026/01/09 16:20',
@@ -787,7 +1068,8 @@
                 url: 'https://example.com/ryzen-9950x3d',
                 category: 'CPU',
                 leakScore: 88,
-                summary: '• 16 cores / 32 threads with 192MB total cache\n• 5.7GHz boost clock on Zen 5 architecture\n• Expected to launch at $699 in Q2 2026'
+                summary: '• 16 cores / 32 threads with 192MB total cache\n• 5.7GHz boost clock on Zen 5 architecture\n• Expected to launch at $699 in Q2 2026',
+                content: '<p><strong>AMD Ryzen 9 9950X3D</strong> is the ultimate gaming processor with massive 3D V-Cache technology.</p><h3>Cache Architecture</h3><p>Unprecedented 192MB total cache (128MB 3D V-Cache + 64MB L3) provides exceptional gaming performance, reducing memory latency significantly.</p><h3>Core Performance</h3><p>16 cores and 32 threads with 5.7GHz boost clock on advanced Zen 5 architecture. Perfect for both gaming and content creation.</p><h3>Market Positioning</h3><p>Expected to launch at $699 in Q2 2026, positioned as the flagship gaming CPU that dominates both single-thread and multi-thread workloads.</p>'
             }
         ];
 
@@ -1084,13 +1366,17 @@
                 summary.textContent = summaryText;
             }
 
-            // Read Moreボタン
+            // Read Moreボタン（モーダルを開く）
             const readMoreBtn = document.createElement('a');
-            readMoreBtn.href = news.url || '#';
-            readMoreBtn.target = '_blank';
-            readMoreBtn.rel = 'noopener noreferrer';
+            readMoreBtn.href = '#';
             readMoreBtn.className = 'read-more-btn';
             readMoreBtn.textContent = 'Read Full Article ↗';
+            
+            // ボタンクリックでモーダルを開く
+            readMoreBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                openModal(news);
+            });
 
             expandable.appendChild(summary);
             expandable.appendChild(readMoreBtn);
@@ -1149,6 +1435,76 @@
             if (scrollPosition) {
                 window.scrollTo(0, parseInt(scrollPosition, 10));
                 sessionStorage.removeItem('scrollPosition');
+            }
+        });
+
+        // ===== モーダル機能 =====
+        function openModal(news) {
+            const modal = document.getElementById('article-modal');
+            const modalTitle = document.getElementById('modal-title');
+            const modalDate = document.getElementById('modal-date');
+            const modalScoreFill = document.getElementById('modal-score-fill');
+            const modalScoreValue = document.getElementById('modal-score-value');
+            const modalContent = document.getElementById('modal-content');
+            const modalSourceLink = document.getElementById('modal-source-link');
+
+            // タイトル設定
+            modalTitle.textContent = news.title || 'Untitled';
+
+            // 日付設定
+            modalDate.textContent = news.date || 'Unknown Date';
+
+            // 信頼度スコア設定
+            const leakScore = news.leakScore || 75;
+            modalScoreValue.textContent = `${leakScore}%`;
+            modalScoreFill.style.width = `${leakScore}%`;
+            
+            // スコアの色設定
+            modalScoreFill.className = 'modal-score-fill';
+            if (leakScore >= 80) {
+                modalScoreFill.classList.add('score-high');
+            } else if (leakScore >= 60) {
+                modalScoreFill.classList.add('score-medium');
+            } else {
+                modalScoreFill.classList.add('score-low');
+            }
+
+            // コンテンツ設定（HTMLをそのまま表示）
+            if (news.content) {
+                modalContent.innerHTML = news.content;
+            } else {
+                // contentがない場合はsummaryを表示
+                modalContent.innerHTML = `<p>${news.summary || 'No content available.'}</p>`;
+            }
+
+            // ソースリンク設定
+            modalSourceLink.href = news.url || '#';
+
+            // モーダルを表示
+            modal.classList.add('active');
+            document.body.classList.add('modal-open');
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('article-modal');
+            modal.classList.remove('active');
+            document.body.classList.remove('modal-open');
+        }
+
+        // モーダル背景クリックで閉じる
+        document.addEventListener('DOMContentLoaded', () => {
+            const modal = document.getElementById('article-modal');
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    closeModal();
+                }
+            });
+        });
+
+        // ESCキーでモーダルを閉じる
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
             }
         });
     </script>
