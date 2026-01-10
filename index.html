@@ -1383,7 +1383,14 @@
             const summary = document.createElement('div');
             summary.className = 'news-summary';
             
-            const summaryText = news.summary || 'No details available.';
+            // ★ summaryが文字列でない場合の対策
+            let summaryText = news.summary || 'No details available.';
+            
+            // 配列やオブジェクトの場合は文字列に変換
+            if (typeof summaryText !== 'string') {
+                console.warn('Summary is not a string:', summaryText);
+                summaryText = String(summaryText);
+            }
             
             // 箇条書き形式の場合
             if (summaryText.includes('•') || summaryText.includes('\n')) {
