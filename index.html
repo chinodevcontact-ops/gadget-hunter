@@ -1384,12 +1384,17 @@
             summary.className = 'news-summary';
             
             // ★ summaryが文字列でない場合の対策
-            let summaryText = news.summary || 'No details available.';
+            let summaryText = news.summary || '';
             
             // 配列やオブジェクトの場合は文字列に変換
             if (typeof summaryText !== 'string') {
                 console.warn('Summary is not a string:', summaryText);
                 summaryText = String(summaryText);
+            }
+            
+            // ★ 要約が空の場合、フォールバック処理
+            if (!summaryText || summaryText.trim() === '') {
+                summaryText = '※詳細情報は記事をご確認ください';
             }
             
             // 箇条書き形式の場合
