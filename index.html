@@ -965,8 +965,11 @@
             <div class="category-filters">
                 <div class="category-tag active" data-category="all">All Leaks</div>
                 <div class="category-tag" data-category="GPU">GPU</div>
-                <div class="category-tag" data-category="Smartphone">Smartphone</div>
                 <div class="category-tag" data-category="CPU">CPU</div>
+                <div class="category-tag" data-category="PC Parts">PC Parts</div>
+                <div class="category-tag" data-category="Laptop">Laptop</div>
+                <div class="category-tag" data-category="Peripherals">周辺機器</div>
+                <div class="category-tag" data-category="Smartphone">Smartphone</div>
                 <div class="category-tag" data-category="Gaming">Gaming</div>
                 <div class="category-tag" data-category="AI">AI</div>
             </div>
@@ -1122,19 +1125,43 @@
                 'グラフィック', 'グラボ', 'ビデオカード', 'グラフィックスカード'
             ];
 
-            // Smartphone関連のキーワード
-            const smartphoneKeywords = [
-                'iphone', 'galaxy', 'pixel', 'redmagic', 'oneplus', 'oppo', 'vivo',
-                'xiaomi', 'poco', 'realme', 'huawei', 'honor magic', 'honor phone', 'asus rog phone',
-                'sony xperia', 'motorola', 'nothing phone', 'smartphone',
-                'スマホ', 'スマートフォン', '携帯', 'モバイル', 'android', 'ios'
-            ];
-
             // CPU関連のキーワード
             const cpuKeywords = [
                 'ryzen', 'threadripper', 'epyc', 'core i', 'core ultra', 'xeon', 
                 'snapdragon', 'dimensity', 'exynos', 'google tensor', 'bionic', 'apple m',
                 'cpu', 'processor', 'プロセッサ', 'チップ', 'soc'
+            ];
+
+            // PC Parts（新規）- マザボ、メモリ、SSD、電源など
+            const pcPartsKeywords = [
+                'motherboard', 'マザーボード', 'マザボ', 'chipset', 'z790', 'x670', 'b650',
+                'ddr', 'ram', 'memory', 'メモリ', 'dimm',
+                'ssd', 'nvme', 'hdd', 'storage', 'ストレージ', 'pcie 5.0',
+                'psu', 'power supply', '電源', 'watt',
+                'cooling', 'cooler', 'クーラー', '冷却', 'aio', 'water cooling'
+            ];
+
+            // Laptop（新規）- ノートPC
+            const laptopKeywords = [
+                'laptop', 'notebook', 'macbook', 'thinkpad', 'zenbook',
+                'vivobook', 'ノートpc', 'ノートパソコン', 'ultrabook',
+                'chromebook', 'surface laptop', 'legion', 'rog laptop'
+            ];
+
+            // Peripherals（新規）- 周辺機器
+            const peripheralKeywords = [
+                'mouse', 'keyboard', 'monitor', 'display', 'headset',
+                'webcam', 'マウス', 'キーボード', 'モニター', 'ディスプレイ',
+                'ヘッドセット', 'ヘッドホン', 'microphone', 'マイク',
+                'oled display', 'mini led', '144hz', '240hz', '4k monitor'
+            ];
+
+            // Smartphone関連のキーワード
+            const smartphoneKeywords = [
+                'iphone', 'galaxy', 'pixel', 'redmagic', 'oneplus', 'oppo', 'vivo',
+                'xiaomi', 'poco', 'realme', 'huawei', 'honor magic', 'honor phone',
+                'asus rog phone', 'sony xperia', 'motorola', 'nothing phone', 'smartphone',
+                'スマホ', 'スマートフォン', '携帯', 'android', 'ios'
             ];
 
             // Gaming関連のキーワード
@@ -1155,11 +1182,20 @@
             for (const keyword of gpuKeywords) {
                 if (text.includes(keyword)) return 'GPU';
             }
-            for (const keyword of smartphoneKeywords) {
-                if (text.includes(keyword)) return 'Smartphone';
-            }
             for (const keyword of cpuKeywords) {
                 if (text.includes(keyword)) return 'CPU';
+            }
+            for (const keyword of pcPartsKeywords) {
+                if (text.includes(keyword)) return 'PC Parts';
+            }
+            for (const keyword of laptopKeywords) {
+                if (text.includes(keyword)) return 'Laptop';
+            }
+            for (const keyword of peripheralKeywords) {
+                if (text.includes(keyword)) return 'Peripherals';
+            }
+            for (const keyword of smartphoneKeywords) {
+                if (text.includes(keyword)) return 'Smartphone';
             }
             for (const keyword of gamingKeywords) {
                 if (text.includes(keyword)) return 'Gaming';
