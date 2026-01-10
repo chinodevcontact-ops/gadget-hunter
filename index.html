@@ -1031,7 +1031,7 @@
     </div>
 
     <script>
-        const API_URL = 'https://script.google.com/macros/s/AKfycbxzHB4EUxoa7HlycS6zASg_gcVMG7rYLc1ajtyEL4968kDdIERgMxudjXcoFOII-i9X/exec';
+        const API_URL = 'https://drive.google.com/uc?export=download&id=1hteuEBEmsH0zThg-xmBPH7IYkwbnHVDA';
         const CACHE_KEY = 'gadget_hunter_cache';
         const CACHE_TIMESTAMP_KEY = 'gadget_hunter_cache_timestamp';
         const CACHE_DURATION = 5 * 60 * 1000; // 5分間キャッシュ
@@ -1518,11 +1518,14 @@
             }
 
             // コンテンツ設定（HTMLをそのまま表示）
-            if (news.content) {
+            if (news.content && news.content.trim() !== '') {
                 modalContent.innerHTML = news.content;
-            } else {
+            } else if (news.summary && news.summary.trim() !== '') {
                 // contentがない場合はsummaryを表示
-                modalContent.innerHTML = `<p>${news.summary || 'No content available.'}</p>`;
+                modalContent.innerHTML = `<p>${news.summary}</p>`;
+            } else {
+                // どちらもない場合
+                modalContent.innerHTML = `<p>※詳細情報は元記事をご確認ください</p>`;
             }
 
             // ソースリンク設定
