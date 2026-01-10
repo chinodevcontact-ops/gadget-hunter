@@ -295,21 +295,12 @@
             text-decoration: none;
             transition: all 0.3s ease;
             position: relative;
-        }
-
-        .news-title a::after {
-            content: ' ↗';
-            font-size: 0.9rem;
-            opacity: 0;
-            transition: opacity 0.3s ease;
+            cursor: default; /* デスクトップではクリック不可 */
+            pointer-events: none; /* デスクトップではクリック無効 */
         }
 
         .news-title a:hover {
             text-shadow: 0 0 20px var(--green-glow-strong);
-        }
-
-        .news-title a:hover::after {
-            opacity: 1;
         }
 
         /* リーク信頼度メーター */
@@ -501,27 +492,29 @@
 
         /* ===== モバイル専用スタイル (768px以下) ===== */
         @media (max-width: 768px) {
-            /* モバイルではアコーディオン動作 */
+            /* モバイルではアコーディオン動作（超軽量版） */
             .card-expandable {
-                max-height: 0;
-                overflow: hidden;
+                display: none;
                 opacity: 0;
-                transform: translateY(-10px);
-                transition: max-height 0.3s ease-out, 
-                            opacity 0.25s ease-out 0.05s,
-                            transform 0.25s ease-out 0.05s;
+                transform: translateY(-5px);
                 margin-top: 0;
-                will-change: max-height, opacity, transform;
             }
 
             .news-card.expanded .card-expandable {
-                max-height: 600px;
-                opacity: 1;
-                transform: translateY(0);
+                display: block;
+                animation: expandFadeIn 0.25s ease-out forwards;
                 margin-top: 1rem;
-                transition: max-height 0.35s ease-in, 
-                            opacity 0.3s ease-in,
-                            transform 0.3s ease-in;
+            }
+
+            @keyframes expandFadeIn {
+                0% {
+                    opacity: 0;
+                    transform: translateY(-5px);
+                }
+                100% {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
             }
 
             /* ヘッダー最適化 */
@@ -616,8 +609,10 @@
                 overflow: hidden;
             }
 
-            .news-title a::after {
-                content: none;
+            /* モバイルではタイトルクリック有効化（アコーディオン用） */
+            .news-title a {
+                cursor: pointer;
+                pointer-events: auto;
             }
 
             /* 信頼度バーをミニマルに */
@@ -1021,25 +1016,14 @@
             header.appendChild(date);
             header.appendChild(category);
 
-            // タイトル
+            // タイトル（デスクトップではリンク無効、モバイルではアコーディオン）
             const title = document.createElement('h2');
             title.className = 'news-title';
             
-            const link = document.createElement('a');
-            link.href = news.url || '#';
-            link.target = '_blank';
-            link.rel = 'noopener noreferrer';
-            link.textContent = news.title || 'Untitled';
+            const titleText = document.createElement('span');
+            titleText.textContent = news.title || 'Untitled';
             
-            // デスクトップではリンククリックでページ遷移
-            // モバイルではカード全体がアコーディオン
-            link.addEventListener('click', (e) => {
-                if (window.innerWidth <= 768) {
-                    e.preventDefault(); // モバイルでは遷移しない
-                }
-            });
-            
-            title.appendChild(link);
+            title.appendChild(titleText);
 
             // リーク信頼度メーター
             const leakScore = news.leakScore || 75;
