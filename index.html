@@ -241,8 +241,13 @@
             transition: transform 0.4s ease;
         }
 
-        .news-card:hover::before {
-            transform: scaleX(1);
+        /* デスクトップ：カードホバーエフェクト */
+        .news-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--neon-green);
+            box-shadow: 
+                0 15px 40px var(--green-glow),
+                0 0 80px var(--green-glow-strong);
         }
 
         .card-header {
@@ -393,17 +398,9 @@
             font-weight: 700;
         }
 
-        /* モバイル専用のアコーディオン展開部分 */
+        /* デスクトップ：要約は常に表示 */
         .card-expandable {
-            max-height: 0;
-            overflow: hidden;
-            opacity: 0;
-            transform: translateY(-10px);
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .news-card.expanded .card-expandable {
-            max-height: 1000px;
+            max-height: none;
             opacity: 1;
             transform: translateY(0);
             margin-top: 1rem;
@@ -504,6 +501,23 @@
 
         /* ===== モバイル専用スタイル (768px以下) ===== */
         @media (max-width: 768px) {
+            /* モバイルではアコーディオン動作 */
+            .card-expandable {
+                max-height: 0;
+                overflow: hidden;
+                opacity: 0;
+                transform: translateY(-10px);
+                transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+                margin-top: 0;
+            }
+
+            .news-card.expanded .card-expandable {
+                max-height: 1000px;
+                opacity: 1;
+                transform: translateY(0);
+                margin-top: 1rem;
+            }
+
             /* ヘッダー最適化 */
             .header {
                 padding: 1rem;
