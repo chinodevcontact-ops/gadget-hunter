@@ -1017,7 +1017,7 @@
                         </div>
                     </div>
                 </div>
-                <button class="modal-close-btn" onclick="closeModal()">×</button>
+                <button class="modal-close-btn" onclick="closeModal()" aria-label="記事を閉じる">×</button>
             </div>
             <div class="modal-body">
                 <div id="modal-content" class="modal-content"></div>
@@ -1034,7 +1034,13 @@
         const API_URL = 'https://drive.google.com/uc?export=download&id=1hteuEBEmsH0zThg-xmBPH7IYkwbnHVDA';
         const CACHE_KEY = 'gadget_hunter_cache';
         const CACHE_TIMESTAMP_KEY = 'gadget_hunter_cache_timestamp';
-        const CACHE_DURATION = 5 * 60 * 1000; // 5分間キャッシュ
+        const CACHE_DURATION = 30 * 60 * 1000; // 30分間キャッシュ（API制限対策）
+        const DEBUG = true; // デバッグモード（本番ではfalseに）
+
+        // デバッグログ用ヘルパー関数
+        function debugLog(...args) {
+            if (DEBUG) console.log(...args);
+        }
 
         // サンプルデータ（デモ用）
         const SAMPLE_DATA = [
@@ -1092,10 +1098,10 @@
                     
                     // キャッシュが有効期限内か確認
                     if (now - timestamp < CACHE_DURATION) {
-                        console.log('📦 Using cached data (valid for', Math.round((CACHE_DURATION - (now - timestamp)) / 1000), 'more seconds)');
+                        debugLog('📦 Using cached data (valid for', Math.round((CACHE_DURATION - (now - timestamp)) / 1000), 'more seconds)');
                         return JSON.parse(cachedData);
                     } else {
-                        console.log('⏰ Cache expired, fetching new data');
+                        debugLog('⏰ Cache expired, fetching new data');
                     }
                 }
             } catch (error) {
@@ -1108,100 +1114,102 @@
             try {
                 localStorage.setItem(CACHE_KEY, JSON.stringify(data));
                 localStorage.setItem(CACHE_TIMESTAMP_KEY, Date.now().toString());
-                console.log('💾 Data cached successfully');
+                debugLog('💾 Data cached successfully');
             } catch (error) {
                 console.warn('Cache write error:', error);
             }
         }
 
-        // カテゴリー自動判定関数
+        // カテゴリー自動判定関数（正規表現版で誤検出防止）
         function detectCategory(title, summary = '') {
             const text = `${title} ${summary}`.toLowerCase();
 
-            // GPU関連のキーワード
-            const gpuKeywords = [
-                'rtx', 'gtx', 'geforce', 'nvidia', 'radeon', 'rx ', 'intel arc',
-                'gpu', 'graphics card', 'vram', 'cuda', 'ray tracing', 'dlss', 'fsr',
-                'グラフィック', 'グラボ', 'ビデオカード', 'グラフィックスカード'
+            // GPU関連のキーワード（正規表現で単語境界を使用）
+            const gpuPatterns = [
+                /\brtx\b/i, /\bgtx\b/i, /\bgeforce\b/i, /\bnvidia\b/i, /\bradeon\b/i, /\brx\s+\d/i,
+                /\bintel\s+arc\b/i, /\bgpu\b/i, /\bgraphics\s+card\b/i, /\bvram\b/i,
+                /\bcuda\b/i, /\bray\s+tracing\b/i, /\bdlss\b/i, /\bfsr\b/i
             ];
 
             // CPU関連のキーワード
-            const cpuKeywords = [
-                'ryzen', 'threadripper', 'epyc', 'core i', 'core ultra', 'xeon', 
-                'snapdragon', 'dimensity', 'exynos', 'google tensor', 'bionic', 'apple m',
-                'cpu', 'processor', 'プロセッサ', 'チップ', 'soc'
+            const cpuPatterns = [
+                /\bryzen\b/i, /\bthreadripper\b/i, /\bepyc\b/i, /\bcore\s+i\d/i, /\bcore\s+ultra\b/i,
+                /\bxeon\b/i, /\bsnapdragon\b/i, /\bdimensity\b/i, /\bexynos\b/i,
+                /\btensor\b/i, /\bbionic\b/i, /\bapple\s+m\d/i, /\bcpu\b/i, /\bprocessor\b/i
             ];
 
-            // PC Parts（新規）- マザボ、メモリ、SSD、電源など
-            const pcPartsKeywords = [
-                'motherboard', 'マザーボード', 'マザボ', 'chipset', 'z790', 'x670', 'b650',
-                'ddr', 'ram', 'memory', 'メモリ', 'dimm',
-                'ssd', 'nvme', 'hdd', 'storage', 'ストレージ', 'pcie 5.0',
-                'psu', 'power supply', '電源', 'watt',
-                'cooling', 'cooler', 'クーラー', '冷却', 'aio', 'water cooling'
+            // PC Parts（マザボ、メモリ、SSD、電源など）
+            const pcPartsPatterns = [
+                /\bmotherboard\b/i, /\bchipset\b/i, /\b[zxb]\d{3}\b/i,
+                /\bddr\d/i, /\bram\b/i, /\bmemory\b/i, /\bdimm\b/i,
+                /\bssd\b/i, /\bnvme\b/i, /\bhdd\b/i, /\bstorage\b/i, /\bpcie\s+\d\.\d\b/i,
+                /\bpsu\b/i, /\bpower\s+supply\b/i, /\b\d+w\b/i,
+                /\bcooling\b/i, /\bcooler\b/i, /\baio\b/i, /\bwater\s+cooling\b/i
             ];
 
-            // Laptop（新規）- ノートPC
-            const laptopKeywords = [
-                'laptop', 'notebook', 'macbook', 'thinkpad', 'zenbook',
-                'vivobook', 'ノートpc', 'ノートパソコン', 'ultrabook',
-                'chromebook', 'surface laptop', 'legion', 'rog laptop'
+            // Laptop（ノートPC）
+            const laptopPatterns = [
+                /\blaptop\b/i, /\bnotebook\b/i, /\bmacbook\b/i, /\bthinkpad\b/i,
+                /\bzenbook\b/i, /\bvivobook\b/i, /\bultrabook\b/i,
+                /\bchromebook\b/i, /\bsurface\s+laptop\b/i, /\blegion\b/i, /\brog\s+laptop\b/i
             ];
 
-            // Peripherals（新規）- 周辺機器
-            const peripheralKeywords = [
-                'mouse', 'keyboard', 'monitor', 'display', 'headset',
-                'webcam', 'マウス', 'キーボード', 'モニター', 'ディスプレイ',
-                'ヘッドセット', 'ヘッドホン', 'microphone', 'マイク',
-                'oled display', 'mini led', '144hz', '240hz', '4k monitor'
+            // Peripherals（周辺機器）
+            const peripheralPatterns = [
+                /\bmouse\b/i, /\bkeyboard\b/i, /\bmonitor\b/i, /\bdisplay\b/i,
+                /\bheadset\b/i, /\bwebcam\b/i, /\bmicrophone\b/i,
+                /\boled\s+display\b/i, /\bmini\s+led\b/i, /\b\d+hz\b/i, /\b4k\s+monitor\b/i
             ];
 
             // Smartphone関連のキーワード
-            const smartphoneKeywords = [
-                'iphone', 'galaxy', 'pixel', 'redmagic', 'oneplus', 'oppo', 'vivo',
-                'xiaomi', 'poco', 'realme', 'huawei', 'honor magic', 'honor phone',
-                'asus rog phone', 'sony xperia', 'motorola', 'nothing phone', 'smartphone',
-                'スマホ', 'スマートフォン', '携帯', 'android', 'ios'
+            const smartphonePatterns = [
+                /\biphone\b/i, /\bgalaxy\b/i, /\bpixel\b/i, /\bredmagic\b/i, /\boneplus\b/i,
+                /\boppo\b/i, /\bvivo\b/i, /\bxiaomi\b/i, /\bpoco\b/i, /\brealme\b/i,
+                /\bhuawei\b/i, /\bhonor\s+(magic|phone)\b/i, /\basus\s+rog\s+phone\b/i,
+                /\bsony\s+xperia\b/i, /\bmotorola\b/i, /\bnothing\s+phone\b/i,
+                /\bsmartphone\b/i, /\bandroid\b/i, /\bfoldable\b/i
             ];
 
             // Gaming関連のキーワード
-            const gamingKeywords = [
-                'ps5', 'playstation', 'xbox', 'nintendo', 'nintendo switch', 'steam deck',
-                'gaming console', 'video game', 'ゲーム', 'gaming pc',
-                'esports', 'fps game', 'mmorpg', 'battle royale'
+            const gamingPatterns = [
+                /\bps5\b/i, /\bplaystation\b/i, /\bxbox\b/i, /\bnintendo\s+switch\b/i,
+                /\bsteam\s+deck\b/i, /\bgaming\s+console\b/i, /\bvideo\s+game\b/i,
+                /\besports\b/i, /\bfps\s+game\b/i, /\bmmorpg\b/i, /\bbattle\s+royale\b/i
             ];
 
-            // AI関連のキーワード
-            const aiKeywords = [
-                'chatgpt', 'gpt', 'claude', 'gemini', 'copilot', ' ai ', 'artificial intelligence',
-                'machine learning', 'deep learning', 'neural network', 'llm', 'generative ai',
-                'stable diffusion', 'midjourney', 'dall-e', '機械学習', '人工知能', 'ニューラル'
+            // AI関連のキーワード（正規表現で単語境界を使用）
+            const aiPatterns = [
+                /\bchatgpt\b/i, /\bgpt\b/i, /\bclaude\b/i, /\bgemini\b/i, /\bcopilot\b/i,
+                /\bartificial\s+intelligence\b/i, /\bmachine\s+learning\b/i,
+                /\bdeep\s+learning\b/i, /\bneural\s+network\b/i, /\bllm\b/i,
+                /\bgenerative\s+ai\b/i, /\bstable\s+diffusion\b/i,
+                /\bmidjourney\b/i, /\bdall-e\b/i, /\b\sai\s/i
             ];
 
-            // キーワードマッチング（優先順位順）
-            for (const keyword of gpuKeywords) {
-                if (text.includes(keyword)) return 'GPU';
+            // パターンマッチング（優先順位順）
+            for (const pattern of gpuPatterns) {
+                if (pattern.test(text)) return 'GPU';
             }
-            for (const keyword of cpuKeywords) {
-                if (text.includes(keyword)) return 'CPU';
+            for (const pattern of cpuPatterns) {
+                if (pattern.test(text)) return 'CPU';
             }
-            for (const keyword of pcPartsKeywords) {
-                if (text.includes(keyword)) return 'PC Parts';
+            for (const pattern of pcPartsPatterns) {
+                if (pattern.test(text)) return 'PC Parts';
             }
-            for (const keyword of laptopKeywords) {
-                if (text.includes(keyword)) return 'Laptop';
+            for (const pattern of laptopPatterns) {
+                if (pattern.test(text)) return 'Laptop';
             }
-            for (const keyword of peripheralKeywords) {
-                if (text.includes(keyword)) return 'Peripherals';
+            for (const pattern of peripheralPatterns) {
+                if (pattern.test(text)) return 'Peripherals';
             }
-            for (const keyword of smartphoneKeywords) {
-                if (text.includes(keyword)) return 'Smartphone';
+            for (const pattern of smartphonePatterns) {
+                if (pattern.test(text)) return 'Smartphone';
             }
-            for (const keyword of gamingKeywords) {
-                if (text.includes(keyword)) return 'Gaming';
+            for (const pattern of gamingPatterns) {
+                if (pattern.test(text)) return 'Gaming';
             }
-            for (const keyword of aiKeywords) {
-                if (text.includes(keyword)) return 'AI';
+            for (const pattern of aiPatterns) {
+                if (pattern.test(text)) return 'AI';
             }
 
             return 'General';
@@ -1230,6 +1238,8 @@
 
             try {
                 // APIからデータ取得を試みる
+                debugLog('🔄 APIからデータ取得中...', API_URL);
+                
                 const response = await fetch(API_URL, {
                     method: 'GET',
                     redirect: 'follow',
@@ -1238,8 +1248,15 @@
                     }
                 });
 
+                debugLog('📡 レスポンス受信:', response.status, response.statusText);
+
                 if (response.ok) {
-                    const data = await response.json();
+                    const text = await response.text();
+                    debugLog('📄 取得データ（最初の100文字）:', text.substring(0, 100));
+                    
+                    const data = JSON.parse(text);
+                    debugLog('✅ JSONパース成功！データ件数:', data.length);
+                    
                     if (Array.isArray(data) && data.length > 0) {
                         // APIデータにcategoryとleakScoreを自動判定して追加
                         allNews = data.map(item => ({
@@ -1248,21 +1265,26 @@
                             leakScore: item.score || item.leakScore || 75  // GASの"score"を"leakScore"として使用
                         }));
                         
+                        debugLog('🎉 データ処理完了！記事数:', allNews.length);
+                        
                         // キャッシュに保存
                         setCachedData(allNews);
                     } else {
+                        console.warn('⚠️ データが空配列、サンプルデータを使用');
                         // APIデータが空ならサンプルデータを使用
                         allNews = SAMPLE_DATA;
                         setCachedData(allNews);
                     }
                 } else {
+                    console.error('❌ APIエラー:', response.status, response.statusText);
                     // APIエラー時はサンプルデータを使用
                     allNews = SAMPLE_DATA;
                     setCachedData(allNews);
                 }
 
             } catch (error) {
-                console.warn('API fetch failed, using sample data:', error);
+                console.error('❌ API取得失敗:', error);
+                console.error('エラー詳細:', error.message);
                 // ネットワークエラー時もサンプルデータを使用
                 allNews = SAMPLE_DATA;
                 setCachedData(allNews);
@@ -1423,6 +1445,7 @@
             // ボタンクリックでモーダルを開く
             readMoreBtn.addEventListener('click', (e) => {
                 e.preventDefault();
+                e.stopPropagation(); // イベントバブリング防止（モバイルのアコーディオンと競合しないように）
                 openModal(news);
             });
 
@@ -1469,8 +1492,19 @@
             });
         });
 
-        // ページ読み込み時に実行
-        document.addEventListener('DOMContentLoaded', loadNews);
+        // ページ読み込み時に実行（DOMContentLoadedを統合）
+        document.addEventListener('DOMContentLoaded', () => {
+            // ニュース読み込み
+            loadNews();
+            
+            // モーダル背景クリックで閉じる
+            const modal = document.getElementById('article-modal');
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    closeModal();
+                }
+            });
+        });
 
         // ページを離れる前にスクロール位置を保存（UX向上）
         window.addEventListener('beforeunload', () => {
@@ -1489,6 +1523,12 @@
         // ===== モーダル機能 =====
         function openModal(news) {
             const modal = document.getElementById('article-modal');
+            
+            // 既に開いている場合はスキップ（多重表示防止）
+            if (modal.classList.contains('active')) {
+                return;
+            }
+            
             const modalTitle = document.getElementById('modal-title');
             const modalDate = document.getElementById('modal-date');
             const modalScoreFill = document.getElementById('modal-score-fill');
@@ -1517,15 +1557,30 @@
                 modalScoreFill.classList.add('score-low');
             }
 
-            // コンテンツ設定（HTMLをそのまま表示）
-            if (news.content && news.content.trim() !== '') {
-                modalContent.innerHTML = news.content;
-            } else if (news.summary && news.summary.trim() !== '') {
-                // contentがない場合はsummaryを表示
-                modalContent.innerHTML = `<p>${news.summary}</p>`;
+            // ★ コンテンツ設定（型チェック追加）
+            let contentHTML = news.content || '';
+            
+            // 型チェック：文字列でない場合は変換
+            if (typeof contentHTML !== 'string') {
+                console.warn('Content is not a string:', contentHTML);
+                contentHTML = String(contentHTML);
+            }
+
+            if (contentHTML && contentHTML.trim() !== '') {
+                modalContent.innerHTML = contentHTML;
             } else {
-                // どちらもない場合
-                modalContent.innerHTML = `<p>※詳細情報は元記事をご確認ください</p>`;
+                // contentがない場合はsummaryを表示
+                let summaryHTML = news.summary || '';
+                if (typeof summaryHTML !== 'string') {
+                    summaryHTML = String(summaryHTML);
+                }
+                
+                if (summaryHTML && summaryHTML.trim() !== '') {
+                    modalContent.innerHTML = `<p>${summaryHTML.replace(/\n/g, '<br>')}</p>`;
+                } else {
+                    // どちらもない場合
+                    modalContent.innerHTML = `<p>※詳細情報は元記事をご確認ください</p>`;
+                }
             }
 
             // ソースリンク設定
@@ -1541,16 +1596,6 @@
             modal.classList.remove('active');
             document.body.classList.remove('modal-open');
         }
-
-        // モーダル背景クリックで閉じる
-        document.addEventListener('DOMContentLoaded', () => {
-            const modal = document.getElementById('article-modal');
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    closeModal();
-                }
-            });
-        });
 
         // ESCキーでモーダルを閉じる
         document.addEventListener('keydown', (e) => {
