@@ -1209,7 +1209,7 @@
                         allNews = data.map(item => ({
                             ...item,
                             category: item.category || detectCategory(item.title || '', item.summary || ''),
-                            leakScore: item.leakScore || Math.floor(Math.random() * 30) + 70
+                            leakScore: item.score || item.leakScore || 75  // GASの"score"を"leakScore"として使用
                         }));
                         
                         // キャッシュに保存
