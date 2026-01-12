@@ -968,7 +968,7 @@
                 <div class="category-tag" data-category="CPU">CPU</div>
                 <div class="category-tag" data-category="PC Parts">PC Parts</div>
                 <div class="category-tag" data-category="Laptop">Laptop</div>
-                <div class="category-tag" data-category="Peripherals">周辺機器</div>
+                <div class="category-tag" data-category="Peripherals">Peripherals</div>
                 <div class="category-tag" data-category="Smartphone">Smartphone</div>
                 <div class="category-tag" data-category="Gaming">Gaming</div>
                 <div class="category-tag" data-category="AI">AI</div>
@@ -1031,8 +1031,8 @@
     </div>
 
     <script>
-        // Vercel Functionsを使用してAPIキーを隠す
-         const API_URL = '/data/news.json';
+        // ローカルJSONファイルを直接読み込み（403エラー対策）
+        const API_URL = '/data/news.json';
         const CACHE_KEY = 'gadget_hunter_cache';
         const CACHE_TIMESTAMP_KEY = 'gadget_hunter_cache_timestamp';
         const CACHE_DURATION = 30 * 60 * 1000; // 30分間キャッシュ（API制限対策）
@@ -1087,64 +1087,148 @@
 
             // GPU関連のキーワード（正規表現で単語境界を使用）
             const gpuPatterns = [
-                /\brtx\b/i, /\bgtx\b/i, /\bgeforce\b/i, /\bnvidia\b/i, /\bradeon\b/i, /\brx\s+\d/i,
-                /\bintel\s+arc\b/i, /\bgpu\b/i, /\bgraphics\s+card\b/i, /\bvram\b/i,
-                /\bcuda\b/i, /\bray\s+tracing\b/i, /\bdlss\b/i, /\bfsr\b/i
+                // NVIDIA
+                /\brtx\s*\d{4}\b/i, /\bgtx\s*\d{4}\b/i, /\bgeforce\b/i, /\bnvidia\b/i, 
+                /\btitan\b/i, /\bquadro\b/i, /\bcuda\b/i, /\bdlss\b/i, /\btensor\s+core\b/i,
+                // AMD
+                /\bradeon\b/i, /\brx\s+\d{4}\b/i, /\brdna\b/i, /\bfsr\b/i, /\binfinity\s+cache\b/i,
+                // Intel
+                /\bintel\s+arc\b/i, /\barc\s+[ab]\d+\b/i, /\bxe\s+graphics\b/i,
+                // 一般
+                /\bgpu\b/i, /\bgraphics\s+card\b/i, /\bvram\b/i, /\bgddr\d/i,
+                /\bray\s+tracing\b/i, /\brasterization\b/i, /\bvideo\s+card\b/i
             ];
 
             // CPU関連のキーワード
             const cpuPatterns = [
-                /\bryzen\b/i, /\bthreadripper\b/i, /\bepyc\b/i, /\bcore\s+i\d/i, /\bcore\s+ultra\b/i,
-                /\bxeon\b/i, /\bsnapdragon\b/i, /\bdimensity\b/i, /\bexynos\b/i,
-                /\btensor\b/i, /\bbionic\b/i, /\bapple\s+m\d/i, /\bcpu\b/i, /\bprocessor\b/i
+                // AMD デスクトップ・サーバー
+                /\bryzen\s+[3579]\b/i, /\bthreadripper\b/i, /\bepyc\b/i, /\bamd\b/i,
+                // Intel デスクトップ・サーバー
+                /\bcore\s+i[3579]\b/i, /\bcore\s+ultra\b/i, /\bxeon\b/i, /\bintel\s+\d+th\s+gen\b/i,
+                /\braptor\s+lake\b/i, /\bmeteor\s+lake\b/i, /\barrow\s+lake\b/i,
+                // モバイル
+                /\bsnapdragon\b/i, /\bdimensity\b/i, /\bexynos\b/i, /\btensor\s+g\d\b/i,
+                /\bbionic\b/i, /\bapple\s+[am]\d+\b/i, /\bmediatek\b/i, /\bqualcomm\b/i,
+                // 一般
+                /\bcpu\b/i, /\bprocessor\b/i, /\bcores?\b/i, /\bthreads?\b/i, /\bghz\b/i,
+                /\bcache\b/i, /\btdp\b/i, /\boverclocking\b/i
             ];
 
             // PC Parts（マザボ、メモリ、SSD、電源など）
             const pcPartsPatterns = [
-                /\bmotherboard\b/i, /\bchipset\b/i, /\b[zxb]\d{3}\b/i,
-                /\bddr\d/i, /\bram\b/i, /\bmemory\b/i, /\bdimm\b/i,
-                /\bssd\b/i, /\bnvme\b/i, /\bhdd\b/i, /\bstorage\b/i, /\bpcie\s+\d\.\d\b/i,
-                /\bpsu\b/i, /\bpower\s+supply\b/i, /\b\d+w\b/i,
-                /\bcooling\b/i, /\bcooler\b/i, /\baio\b/i, /\bwater\s+cooling\b/i
+                // マザーボード・チップセット
+                /\bmotherboard\b/i, /\bchipset\b/i, /\b[zxb]\d{3}\b/i, /\basus\s+rog\s+strix\b/i,
+                /\bmsi\s+(mag|mpg|meg)\b/i, /\bgigabyte\s+aorus\b/i, /\basrock\b/i,
+                // メモリ
+                /\bddr[345]\b/i, /\bram\b/i, /\bmemory\b/i, /\bdimm\b/i, /\bg\.skill\b/i,
+                /\bcorsair\s+vengeance\b/i, /\bcrucial\b/i, /\bkingston\b/i, /\btrident\b/i,
+                // ストレージ
+                /\bssd\b/i, /\bnvme\b/i, /\bhdd\b/i, /\bstorage\b/i, /\bpcie\s+[345]\.\d\b/i,
+                /\bsamsung\s+\d+\b/i, /\bwd\s+black\b/i, /\bwestern\s+digital\b/i, /\bseagate\b/i,
+                // 電源
+                /\bpsu\b/i, /\bpower\s+supply\b/i, /\b\d{3,4}w\b/i, /\b80\s+plus\b/i,
+                /\bseasonic\b/i, /\bcorsair\s+(rm|hx|ax)\b/i, /\bevga\s+supernova\b/i,
+                /\bbe\s+quiet\b/i, /\bthermaltake\b/i,
+                // 冷却・ファン
+                /\bcooling\b/i, /\bcooler\b/i, /\baio\b/i, /\bwater\s+cooling\b/i,
+                /\bnoctua\b/i, /\bnf-[af]\d+\b/i, /\bnh-[du]\d+\b/i, /\bpulsar\b/i,
+                /\bcooler\s+master\b/i, /\bnzxt\s+kraken\b/i, /\barctic\b/i,
+                /\bthermal\s+paste\b/i, /\bfan\b/i, /\brgb\s+fan\b/i,
+                // ケース
+                /\bpc\s+case\b/i, /\bchassis\b/i, /\bfractal\s+design\b/i, /\blian\s+li\b/i,
+                /\bnzxt\s+h\d+\b/i, /\bcorsair\s+\d+d\b/i, /\bantec\s+flux\b/i,
+                // その他
+                /\brgb\s+lighting\b/i, /\bargb\b/i, /\bpc\s+build\b/i
             ];
 
             // Laptop（ノートPC）
             const laptopPatterns = [
-                /\blaptop\b/i, /\bnotebook\b/i, /\bmacbook\b/i, /\bthinkpad\b/i,
-                /\bzenbook\b/i, /\bvivobook\b/i, /\bultrabook\b/i,
-                /\bchromebook\b/i, /\bsurface\s+laptop\b/i, /\blegion\b/i, /\brog\s+laptop\b/i
+                // Apple
+                /\bmacbook\s+(air|pro)\b/i, /\bmacbook\b/i,
+                // ビジネス・プレミアム
+                /\bthinkpad\b/i, /\bzenbook\b/i, /\bspectre\b/i, /\benvy\b/i,
+                /\bxps\b/i, /\blatitude\b/i, /\bprecision\b/i, /\bprobook\b/i, /\belitebook\b/i,
+                // ゲーミング
+                /\brog\s+(zephyrus|strix|flow)\b/i, /\blegion\b/i, /\bomnibook\b/i,
+                /\bg\d+\b/i, /\bgaming\s+laptop\b/i, /\balienware\b/i, /\brazer\s+blade\b/i,
+                // 汎用・クリエイター
+                /\bvivobook\b/i, /\bideapad\b/i, /\baspire\b/i, /\bswift\b/i,
+                /\bprestige\b/i, /\bcreator\b/i, /\bconceptd\b/i,
+                // その他
+                /\bultrabook\b/i, /\bchromebook\b/i, /\bsurface\s+laptop\b/i,
+                /\blaptop\b/i, /\bnotebook\b/i, /\b2-in-1\b/i, /\bconvertible\b/i
             ];
 
             // Peripherals（周辺機器）
             const peripheralPatterns = [
-                /\bmouse\b/i, /\bkeyboard\b/i, /\bmonitor\b/i, /\bdisplay\b/i,
-                /\bheadset\b/i, /\bwebcam\b/i, /\bmicrophone\b/i,
-                /\boled\s+display\b/i, /\bmini\s+led\b/i, /\b\d+hz\b/i, /\b4k\s+monitor\b/i
+                // マウス・キーボード
+                /\bmouse\b/i, /\bgaming\s+mouse\b/i, /\bwireless\s+mouse\b/i,
+                /\bkeyboard\b/i, /\bmechanical\s+keyboard\b/i, /\bcherry\s+mx\b/i,
+                /\blogitech\b/i, /\brazer\b/i, /\bsteelseries\b/i, /\bcorsair\b/i,
+                // モニター
+                /\bmonitor\b/i, /\bdisplay\b/i, /\bscreen\b/i, /\b\d+hz\b/i,
+                /\b[248]k\s+(monitor|display)\b/i, /\bultrawide\b/i, /\bcurved\s+monitor\b/i,
+                /\boled\s+display\b/i, /\bmini\s+led\b/i, /\bips\s+panel\b/i, /\bva\s+panel\b/i,
+                /\bhdr\d+\b/i, /\bfreesync\b/i, /\bg-sync\b/i, /\bvariable\s+refresh\b/i,
+                // オーディオ
+                /\bheadset\b/i, /\bheadphones\b/i, /\bearphones\b/i, /\bspeakers\b/i,
+                /\bmicrophone\b/i, /\bdac\b/i, /\bamp\b/i, /\baudio\s+interface\b/i,
+                // その他
+                /\bwebcam\b/i, /\bcamera\b/i, /\bprinter\b/i, /\bscanner\b/i,
+                /\bdock\b/i, /\bhub\b/i, /\badapter\b/i
             ];
 
             // Smartphone関連のキーワード
             const smartphonePatterns = [
-                /\biphone\b/i, /\bgalaxy\b/i, /\bpixel\b/i, /\bredmagic\b/i, /\boneplus\b/i,
-                /\boppo\b/i, /\bvivo\b/i, /\bxiaomi\b/i, /\bpoco\b/i, /\brealme\b/i,
-                /\bhuawei\b/i, /\bhonor\s+(magic|phone)\b/i, /\basus\s+rog\s+phone\b/i,
-                /\bsony\s+xperia\b/i, /\bmotorola\b/i, /\bnothing\s+phone\b/i,
-                /\bsmartphone\b/i, /\bandroid\b/i, /\bfoldable\b/i
+                // Apple
+                /\biphone\s+\d+\b/i, /\biphone\s+(pro|plus|mini|se)\b/i, /\bios\s+\d+\b/i,
+                // Samsung
+                /\bgalaxy\s+[szaf]\d+\b/i, /\bgalaxy\s+(ultra|plus|fold|flip)\b/i, /\bone\s+ui\b/i,
+                // Google
+                /\bpixel\s+\d+\b/i, /\bpixel\s+(pro|xl|fold)\b/i, /\btensor\s+g\d\b/i,
+                // 中華メーカー
+                /\bxiaomi\b/i, /\bredmi\b/i, /\bpoco\b/i, /\boppo\b/i, /\breno\b/i,
+                /\bvivo\b/i, /\boneplus\b/i, /\brealme\b/i, /\bhuawei\b/i, /\bhonor\b/i,
+                // その他
+                /\basus\s+rog\s+phone\b/i, /\bsony\s+xperia\b/i, /\bmotorola\b/i, /\bnothing\s+phone\b/i,
+                /\bredmagic\b/i, /\blenovo\b/i, /\bzte\b/i,
+                // 一般
+                /\bsmartphone\b/i, /\bandroid\s+\d+\b/i, /\bfoldable\b/i, /\bflip\s+phone\b/i,
+                /\b5g\s+phone\b/i, /\bmobile\s+phone\b/i, /\brefresh\s+rate\b/i
             ];
 
             // Gaming関連のキーワード
             const gamingPatterns = [
-                /\bps5\b/i, /\bplaystation\b/i, /\bxbox\b/i, /\bnintendo\s+switch\b/i,
-                /\bsteam\s+deck\b/i, /\bgaming\s+console\b/i, /\bvideo\s+game\b/i,
-                /\besports\b/i, /\bfps\s+game\b/i, /\bmmorpg\b/i, /\bbattle\s+royale\b/i
+                // コンソール
+                /\bps[456]\b/i, /\bplaystation\s*[456]?\b/i, /\bxbox\s+(series\s+[xs]|one)?\b/i,
+                /\bnintendo\s+switch\b/i, /\bsteam\s+deck\b/i, /\bgaming\s+console\b/i,
+                // ゲームタイトル・ジャンル
+                /\bgta\s*\d*\b/i, /\bgrand\s+theft\s+auto\b/i, /\bcall\s+of\s+duty\b/i,
+                /\bfortnite\b/i, /\bminecraft\b/i, /\bvalorant\b/i, /\bleague\s+of\s+legends\b/i,
+                /\bapex\s+legends\b/i, /\bcounter[-\s]strike\b/i, /\boverwatch\b/i,
+                // ジャンル・用語
+                /\bvideo\s+game\b/i, /\bgameplay\b/i, /\besports\b/i, /\be-sports\b/i,
+                /\bfps\b/i, /\bmmorpg\b/i, /\bbattle\s+royale\b/i, /\brpg\s+game\b/i,
+                /\bgame\s+(trailer|release|launch)\b/i, /\bgaming\b/i,
+                // その他
+                /\brockstar\s+games\b/i, /\bactivision\b/i, /\bubisoft\b/i, /\bea\s+sports\b/i
             ];
 
             // AI関連のキーワード（正規表現で単語境界を使用）
             const aiPatterns = [
-                /\bchatgpt\b/i, /\bgpt\b/i, /\bclaude\b/i, /\bgemini\b/i, /\bcopilot\b/i,
-                /\bartificial\s+intelligence\b/i, /\bmachine\s+learning\b/i,
-                /\bdeep\s+learning\b/i, /\bneural\s+network\b/i, /\bllm\b/i,
-                /\bgenerative\s+ai\b/i, /\bstable\s+diffusion\b/i,
-                /\bmidjourney\b/i, /\bdall-e\b/i, /\b\sai\s/i
+                // AIモデル・サービス
+                /\bchatgpt\b/i, /\bgpt-[34o]\b/i, /\bclaude\b/i, /\bgemini\b/i, /\bcopilot\b/i,
+                /\bllama\b/i, /\bmistral\b/i, /\balpaca\b/i, /\bvicuna\b/i,
+                // 画像生成
+                /\bstable\s+diffusion\b/i, /\bmidjourney\b/i, /\bdall[-\s]e\b/i, /\bimage\s+generation\b/i,
+                // 技術・用語
+                /\bartificial\s+intelligence\b/i, /\bmachine\s+learning\b/i, /\bdeep\s+learning\b/i,
+                /\bneural\s+network\b/i, /\bllm\b/i, /\blarge\s+language\s+model\b/i,
+                /\bgenerative\s+ai\b/i, /\btransformer\b/i, /\bnlp\b/i, /\bcomputer\s+vision\b/i,
+                // 企業・プラットフォーム
+                /\bopenai\b/i, /\banthropic\b/i, /\bhugging\s+face\b/i,
+                // 一般
+                /\b\sai\b/i, /\bai\s+(model|chip|processor)\b/i, /\bai-powered\b/i
             ];
 
             // パターンマッチング（優先順位順）
