@@ -19,7 +19,7 @@ jobs:
         run: |
           echo "📡 Fetching latest news from GAS..."
           mkdir -p data
-          curl -L -o data/news.json "https://drive.google.com/uc?export=download&id=1hteuEBEmsH0zThg-xmBPH7IYkwbnHVDA"
+          curl -L -o data/news.json "https://drive.google.com/file/d/1hteuEBEmsH0zThg-xmBPH7IYkwbnHVDA/view?usp=drive_link"
           
           if [ -f data/news.json ]; then
             echo "✅ news.json downloaded successfully"
