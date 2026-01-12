@@ -19,9 +19,19 @@ exports.handler = async function(event, context) {
     };
   }
 
-  // Google Drive設定
-  const FILE_ID = '1hteuEBEmsH0zThg-xmBPH7IYkwbnHVDA';
-  const API_KEY = 'AIzaSyBI77-zVtm2AOzAKglBM9ngoZBU9IDOeDA';
+  // Google Drive設定（環境変数から取得）
+  const FILE_ID = process.env.GOOGLE_DRIVE_FILE_ID || '1hteuEBEmsH0zThg-xmBPH7IYkwbnHVDA';
+  const API_KEY = process.env.GOOGLE_DRIVE_API_KEY;
+  
+  // APIキーが設定されていない場合はエラー
+  if (!API_KEY) {
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({ error: 'API key not configured' })
+    };
+  }
+  
   const API_URL = `https://www.googleapis.com/drive/v3/files/${FILE_ID}?alt=media&key=${API_KEY}`;
 
   try {
