@@ -3,38 +3,54 @@ name: 🤖 Auto-update News from GAS
 on:
   schedule:
     - cron: '0 */2 * * *'  # 2時間ごとに実行
-  workflow_dispatch:        # 手動実行ボタンを表示
+  workflow_dispatch:        # 手動実行も可能
 
 jobs:
   update-news:
     runs-on: ubuntu-latest
     permissions:
-      contents: write      # コミット権限を付与
+      contents: write
+    
     steps:
-      - uses: actions/checkout@v4
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
       
-      - name: Download news.json from Google Drive
+      - name: 🔄 Download latest news.json from Google Drive
         run: |
-          # フォルダがない場合に備えて作成
+          echo "📡 Fetching latest news from GAS..."
           mkdir -p data
-          # Google Driveから直接ダウンロード (-Lでリダイレクト追従)
           curl -L -o data/news.json "https://drive.google.com/uc?export=download&id=1hteuEBEmsH0zThg-xmBPH7IYkwbnHVDA"
+          
+          if [ -f data/news.json ]; then
+            echo "✅ news.json downloaded successfully"
+            echo "📊 File size: $(wc -c < data/news.json) bytes"
+            echo "📝 Article count: $(grep -o '"title"' data/news.json | wc -l)"
+          else
+            echo "❌ Failed to download news.json"
+            exit 1
+          fi
       
-      - name: Check for changes
-        id: git-check
+      - name: 🔍 Check for changes
+        id: check_changes
         run: |
-          git diff --exit-code data/news.json || echo "changes=true" >> $GITHUB_OUTPUT
-
-      - name: Commit and push if changed
-        if: steps.git-check.outputs.changes == 'true'
+          git diff --exit-code data/news.json || echo "changed=true" >> $GITHUB_OUTPUT
+      
+      - name: 💾 Commit and push if changed
+        if: steps.check_changes.outputs.changed == 'true'
         run: |
           git config user.name "GADGET HUNTER Bot"
           git config user.email "actions@github.com"
           git add data/news.json
           
-          # 記事数をカウントしてコミットメッセージに含める
           ARTICLE_COUNT=$(grep -o '"title"' data/news.json | wc -l)
           CURRENT_DATE=$(date +'%Y-%m-%d %H:%M JST')
           
           git commit -m "🤖 Auto-update: $ARTICLE_COUNT articles from GAS [$CURRENT_DATE]"
           git push
+          
+          echo "✅ Successfully pushed updates to GitHub!"
+      
+      - name: 🎉 No changes detected
+        if: steps.check_changes.outputs.changed != 'true'
+        run: |
+          echo "ℹ️ No new articles found. news.json is up to date."
