@@ -1042,46 +1042,6 @@
             if (DEBUG) console.log(...args);
         }
 
-        // サンプルデータ（デモ用）
-        const SAMPLE_DATA = [
-            {
-                date: '2026/01/09 22:30',
-                title: 'RedMagic 10 Pro Leak: 7500mAh Battery & Snapdragon 8 Elite Confirmed',
-                url: 'https://example.com/redmagic-10-pro',
-                category: 'Smartphone',
-                leakScore: 92,
-                summary: '• Massive 7500mAh battery with 100W fast charging\n• Snapdragon 8 Elite processor with advanced cooling\n• 6.85" AMOLED display with 165Hz refresh rate',
-                content: '<p><strong>RedMagic 10 Pro</strong> is set to revolutionize mobile gaming with its unprecedented 7500mAh battery capacity, the largest ever in a flagship gaming phone.</p><h3>Battery & Charging</h3><p>The massive 7500mAh battery paired with 100W fast charging technology ensures all-day gaming sessions without interruption. Full charge in just 35 minutes.</p><h3>Performance</h3><p>Powered by the latest Snapdragon 8 Elite processor with advanced vapor chamber cooling system, maintaining peak performance even during intensive gaming.</p><h3>Display</h3><p>Features a stunning 6.85" AMOLED display with 165Hz refresh rate and 1200Hz touch sampling rate for ultra-responsive gaming.</p>'
-            },
-            {
-                date: '2026/01/09 20:15',
-                title: 'NVIDIA RTX 5090 Specs Leaked: 32GB GDDR7 & 600W TDP',
-                url: 'https://example.com/rtx-5090',
-                category: 'GPU',
-                leakScore: 85,
-                summary: '• 32GB GDDR7 memory with 1.5TB/s bandwidth\n• 21,760 CUDA cores on 4nm process\n• 600W TDP requiring new 16-pin connector',
-                content: '<p><strong>NVIDIA RTX 5090</strong> leak reveals a monster GPU that pushes the boundaries of graphics performance.</p><h3>Memory Architecture</h3><p>Equipped with 32GB of next-generation GDDR7 memory running at 28Gbps, delivering a staggering 1.5TB/s memory bandwidth for 4K and 8K gaming.</p><h3>Core Specifications</h3><p>Built on TSMC 4nm process node with 21,760 CUDA cores, representing a 30% increase over RTX 4090. Ray tracing performance expected to double.</p><h3>Power Requirements</h3><p>The 600W TDP requires a new 16-pin power connector and robust PSU. NVIDIA recommends at least 1000W power supply.</p>'
-            },
-            {
-                date: '2026/01/09 18:45',
-                title: 'iPhone 17 Pro: Periscope Camera & A19 Chip Details Surface',
-                url: 'https://example.com/iphone-17-pro',
-                category: 'Smartphone',
-                leakScore: 78,
-                summary: '• Periscope telephoto with 10x optical zoom\n• A19 chip built on 2nm process technology\n• Titanium frame with new "Space Black" color option',
-                content: '<p><strong>iPhone 17 Pro</strong> brings revolutionary camera technology and unprecedented processing power.</p><h3>Camera System</h3><p>The periscope telephoto lens offers true 10x optical zoom without quality loss, powered by advanced computational photography algorithms.</p><h3>A19 Bionic Chip</h3><p>Built on TSMC 2nm process technology, the A19 chip delivers 25% better performance and 40% improved power efficiency compared to A18.</p><h3>Design Evolution</h3><p>Features a refined titanium frame in new Space Black color, 20% lighter than previous generation while maintaining durability.</p>'
-            },
-            {
-                date: '2026/01/09 16:20',
-                title: 'AMD Ryzen 9 9950X3D: 192MB Cache Beast Coming Q2 2026',
-                url: 'https://example.com/ryzen-9950x3d',
-                category: 'CPU',
-                leakScore: 88,
-                summary: '• 16 cores / 32 threads with 192MB total cache\n• 5.7GHz boost clock on Zen 5 architecture\n• Expected to launch at $699 in Q2 2026',
-                content: '<p><strong>AMD Ryzen 9 9950X3D</strong> is the ultimate gaming processor with massive 3D V-Cache technology.</p><h3>Cache Architecture</h3><p>Unprecedented 192MB total cache (128MB 3D V-Cache + 64MB L3) provides exceptional gaming performance, reducing memory latency significantly.</p><h3>Core Performance</h3><p>16 cores and 32 threads with 5.7GHz boost clock on advanced Zen 5 architecture. Perfect for both gaming and content creation.</p><h3>Market Positioning</h3><p>Expected to launch at $699 in Q2 2026, positioned as the flagship gaming CPU that dominates both single-thread and multi-thread workloads.</p>'
-            }
-        ];
-
         let allNews = [];
         let currentCategory = 'all';
         let searchQuery = '';
@@ -1269,30 +1229,30 @@
                         
                         // キャッシュに保存
                         setCachedData(allNews);
+                        
+                        // 表示を更新
+                        loadingElement.style.display = 'none';
+                        displayNews();
                     } else {
-                        console.warn('⚠️ データが空配列、サンプルデータを使用');
-                        // APIデータが空ならサンプルデータを使用
-                        allNews = SAMPLE_DATA;
-                        setCachedData(allNews);
+                        console.error('⚠️ APIからデータが取得できませんでした（空配列）');
+                        // エラー表示
+                        loadingElement.style.display = 'none';
+                        errorContainer.style.display = 'flex';
                     }
                 } else {
                     console.error('❌ APIエラー:', response.status, response.statusText);
-                    // APIエラー時はサンプルデータを使用
-                    allNews = SAMPLE_DATA;
-                    setCachedData(allNews);
+                    // エラー表示
+                    loadingElement.style.display = 'none';
+                    errorContainer.style.display = 'flex';
                 }
 
             } catch (error) {
                 console.error('❌ API取得失敗:', error);
                 console.error('エラー詳細:', error.message);
-                // ネットワークエラー時もサンプルデータを使用
-                allNews = SAMPLE_DATA;
-                setCachedData(allNews);
+                // エラー表示
+                loadingElement.style.display = 'none';
+                errorContainer.style.display = 'flex';
             }
-
-            // 表示を更新
-            loadingElement.style.display = 'none';
-            displayNews();
         }
 
         function displayNews() {
