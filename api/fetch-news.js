@@ -1,22 +1,15 @@
-// Netlify Function: Google Drive APIをプロキシする
+// Vercel Function: Google Drive APIをプロキシする
 // APIキーはここに隠されるため、ブラウザからは見えません
 
-exports.handler = async function(event, context) {
+export default async function handler(req, res) {
   // CORS対応のヘッダー
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Allow-Methods': 'GET, OPTIONS',
-    'Content-Type': 'application/json'
-  };
-
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  
   // OPTIONSリクエスト（プリフライト）への対応
-  if (event.httpMethod === 'OPTIONS') {
-    return {
-      statusCode: 200,
-      headers,
-      body: ''
-    };
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
   }
 
   // Google Drive設定（環境変数から取得）
@@ -25,11 +18,7 @@ exports.handler = async function(event, context) {
   
   // APIキーが設定されていない場合はエラー
   if (!API_KEY) {
-    return {
-      statusCode: 500,
-      headers,
-      body: JSON.stringify({ error: 'API key not configured' })
-    };
+    return res.status(500).json({ error: 'API key not configured' });
   }
   
   const API_URL = `https://www.googleapis.com/drive/v3/files/${FILE_ID}?alt=media&key=${API_KEY}`;
@@ -44,21 +33,14 @@ exports.handler = async function(event, context) {
 
     const data = await response.text();
     
-    return {
-      statusCode: 200,
-      headers,
-      body: data
-    };
+    // JSONとして返す
+    return res.status(200).json(JSON.parse(data));
   } catch (error) {
     console.error('Error fetching from Google Drive:', error);
     
-    return {
-      statusCode: 500,
-      headers,
-      body: JSON.stringify({ 
-        error: 'Failed to fetch data from Google Drive',
-        message: error.message 
-      })
-    };
+    return res.status(500).json({ 
+      error: 'Failed to fetch data from Google Drive',
+      message: error.message 
+    });
   }
-};
+}
