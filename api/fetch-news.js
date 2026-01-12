@@ -1,7 +1,7 @@
 // Vercel Function: Google Drive APIをプロキシする
 // APIキーはここに隠されるため、ブラウザからは見えません
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   // CORS対応のヘッダー
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -60,4 +60,4 @@ export default async function handler(req, res) {
       stack: error.stack
     });
   }
-}
+};
