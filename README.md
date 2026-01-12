@@ -8,7 +8,7 @@
 
 ## 🛠 システムアーキテクチャ (完全自動フロー)
 
-1. **GAS (Google Apps Script)**: 2時間ごとに海外RSSを監視し、Gemini 1.5 Flash で「俺」モードの記事を生成。
+1. **GAS (Google Apps Script)**: 2時間ごとに海外RSSを監視し、Gemini 2.5 Flash で「俺」モードの記事を生成。
 2. **Google Drive**: 生成されたデータを `news.json` として保持。
 3. **GitHub Actions**: 2時間ごとにDriveからデータを取得し、GitHubリポジトリを更新。
 4. **Vercel**: GitHubの更新を検知し、即座にフロントエンド（HTML/JS）を再デプロイ。
@@ -28,7 +28,7 @@
 
 ## 🔗 リンク
 - **本番サイト**: [https://gadget-hunter-xi.vercel.app/](https://gadget-hunter-xi.vercel.app/)
-- **X (Twitter)**: [あなたのXアカウントへのリンク]
+- **X (Twitter)**: []
 
 ## 🏗 開発者向け
 - **Data Source**: `data/news.json`
