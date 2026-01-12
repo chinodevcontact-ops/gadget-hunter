@@ -1,0 +1,40 @@
+name: 🤖 Auto-update News from GAS
+
+on:
+  schedule:
+    - cron: '0 */2 * * *'  # 2時間ごとに実行
+  workflow_dispatch:        # 手動実行ボタンを表示
+
+jobs:
+  update-news:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write      # コミット権限を付与
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Download news.json from Google Drive
+        run: |
+          # フォルダがない場合に備えて作成
+          mkdir -p data
+          # Google Driveから直接ダウンロード (-Lでリダイレクト追従)
+          curl -L -o data/news.json "https://drive.google.com/uc?export=download&id=1hteuEBEmsH0zThg-xmBPH7IYkwbnHVDA"
+      
+      - name: Check for changes
+        id: git-check
+        run: |
+          git diff --exit-code data/news.json || echo "changes=true" >> $GITHUB_OUTPUT
+
+      - name: Commit and push if changed
+        if: steps.git-check.outputs.changes == 'true'
+        run: |
+          git config user.name "GADGET HUNTER Bot"
+          git config user.email "actions@github.com"
+          git add data/news.json
+          
+          # 記事数をカウントしてコミットメッセージに含める
+          ARTICLE_COUNT=$(grep -o '"title"' data/news.json | wc -l)
+          CURRENT_DATE=$(date +'%Y-%m-%d %H:%M JST')
+          
+          git commit -m "🤖 Auto-update: $ARTICLE_COUNT articles from GAS [$CURRENT_DATE]"
+          git push
