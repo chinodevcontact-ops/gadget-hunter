@@ -1021,6 +1021,12 @@
             </div>
             <div class="modal-body">
                 <div id="modal-content" class="modal-content"></div>
+                
+                <!-- Utterances コメント欄 -->
+                <div id="comments-section" style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid rgba(0, 255, 65, 0.2);">
+                    <h3 style="font-family: 'Orbitron', sans-serif; color: var(--neon-green); margin-bottom: 1rem;">💬 COMMENTS</h3>
+                    <div id="utterances-container"></div>
+                </div>
             </div>
             <div class="modal-footer">
                 <div class="modal-source">
@@ -1631,9 +1637,31 @@
             // ソースリンク設定
             modalSourceLink.href = news.url || '#';
 
+            // Utterances コメント欄を初期化
+            loadUtterances(news.url);
+
             // モーダルを表示
             modal.classList.add('active');
             document.body.classList.add('modal-open');
+        }
+
+        // Utterances コメント欄を読み込む
+        function loadUtterances(articleUrl) {
+            const container = document.getElementById('utterances-container');
+            
+            // 既存のUtterancesをクリア
+            container.innerHTML = '';
+            
+            // Utterancesスクリプトを生成
+            const script = document.createElement('script');
+            script.src = 'https://utteranc.es/client.js';
+            script.setAttribute('repo', 'chinodevcontact-ops/gadget-hunter');
+            script.setAttribute('issue-term', articleUrl); // 記事URLをIssue識別子に
+            script.setAttribute('theme', 'github-dark'); // ダークテーマ
+            script.setAttribute('crossorigin', 'anonymous');
+            script.async = true;
+            
+            container.appendChild(script);
         }
 
         function closeModal() {
