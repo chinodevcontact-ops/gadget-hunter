@@ -2,8 +2,8 @@ name: 🤖 Auto-update News from GAS
 
 on:
   schedule:
-    - cron: '0 */2 * * *'  # 2時間ごとに実行
-  workflow_dispatch:        # 手動実行も可能
+    - cron: '0 * * * *'  # 1時間ごとに実行
+  workflow_dispatch:      # 手動実行も可能
 
 jobs:
   update-news:
