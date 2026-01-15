@@ -1144,6 +1144,8 @@
         function detectCategory(title, summary = '') {
             const text = `${title} ${summary}`.toLowerCase();
 
+            const matchesAny = (patterns) => patterns.some((pattern) => pattern.test(text));
+
             // GPU関連のキーワード（正規表現で単語境界を使用）
             const gpuPatterns = [
                 // NVIDIA
@@ -1234,7 +1236,10 @@
                 /\bmicrophone\b/i, /\bdac\b/i, /\bamp\b/i, /\baudio\s+interface\b/i,
                 // その他
                 /\bwebcam\b/i, /\bcamera\b/i, /\bprinter\b/i, /\bscanner\b/i,
-                /\bdock\b/i, /\bhub\b/i, /\badapter\b/i
+                /\bdock\b/i, /\bhub\b/i, /\badapter\b/i,
+                // 日本語（周辺機器）
+                /キーボード/i, /マウス/i, /ヘッドセット/i, /ヘッドホン/i,
+                /ゲーミングマウス/i, /テンキー/i
             ];
 
             // Smartphone関連のキーワード
@@ -1270,7 +1275,10 @@
                 /\bfps\b/i, /\bmmorpg\b/i, /\bbattle\s+royale\b/i, /\brpg\s+game\b/i,
                 /\bgame\s+(trailer|release|launch)\b/i, /\bgaming\b/i,
                 // その他
-                /\brockstar\s+games\b/i, /\bactivision\b/i, /\bubisoft\b/i, /\bea\s+sports\b/i
+                /\brockstar\s+games\b/i, /\bactivision\b/i, /\bubisoft\b/i, /\bea\s+sports\b/i,
+                // 日本語（ゲーム）
+                /モンハン/i, /モンスターハンター/i, /ワイルズ/i, /ワイルド/i,
+                /ゲーム/i, /DLC/i, /パフォーマンス/i
             ];
 
             // AI関連のキーワード（正規表現で単語境界を使用）
@@ -1287,34 +1295,21 @@
                 // 企業・プラットフォーム
                 /\bopenai\b/i, /\banthropic\b/i, /\bhugging\s+face\b/i,
                 // 一般
-                /\b\sai\b/i, /\bai\s+(model|chip|processor)\b/i, /\bai-powered\b/i
+                /\b\sai\b/i, /\bai\s+(model|chip|processor)\b/i, /\bai-powered\b/i,
+                // 日本語（AI/創薬）
+                /人工知能/i, /生成ai/i, /ai創薬/i, /創薬/i, /医薬品/i, /製薬/i,
+                /ドラッグ/i, /医療/i
             ];
 
             // パターンマッチング（優先順位順）
-            for (const pattern of gpuPatterns) {
-                if (pattern.test(text)) return 'GPU';
-            }
-            for (const pattern of cpuPatterns) {
-                if (pattern.test(text)) return 'CPU';
-            }
-            for (const pattern of pcPartsPatterns) {
-                if (pattern.test(text)) return 'PC Parts';
-            }
-            for (const pattern of laptopPatterns) {
-                if (pattern.test(text)) return 'Laptop';
-            }
-            for (const pattern of peripheralPatterns) {
-                if (pattern.test(text)) return 'Peripherals';
-            }
-            for (const pattern of smartphonePatterns) {
-                if (pattern.test(text)) return 'Smartphone';
-            }
-            for (const pattern of gamingPatterns) {
-                if (pattern.test(text)) return 'Gaming';
-            }
-            for (const pattern of aiPatterns) {
-                if (pattern.test(text)) return 'AI';
-            }
+            if (matchesAny(aiPatterns)) return 'AI';
+            if (matchesAny(gamingPatterns)) return 'Gaming';
+            if (matchesAny(peripheralPatterns)) return 'Peripherals';
+            if (matchesAny(smartphonePatterns)) return 'Smartphone';
+            if (matchesAny(laptopPatterns)) return 'Laptop';
+            if (matchesAny(pcPartsPatterns)) return 'PC Parts';
+            if (matchesAny(cpuPatterns)) return 'CPU';
+            if (matchesAny(gpuPatterns)) return 'GPU';
 
             return 'General';
         }
