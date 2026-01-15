@@ -1414,13 +1414,14 @@
                 );
             }
 
-            // 検索フィルター
+            // 検索フィルター（言語切り替え対応）
             if (searchQuery) {
                 const query = searchQuery.toLowerCase();
-                filteredNews = filteredNews.filter(news => 
-                    news.title.toLowerCase().includes(query) ||
-                    news.summary.toLowerCase().includes(query)
-                );
+                filteredNews = filteredNews.filter(news => {
+                    const title = currentLang === 'en' ? (news.title_en || news.title) : news.title;
+                    const summary = currentLang === 'en' ? (news.summary_en || news.summary) : news.summary;
+                    return title.toLowerCase().includes(query) || summary.toLowerCase().includes(query);
+                });
             }
 
             // 結果表示
@@ -1465,7 +1466,9 @@
             title.className = 'news-title';
             
             const titleText = document.createElement('span');
-            titleText.textContent = news.title || 'Untitled';
+            // 言語切り替え対応
+            const displayTitle = currentLang === 'en' ? (news.title_en || news.title) : news.title;
+            titleText.textContent = displayTitle || 'Untitled';
             
             title.appendChild(titleText);
 
@@ -1509,8 +1512,9 @@
             const summary = document.createElement('div');
             summary.className = 'news-summary';
             
-            // ★ summaryが文字列でない場合の対策
-            let summaryText = news.summary || '';
+            // 言語切り替え対応
+            let summaryText = currentLang === 'en' ? (news.summary_en || news.summary) : news.summary;
+            summaryText = summaryText || '';
             
             // 配列やオブジェクトの場合は文字列に変換
             if (typeof summaryText !== 'string') {
@@ -1520,7 +1524,7 @@
             
             // ★ 要約が空の場合、フォールバック処理
             if (!summaryText || summaryText.trim() === '') {
-                summaryText = '※詳細情報は記事をご確認ください';
+                summaryText = currentLang === 'en' ? 'See article for details' : '※詳細情報は記事をご確認ください';
             }
             
             // 箇条書き形式の場合
@@ -1640,8 +1644,9 @@
             const modalContent = document.getElementById('modal-content');
             const modalSourceLink = document.getElementById('modal-source-link');
 
-            // タイトル設定
-            modalTitle.textContent = news.title || 'Untitled';
+            // タイトル設定（言語切り替え対応）
+            const displayTitle = currentLang === 'en' ? (news.title_en || news.title) : news.title;
+            modalTitle.textContent = displayTitle || 'Untitled';
 
             // 日付設定
             modalDate.textContent = news.date || 'Unknown Date';
@@ -1661,8 +1666,9 @@
                 modalScoreFill.classList.add('score-low');
             }
 
-            // ★ コンテンツ設定（型チェック追加）
-            let contentHTML = news.content || '';
+            // ★ コンテンツ設定（言語切り替え対応）
+            let contentHTML = currentLang === 'en' ? (news.content_en || news.content) : news.content;
+            contentHTML = contentHTML || '';
             
             // 型チェック：文字列でない場合は変換
             if (typeof contentHTML !== 'string') {
@@ -1674,7 +1680,9 @@
                 modalContent.innerHTML = contentHTML;
             } else {
                 // contentがない場合はsummaryを表示
-                let summaryHTML = news.summary || '';
+                let summaryHTML = currentLang === 'en' ? (news.summary_en || news.summary) : news.summary;
+                summaryHTML = summaryHTML || '';
+                
                 if (typeof summaryHTML !== 'string') {
                     summaryHTML = String(summaryHTML);
                 }
@@ -1683,7 +1691,8 @@
                     modalContent.innerHTML = `<p>${summaryHTML.replace(/\n/g, '<br>')}</p>`;
                 } else {
                     // どちらもない場合
-                    modalContent.innerHTML = `<p>※詳細情報は元記事をご確認ください</p>`;
+                    const fallbackText = currentLang === 'en' ? 'Please check the original article for details' : '※詳細情報は元記事をご確認ください';
+                    modalContent.innerHTML = `<p>${fallbackText}</p>`;
                 }
             }
 
@@ -1806,7 +1815,7 @@
             updateUILanguage();
             
             // 記事を再レンダリング
-            renderNews();
+            displayNews();
         }
 
         // UIテキストを更新
