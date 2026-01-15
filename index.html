@@ -82,6 +82,51 @@
             text-shadow: 0 0 10px var(--green-glow);
         }
 
+        /* 言語切り替え */
+        .lang-switcher {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: 2px solid rgba(0, 255, 65, 0.3);
+            color: var(--text-secondary);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            min-width: 48px;
+            min-height: 40px;
+        }
+
+        .lang-btn:hover {
+            border-color: var(--neon-green);
+            color: var(--neon-green);
+            box-shadow: 0 0 10px var(--green-glow);
+        }
+
+        .lang-btn.active {
+            background: var(--neon-green);
+            color: #000;
+            border-color: var(--neon-green);
+            box-shadow: 0 0 20px var(--green-glow-strong);
+            text-shadow: none;
+        }
+
+        .lang-divider {
+            color: rgba(0, 255, 65, 0.5);
+            font-size: 1rem;
+            font-weight: 300;
+        }
+
         /* 検索バー */
         .search-container {
             position: relative;
@@ -947,6 +992,13 @@
                     <h1 class="logo">GADGET HUNTER</h1>
                     <div class="tagline">[ Confidential Tech Leaks ]</div>
                 </div>
+                
+                <!-- 言語切り替え -->
+                <div class="lang-switcher">
+                    <button class="lang-btn" data-lang="en">EN</button>
+                    <span class="lang-divider">|</span>
+                    <button class="lang-btn active" data-lang="ja">JP</button>
+                </div>
             </div>
             
             <!-- 検索バー -->
@@ -1052,6 +1104,7 @@
         let allNews = [];
         let currentCategory = 'all';
         let searchQuery = '';
+        let currentLang = localStorage.getItem('lang') || 'ja';
 
         // localStorageキャッシュ機能
         function getCachedData() {
@@ -1675,6 +1728,144 @@
             if (e.key === 'Escape') {
                 closeModal();
             }
+        });
+
+        // ==========================================
+        // 言語切り替え機能
+        // ==========================================
+        
+        // 多言語テキストマッピング
+        const i18n = {
+            ja: {
+                tagline: '[ Confidential Tech Leaks ]',
+                searchPlaceholder: 'キーワードで検索...',
+                categories: {
+                    all: 'すべて',
+                    GPU: 'GPU',
+                    CPU: 'CPU',
+                    'PC Parts': 'PCパーツ',
+                    Laptop: 'ノートPC',
+                    Peripherals: '周辺機器',
+                    Smartphone: 'スマホ',
+                    Gaming: 'ゲーミング',
+                    AI: 'AI'
+                },
+                loading: '復号化中...',
+                noResults: '条件に一致するリークが見つかりませんでした',
+                error: '機密情報の取得に失敗しました。接続が切断されています。',
+                retry: '再接続',
+                leakScore: '信頼度',
+                readMore: '全文を読む',
+                viewSource: '元記事を見る',
+                comments: 'コメント',
+                footer: 'Gadget Hunter - すべてのリークは公開情報に基づいています'
+            },
+            en: {
+                tagline: '[ Confidential Tech Leaks ]',
+                searchPlaceholder: 'Search leaks by keyword...',
+                categories: {
+                    all: 'All Leaks',
+                    GPU: 'GPU',
+                    CPU: 'CPU',
+                    'PC Parts': 'PC Parts',
+                    Laptop: 'Laptop',
+                    Peripherals: 'Peripherals',
+                    Smartphone: 'Smartphone',
+                    Gaming: 'Gaming',
+                    AI: 'AI'
+                },
+                loading: 'Decrypting intel...',
+                noResults: 'No leaks found matching your criteria',
+                error: 'Failed to retrieve classified information. Connection compromised.',
+                retry: 'Retry Connection',
+                leakScore: 'Confidence',
+                readMore: 'Read Full Article',
+                viewSource: 'View Source',
+                comments: 'Comments',
+                footer: 'Gadget Hunter - All leaks are based on publicly available information'
+            }
+        };
+
+        // 言語切り替え関数
+        function switchLanguage(lang) {
+            if (lang === currentLang) return;
+            
+            currentLang = lang;
+            localStorage.setItem('lang', lang);
+            
+            // ボタンのアクティブ状態を更新
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                if (btn.dataset.lang === lang) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            
+            // UIテキストを更新
+            updateUILanguage();
+            
+            // 記事を再レンダリング
+            renderNews();
+        }
+
+        // UIテキストを更新
+        function updateUILanguage() {
+            const t = i18n[currentLang];
+            
+            // タグライン
+            const tagline = document.querySelector('.tagline');
+            if (tagline) tagline.textContent = t.tagline;
+            
+            // 検索ボックス
+            const searchBox = document.getElementById('search-input');
+            if (searchBox) searchBox.placeholder = t.searchPlaceholder;
+            
+            // カテゴリータグ
+            document.querySelectorAll('.category-tag').forEach(tag => {
+                const category = tag.dataset.category;
+                if (t.categories[category]) {
+                    tag.textContent = t.categories[category];
+                }
+            });
+            
+            // ローディングテキスト
+            const loadingText = document.querySelector('.loading-text');
+            if (loadingText) loadingText.textContent = t.loading;
+            
+            // 検索結果なし
+            const noResultsText = document.querySelector('.no-results-text');
+            if (noResultsText) noResultsText.textContent = t.noResults;
+            
+            // エラーメッセージ
+            const errorText = document.querySelector('.error-text');
+            if (errorText) errorText.textContent = t.error;
+            
+            // リトライボタン
+            const retryBtn = document.querySelector('.retry-btn');
+            if (retryBtn) retryBtn.textContent = t.retry;
+        }
+
+        // 言語切り替えボタンのイベントリスナー
+        document.querySelectorAll('.lang-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                switchLanguage(btn.dataset.lang);
+            });
+        });
+
+        // 初期化：保存された言語設定を適用
+        document.addEventListener('DOMContentLoaded', () => {
+            // ボタンのアクティブ状態を初期化
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                if (btn.dataset.lang === currentLang) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            
+            // UIテキストを初期化
+            updateUILanguage();
         });
     </script>
 </body>
