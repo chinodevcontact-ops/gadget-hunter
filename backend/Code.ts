@@ -47,6 +47,85 @@ const STRICT_FILTER = {
 };
 
 /**
+ * 2つのテキストの類似度を計算（Jaccard係数ベース）
+ * @param {string} text1 
+ * @param {string} text2 
+ * @return {number} 類似度 (0.0 ~ 1.0)
+ */
+function calculateSimilarity(text1, text2) {
+  if (!text1 || !text2) return 0;
+  
+  // 正規化：小文字化、記号削除、単語分割
+  const normalize = (text) => {
+    return text.toLowerCase()
+      .replace(/[^\w\s]/g, ' ')  // 記号を空白に
+      .split(/\s+/)               // 空白で分割
+      .filter(w => w.length > 2); // 2文字以下の単語を除外
+  };
+  
+  const words1 = new Set(normalize(text1));
+  const words2 = new Set(normalize(text2));
+  
+  if (words1.size === 0 || words2.size === 0) return 0;
+  
+  // Jaccard類似度: 積集合 / 和集合
+  const intersection = [...words1].filter(w => words2.has(w)).length;
+  const union = words1.size + words2.size - intersection;
+  
+  return union > 0 ? intersection / union : 0;
+}
+
+/**
+ * 過去24時間の記事タイトルと詳細を取得
+ * @param {Sheet} sheet 
+ * @return {Array<{title: string, url: string, summary: string, content: string, rowIndex: number}>}
+ */
+function getRecentTitles(sheet) {
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return [];
+  
+  const now = new Date();
+  const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+  
+  const data = sheet.getRange(2, 1, lastRow - 1, 12).getValues(); // 全カラム取得
+  
+  const results = [];
+  for (let i = 0; i < data.length; i++) {
+    const row = data[i];
+    const date = new Date(row[0]);
+    if (date >= oneDayAgo && row[1]) {
+      results.push({
+        title: row[1],
+        url: row[2],
+        summary: row[3] || '',
+        content: row[4] || '',
+        leakScore: row[5] || 50,
+        rowIndex: i + 2  // スプレッドシートの実際の行番号（ヘッダー分+1、配列インデックス分+1）
+      });
+    }
+  }
+  return results;
+}
+
+/**
+ * 既存記事と重複していないかチェック（重複時は既存記事データを返す）
+ * @param {string} newTitle 新しい記事のタイトル
+ * @param {Array} recentTitles 最近の記事リスト
+ * @param {number} threshold 類似度閾値（デフォルト: 0.7）
+ * @return {Object|null} 重複記事データ または null
+ */
+function findDuplicate(newTitle, recentTitles, threshold = 0.7) {
+  for (const article of recentTitles) {
+    const similarity = calculateSimilarity(newTitle, article.title);
+    if (similarity >= threshold) {
+      console.log(`🔄 重複検出 (類似度: ${(similarity * 100).toFixed(1)}%): ${article.title.substring(0, 50)}...`);
+      return { ...article, similarity };
+    }
+  }
+  return null;
+}
+
+/**
  * エラーログをスプレッドシートに記録
  * @param {string} source エラー発生元（サイト名、関数名など）
  * @param {string} errorType エラーの種類（RSS_FETCH, API_CALL, TWITTER_POST など）
@@ -115,6 +194,10 @@ function fetchAndSummarizeToSheet() {
   if (sheet.getLastRow() > 1) {
     savedUrls = sheet.getRange(2, 3, sheet.getLastRow() - 1, 1).getValues().flat();
   }
+  
+  // 重複チェック用：過去24時間の記事タイトルを取得
+  const recentTitles = getRecentTitles(sheet);
+  console.log(`📊 過去24時間の記事数: ${recentTitles.length}件`);
 
   const TARGETS = [
     { name: 'Wccftech', url: 'https://wccftech.com/feed/' },
@@ -163,6 +246,48 @@ function fetchAndSummarizeToSheet() {
 
             if (STRICT_FILTER.REQUIRE_MEDIA_OR_TAG && !hasLinkOrTag) continue;
             if (!hasKeyword) continue;
+        }
+
+        // 重複チェック：過去24時間の記事と類似していないか確認
+        const duplicateArticle = findDuplicate(item.title, recentTitles, 0.7);
+        if (duplicateArticle) {
+          // 重複検出 → 情報を統合して既存記事を更新
+          console.log(`📝 情報統合モード: 既存記事を更新します`);
+          try {
+            // 統合プロンプト作成
+            const mergedPrompt = `以下は同じトピックについての2つの異なる情報源です。これらを統合して、より詳細で正確な記事を生成してください。
+
+【情報源1（既存記事）】
+タイトル: ${duplicateArticle.title}
+要約: ${duplicateArticle.summary}
+本文: ${duplicateArticle.content}
+
+【情報源2（新規情報）】
+タイトル: ${item.title}
+説明: ${item.desc}
+
+両方の情報を統合し、重複を排除し、追加情報があれば含めて、より包括的な記事を生成してください。`;
+
+            const mergedData = callGeminiAPI(item.title, mergedPrompt, todayStr, currentRate, pastMemory.text);
+            
+            if (mergedData) {
+              // 既存記事を更新
+              const updatedLeakScore = Math.min(100, duplicateArticle.leakScore + 15); // +15ポイント（複数ソース確認）
+              const updatedSummary = mergedData.summary_points ? mergedData.summary_points.map(s => "• " + s).join('\n') : duplicateArticle.summary;
+              const updatedContent = `${mergedData.body_text}<h3>中の人の本音 (JP)</h3><p>${mergedData.review_text}</p><p class="multi-source">✅ 複数ソース確認済み</p>`;
+              
+              sheet.getRange(duplicateArticle.rowIndex, 4).setValue(updatedSummary);  // 要約更新
+              sheet.getRange(duplicateArticle.rowIndex, 5).setValue(updatedContent);  // 本文更新
+              sheet.getRange(duplicateArticle.rowIndex, 6).setValue(updatedLeakScore); // スコア更新
+              
+              console.log(`✅ 統合完了: Leak Score ${duplicateArticle.leakScore} → ${updatedLeakScore}`);
+              apiCallCount++;
+            }
+          } catch (e) {
+            console.log(`⚠ 統合エラー: ${e.message}`);
+            logError(site.name, 'MERGE_ARTICLE', e, `記事: ${item.title.substring(0, 50)}...`);
+          }
+          continue; // 新規記事としては追加しない
         }
 
         // 初期値
@@ -642,9 +767,16 @@ function saveJsonToDrive(sheet) {
     const rows = sheet.getRange(2, 1, lastRow - 1, 12).getValues().reverse(); 
     const data = rows.map(r => ({
       date: Utilities.formatDate(new Date(r[0]), "JST", "yyyy/MM/dd"),
-      title: r[1], url: r[2], summary: r[3], content: r[4], leakScore: r[5] || 50,
+      title: r[1], 
+      url: r[2], 
+      summary: r[3], 
+      content: r[4], 
+      leakScore: r[5] || 50,
       review_en: r[7] || "",
-      title_en: r[9] || "", summary_en: r[10] || "", content_en: r[11] || ""
+      title_en: r[9] || "", 
+      summary_en: r[10] || "", 
+      content_en: r[11] || "",
+      isMultiSource: (r[4] || '').includes('✅ 複数ソース確認済み')  // 統合記事フラグ
     }));
     
     const folder = DriveApp.getFolderById(getConfig('FOLDER_ID'));
