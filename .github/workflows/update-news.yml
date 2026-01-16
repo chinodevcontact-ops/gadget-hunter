@@ -19,7 +19,7 @@ jobs:
         run: |
           echo "📡 Fetching latest news from GAS..."
           mkdir -p frontend/data
-          curl -L -o frontend/data/news.json "https://docs.google.com/uc?export=download&id=1YeVMgY_HT6oGe91g0LT7Bn-_r_9q4hOtZweC3pkVwoU"
+          curl -L -o frontend/data/news.json "https://docs.google.com/uc?export=download&id=1Q0CjYkMIJOKPZBW6OLj3sP_pcmmm4fdx"
           
           if [ -f frontend/data/news.json ]; then
             echo "✅ news.json downloaded successfully"

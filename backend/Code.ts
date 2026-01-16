@@ -604,10 +604,18 @@ function saveJsonToDrive(sheet) {
     }));
     
     const folder = DriveApp.getFolderById(getConfig('FOLDER_ID'));
+    
+    // 既存のファイルをすべて削除（クリーンアップ）
     const files = folder.getFilesByName(JSON_FILE_NAME);
-    const file = files.hasNext() ? files.next() : folder.createFile(JSON_FILE_NAME, "", MimeType.PLAIN_TEXT);
-    file.setContent(JSON.stringify(data)).setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-    console.log("🚀 JSON Updated (Global)");
+    while (files.hasNext()) {
+      files.next().setTrashed(true);
+    }
+    
+    // 新しいファイルを作成
+    const file = folder.createFile(JSON_FILE_NAME, JSON.stringify(data), "application/json");
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    console.log(`🚀 JSON Updated (Global)`);
+    console.log(`📁 File ID: ${file.getId()}`);
   } catch(e) { 
     console.log(`❌ 保存エラー: ${e.toString()}`); 
   }
