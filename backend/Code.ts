@@ -46,6 +46,44 @@ const STRICT_FILTER = {
   REQUIRED_KEYWORDS: /RTX|GTX|GeForce|Radeon|Ryzen|Core|Intel|AMD|Snapdragon|Dimensity|Exynos|Apple|M4|M5|A18|A19|GB|TB|MHz|GHz|Benchmark|Cinebench|Geekbench|3DMark|Leak|Rumor|Specs|Price|Release|Launch|Driver|Update|Windows|Android|iOS|AI|NVIDIA|TSMC|Samsung|Pixel|Xperia|ASUS|MSI/i
 };
 
+/**
+ * エラーログをスプレッドシートに記録
+ * @param {string} source エラー発生元（サイト名、関数名など）
+ * @param {string} errorType エラーの種類（RSS_FETCH, API_CALL, TWITTER_POST など）
+ * @param {Error|string} error エラーオブジェクトまたはメッセージ
+ * @param {string} context 追加のコンテキスト情報
+ */
+function logError(source, errorType, error, context = '') {
+  try {
+    const ss = SpreadsheetApp.openById(getConfig('SPREADSHEET_ID'));
+    let errorSheet = ss.getSheetByName('ErrorLog');
+    
+    // ErrorLogシートが存在しない場合は作成
+    if (!errorSheet) {
+      errorSheet = ss.insertSheet('ErrorLog');
+      errorSheet.appendRow(['タイムスタンプ', '発生元', 'エラー種別', 'エラー内容', '詳細', 'ステータス']);
+      errorSheet.getRange(1, 1, 1, 6).setFontWeight('bold').setBackground('#f3f3f3');
+    }
+    
+    const timestamp = Utilities.formatDate(new Date(), "JST", "yyyy/MM/dd HH:mm:ss");
+    const errorMessage = error.toString ? error.toString() : String(error);
+    
+    errorSheet.appendRow([
+      timestamp,
+      source,
+      errorType,
+      errorMessage,
+      context,
+      '未対応'
+    ]);
+    
+    console.log(`❌ [${errorType}] ${source}: ${errorMessage}`);
+  } catch (e) {
+    // エラーログ記録自体が失敗した場合はコンソールのみに出力
+    console.log(`🚨 Failed to log error: ${e.toString()}`);
+  }
+}
+
 // ----------------------------------------------------
 // 1. ニュース取得＆AI執筆メイン
 // ----------------------------------------------------
@@ -164,6 +202,7 @@ function fetchAndSummarizeToSheet() {
           }
         } catch (e) {
           console.log(`⚠ APIエラー: ${e.message}`);
+          logError(site.name, 'API_CALL', e, `記事: ${item.title.substring(0, 50)}...`);
         }
 
         apiCallCount++;
@@ -182,6 +221,7 @@ function fetchAndSummarizeToSheet() {
       }
     } catch (e) {
       console.log(`❌ サイトスキップ: ${site.name}`);
+      logError(site.name, 'RSS_FETCH', e, `URL: ${site.url}`);
     }
   }
   
@@ -381,7 +421,10 @@ function checkAndTweetNewArticles() {
                 postTweet(quoteText, tweetId);
                 sheet.getRange(2 + targetIndex, 7).setValue("QuoteRT済み");
                 return;
-            } catch(e) { console.log(`Quote Error: ${e.message}`); }
+            } catch(e) { 
+                console.log(`Quote Error: ${e.message}`);
+                logError('Twitter', 'QUOTE_RT', e, `記事: ${title.substring(0, 50)}`);
+            }
         }
     }
 
@@ -410,7 +453,8 @@ function checkAndTweetNewArticles() {
       sheet.getRange(2 + targetIndex, 7).setValue("2段階投稿済み");
       
     } catch (e) { 
-      console.log(`Tweet Error: ${e.message}`); 
+      console.log(`Tweet Error: ${e.message}`);
+      logError('Twitter', 'TWO_STAGE_POST', e, `記事: ${title.substring(0, 50)}`);
     }
   }
 }
@@ -617,7 +661,8 @@ function saveJsonToDrive(sheet) {
     console.log(`🚀 JSON Updated (Global)`);
     console.log(`📁 File ID: ${file.getId()}`);
   } catch(e) { 
-    console.log(`❌ 保存エラー: ${e.toString()}`); 
+    console.log(`❌ 保存エラー: ${e.toString()}`);
+    logError('Google Drive', 'JSON_SAVE', e, `ファイル名: ${JSON_FILE_NAME}`);
   }
 }
 
