@@ -569,6 +569,12 @@ function decodeHTMLEntities(text) {
 }
 
 function cleanupAndSave(sheet) {
+    // 引数がない場合はスプレッドシートを取得
+    if (!sheet) {
+      const ss = SpreadsheetApp.openById(getConfig('SPREADSHEET_ID'));
+      sheet = ss.getSheets()[0];
+    }
+    
     const lastRow = sheet.getLastRow();
     // ヘッダー1行 + データ300行 = 301行を超えたら古い記事を削除
     if (lastRow > 301) {
@@ -581,6 +587,12 @@ function cleanupAndSave(sheet) {
 
 function saveJsonToDrive(sheet) {
   try {
+    // 引数がない場合はスプレッドシートを取得
+    if (!sheet) {
+      const ss = SpreadsheetApp.openById(getConfig('SPREADSHEET_ID'));
+      sheet = ss.getSheets()[0];
+    }
+    
     const lastRow = sheet.getLastRow();
     if (lastRow < 2) return;
     const rows = sheet.getRange(2, 1, lastRow - 1, 12).getValues().reverse(); 
