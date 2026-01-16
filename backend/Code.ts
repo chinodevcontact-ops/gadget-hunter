@@ -506,7 +506,19 @@ function callGeminiAPI(originalTitle, desc, todayStr, currentRate, memoryText) {
 
 # 出力フォーマット（JSON のみ）
 
-もし **本物のテックニュース** なら、以下を返せ：
+もし **本物のテックニュース** なら、以下の形式で返せ：
+
+## JSONフィールド定義
+- "title_jp": キャッチーなタイトル（日本語、最大45文字）
+- "title_en": キャッチーなタイトル（英語）
+- "summary_points": 3つの箇条書き（日本語）
+- "summary_points_en": 3つの箇条書き（英語）
+- "body_text": 詳細本文（日本語HTML、約350文字）
+- "body_text_en": 詳細本文（英語HTML）
+- "review_text": あなたの本音（日本語、感情込み）
+- **"review_text_en": Quote Retweet用の短いリアクション（英語）。元ツイートに添付されるので要約するな、リアクションしろ！例: 'RIP Intel? 💀', 'Finally a game changer!', 'My wallet is ready'. 最大100文字。**
+
+## 出力例
 
 {
   "title_jp": "【リーク】RTX 5090、21,760コア&600W爆熱仕様で2025年1月発表か",
@@ -524,7 +536,7 @@ function callGeminiAPI(originalTitle, desc, todayStr, currentRate, memoryText) {
   "body_text": "<p>信頼性の高いリーカー<strong>kopite7kimi</strong>氏によると、NVIDIA次世代フラグシップ「RTX 5090」は<strong>21,760 CUDAコア</strong>を搭載し、Blackwell世代のGB202ダイをフル構成で使うらしいです。</p><p>RTX 4090の16,384コアと比べて約<strong>33%増</strong>なので、理論性能はかなり期待できそう。ただし、TDPが<strong>600W</strong>って...もはや小型ヒーターですね（笑）。12VHPWRコネクタを<strong>2本</strong>使う構成になる可能性があるので、電源ユニットは<strong>1000W以上推奨</strong>になりそうです。</p><p>個人的には、AMD Radeon RX 8900 XTとの競争でNVIDIAがどう出るか気になります。レイトレ性能とDLSS 4.0で差別化してくると思いますが、問題は<strong>価格</strong>ですよね...。学生には関係ない世界ですが（遠い目）。</p>",
   "body_text_en": "<p>According to reliable leaker <strong>kopite7kimi</strong>, NVIDIA's next-gen flagship 'RTX 5090' will reportedly feature <strong>21,760 CUDA cores</strong> using the full GB202 die from Blackwell generation.</p><p>That's a <strong>~33% increase</strong> vs RTX 4090's 16,384 cores, so theoretical performance looks promising. However, <strong>600W TDP</strong>... that's basically a space heater lol. With dual <strong>12VHPWR connectors</strong>, you'll need a <strong>1000W+ PSU</strong> for sure.</p><p>I'm curious how NVIDIA will compete with AMD Radeon RX 8900 XT. They'll likely push ray tracing and DLSS 4.0, but the real question is <strong>pricing</strong>... way out of my student budget anyway.</p>",
   "review_text": "正直、600Wは引きました。電源ユニットをケチって後悔した経験がある身としては、「電源は余裕を持て」という格言を思い出しますね。ただ、Blackwell世代の5nmプロセス（TSMC N4P）なら、ワッパ（ワットパフォーマンス）は前世代より改善されてるはず...多分。問題は価格で、RTX 4090が初値25万円だったことを考えると、5090は30万円コースですかね。学生のバイト代では到底無理なので、僕はミドルレンジのRTX 5070待ちです（笑）。",
-  "review_text_en": "Honestly, 600W is insane. As someone who cheaped out on PSU and regretted it, the saying 'never skimp on PSU' hits hard. That said, with Blackwell's 5nm process (TSMC N4P), perf-per-watt should improve... hopefully. The real issue is price—RTX 4090 launched at ~$1,600, so 5090 might hit $2,000+. Way beyond my student budget, so I'll wait for RTX 5070 lol."
+  "review_text_en": "600W TDP? My wallet just screamed 💀 Time to upgrade my entire power grid lol"
 }
 
 もし **ノイズ/スパム/くだらない返信** なら: null
