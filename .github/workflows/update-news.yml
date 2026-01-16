@@ -18,13 +18,13 @@ jobs:
       - name: 🔄 Download latest news.json from Google Drive
         run: |
           echo "📡 Fetching latest news from GAS..."
-          mkdir -p data
-          curl -L -o data/news.json "https://docs.google.com/uc?export=download&id=1hteuEBEmsH0zThg-xmBPH7IYkwbnHVDA"
+          mkdir -p frontend/data
+          curl -L -o frontend/data/news.json "https://docs.google.com/uc?export=download&id=1hteuEBEmsH0zThg-xmBPH7IYkwbnHVDA"
           
-          if [ -f data/news.json ]; then
+          if [ -f frontend/data/news.json ]; then
             echo "✅ news.json downloaded successfully"
-            echo "📊 File size: $(wc -c < data/news.json) bytes"
-            echo "📝 Article count: $(grep -o '"title"' data/news.json | wc -l)"
+            echo "📊 File size: $(wc -c < frontend/data/news.json) bytes"
+            echo "📝 Article count: $(grep -o '"title"' frontend/data/news.json | wc -l)"
           else
             echo "❌ Failed to download news.json"
             exit 1
@@ -33,16 +33,16 @@ jobs:
       - name: 🔍 Check for changes
         id: check_changes
         run: |
-          git diff --exit-code data/news.json || echo "changed=true" >> $GITHUB_OUTPUT
+          git diff --exit-code frontend/data/news.json || echo "changed=true" >> $GITHUB_OUTPUT
       
       - name: 💾 Commit and push if changed
         if: steps.check_changes.outputs.changed == 'true'
         run: |
           git config user.name "GADGET HUNTER Bot"
           git config user.email "actions@github.com"
-          git add data/news.json
+          git add frontend/data/news.json
           
-          ARTICLE_COUNT=$(grep -o '"title"' data/news.json | wc -l)
+          ARTICLE_COUNT=$(grep -o '"title"' frontend/data/news.json | wc -l)
           CURRENT_DATE=$(date +'%Y-%m-%d %H:%M JST')
           
           git commit -m "🤖 Auto-update: $ARTICLE_COUNT articles from GAS [$CURRENT_DATE]"
