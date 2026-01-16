@@ -849,56 +849,56 @@
                 }
             }
 
-            /* ヘッダー最適化 */
+            /* ヘッダー最適化 - 高密度化 */
             .header {
-                padding: 1rem;
+                padding: 0.7rem;
             }
 
             .header-top {
                 flex-direction: column;
-                gap: 0.5rem;
+                gap: 0.4rem;
                 align-items: flex-start;
-                margin-bottom: 1rem;
+                margin-bottom: 0.7rem;
             }
 
             .logo {
-                font-size: 1.5rem;
+                font-size: 1.3rem;
             }
 
             .tagline {
-                font-size: 0.7rem;
-                letter-spacing: 2px;
+                font-size: 0.65rem;
+                letter-spacing: 1.5px;
             }
 
             .search-box {
                 font-size: 16px; /* iOS zoom 防止 */
-                padding: 0.8rem 1rem;
+                padding: 0.7rem 0.9rem;
             }
 
             .category-filters {
-                gap: 0.5rem;
+                gap: 0.4rem;
             }
 
             .category-tag {
-                font-size: 0.75rem;
-                padding: 0.5rem 1rem;
-                min-height: 44px;
+                font-size: 0.7rem;
+                padding: 0.4rem 0.8rem;
+                min-height: 40px;
             }
 
-            /* コンテナ */
+            /* コンテナ - 高密度化 */
             .container {
-                padding: 1.5rem 1rem;
+                padding: 1rem 0.7rem;
             }
 
-            /* モバイル：リスト形式に変更 */
+            /* モバイル：リスト形式に変更 - 高密度化 */
             .news-grid {
                 grid-template-columns: 1fr;
-                gap: 1rem;
+                gap: 0.6rem;
             }
 
-            /* コンパクトカードデザイン */
+            /* コンパクトカードデザイン - 高密度化 */
             .news-card {
-                padding: 1rem;
+                padding: 0.7rem;
                 border-radius: 8px;
                 min-height: auto;
             }
@@ -917,24 +917,24 @@
             }
 
             .card-header {
-                margin-bottom: 0.5rem;
+                margin-bottom: 0.4rem;
             }
 
             .news-date {
-                font-size: 0.65rem;
-                padding: 0.25rem 0.6rem;
+                font-size: 0.6rem;
+                padding: 0.2rem 0.5rem;
             }
 
             .card-category {
-                font-size: 0.65rem;
-                padding: 0.25rem 0.6rem;
+                font-size: 0.6rem;
+                padding: 0.2rem 0.5rem;
             }
 
-            /* タイトルを2行に制限 */
+            /* タイトルを2行に制限 - 高密度化 */
             .news-title {
-                font-size: 1rem;
-                line-height: 1.3;
-                margin-bottom: 0.5rem;
+                font-size: 0.95rem;
+                line-height: 1.25;
+                margin-bottom: 0.4rem;
                 display: -webkit-box;
                 -webkit-line-clamp: 2;
                 -webkit-box-orient: vertical;
@@ -947,34 +947,49 @@
                 pointer-events: auto;
             }
 
-            /* 信頼度バーをミニマルに */
+            /* 信頼度バーをミニマルに - 高密度化 */
             .leak-score-container {
-                margin-bottom: 0.5rem;
+                margin-bottom: 0.4rem;
             }
 
             .leak-score-label {
-                font-size: 0.7rem;
-                margin-bottom: 0.3rem;
+                font-size: 0.65rem;
+                margin-bottom: 0.25rem;
             }
 
             .leak-score-value {
-                font-size: 0.8rem;
+                font-size: 0.75rem;
             }
 
             .leak-score-bar {
-                height: 6px;
+                height: 5px;
             }
 
-            /* 要約は初期状態で非表示（アコーディオンで表示） */
+            /* 複数ソースバッジ - モバイル用小型化 */
+            .multi-source-badge {
+                margin-top: 0.3rem;
+                padding: 0.3rem 0.6rem;
+                font-size: 0.65rem;
+            }
+
+            .multi-source-badge .badge-icon {
+                font-size: 0.85rem;
+            }
+
+            .multi-source-badge .badge-text {
+                font-size: 0.6rem;
+            }
+
+            /* 要約は初期状態で非表示（アコーディオンで表示） - 高密度化 */
             .news-summary {
-                font-size: 0.9rem;
-                line-height: 1.6;
-                padding-top: 0.8rem;
+                font-size: 0.85rem;
+                line-height: 1.5;
+                padding-top: 0.6rem;
             }
 
             .summary-points li {
-                margin-bottom: 0.4rem;
-                font-size: 0.85rem;
+                margin-bottom: 0.3rem;
+                font-size: 0.8rem;
             }
 
             /* 展開インジケーター */
