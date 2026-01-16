@@ -28,7 +28,7 @@
 // ▼ 設定定数
 const JSON_FILE_NAME = 'news.json';
 const MY_WEBSITE_URL = 'https://gadget-hunter-xi.vercel.app/';
-const MODEL_NAME = 'gemini-2.0-flash-exp';  // 無料で高性能！
+const MODEL_NAME = 'gemini-1.5-flash';
 
 // ==========================================
 // 🧠 プロンプト設定定数
@@ -233,7 +233,7 @@ function fetchAndSummarizeToSheet() {
   console.log(`🤖 System Online: ${MODEL_NAME} (v14.1-JSDoc)`);
   
   let apiCallCount = 0;   
-  const MAX_API_CALLS = 100; 
+  const MAX_API_CALLS = 30;  // レート制限対策（15 RPM以内に収める） 
 
   for (const site of TARGETS) {
     if (apiCallCount >= MAX_API_CALLS) break;
