@@ -1159,6 +1159,12 @@
         let currentCategory = 'all';
         let searchQuery = '';
         let currentLang = localStorage.getItem('lang') || 'ja';
+        
+        // 遅延読み込み用変数
+        let displayedCount = 0;
+        const ITEMS_PER_LOAD = 20;
+        let isLoading = false;
+        let filteredNewsCache = [];
 
         // localStorageキャッシュ機能
         function getCachedData() {
@@ -1454,11 +1460,11 @@
             newsContainer.innerHTML = '';
 
             // フィルタリング
-            let filteredNews = allNews;
+            filteredNewsCache = allNews;
 
             // カテゴリーフィルター
             if (currentCategory !== 'all') {
-                filteredNews = filteredNews.filter(news => 
+                filteredNewsCache = filteredNewsCache.filter(news => 
                     news.category === currentCategory
                 );
             }
@@ -1466,7 +1472,7 @@
             // 検索フィルター（言語切り替え対応）
             if (searchQuery) {
                 const query = searchQuery.toLowerCase();
-                filteredNews = filteredNews.filter(news => {
+                filteredNewsCache = filteredNewsCache.filter(news => {
                     const title = currentLang === 'en' ? (news.title_en || news.title) : news.title;
                     const summary = currentLang === 'en' ? (news.summary_en || news.summary) : news.summary;
                     return title.toLowerCase().includes(query) || summary.toLowerCase().includes(query);
@@ -1474,7 +1480,7 @@
             }
 
             // 結果表示
-            if (filteredNews.length === 0) {
+            if (filteredNewsCache.length === 0) {
                 newsContainer.style.display = 'none';
                 noResultsElement.style.display = 'block';
                 return;
@@ -1483,10 +1489,30 @@
             noResultsElement.style.display = 'none';
             newsContainer.style.display = 'grid';
 
-            filteredNews.forEach((news, index) => {
-                const card = createNewsCard(news, index);
+            // 遅延読み込み：初期表示は20件のみ
+            displayedCount = 0;
+            loadMoreNews();
+        }
+
+        function loadMoreNews() {
+            if (isLoading || displayedCount >= filteredNewsCache.length) return;
+            
+            isLoading = true;
+            const newsContainer = document.getElementById('news-container');
+            const endIndex = Math.min(displayedCount + ITEMS_PER_LOAD, filteredNewsCache.length);
+            
+            for (let i = displayedCount; i < endIndex; i++) {
+                const card = createNewsCard(filteredNewsCache[i], i);
                 newsContainer.appendChild(card);
-            });
+            }
+            
+            displayedCount = endIndex;
+            isLoading = false;
+            
+            // すべて読み込み完了のログ
+            if (displayedCount >= filteredNewsCache.length) {
+                console.log('✅ すべての記事を読み込みました');
+            }
         }
 
         function createNewsCard(news, index) {
@@ -1686,6 +1712,23 @@
                 window.scrollTo(0, parseInt(scrollPosition, 10));
                 sessionStorage.removeItem('scrollPosition');
             }
+        });
+
+        // ===== 遅延読み込み：スクロールイベント =====
+        let scrollTimeout;
+        window.addEventListener('scroll', () => {
+            // スクロールのパフォーマンス最適化（デバウンス）
+            clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(() => {
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                const windowHeight = window.innerHeight;
+                const documentHeight = document.documentElement.scrollHeight;
+                
+                // 画面下部から200pxの位置で追加読み込み
+                if (scrollTop + windowHeight >= documentHeight - 200) {
+                    loadMoreNews();
+                }
+            }, 100);
         });
 
         // ===== モーダル機能 =====
