@@ -28,7 +28,7 @@
 // ▼ 設定定数
 const JSON_FILE_NAME = 'news.json';
 const MY_WEBSITE_URL = 'https://gadget-hunter-xi.vercel.app/';
-const MODEL_NAME = 'gemini-2-27b-it';
+const MODEL_NAME = 'gemma-3-27b-it';
 
 // ==========================================
 // 🧠 プロンプト設定定数
