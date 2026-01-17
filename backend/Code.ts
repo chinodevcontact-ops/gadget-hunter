@@ -28,7 +28,7 @@
 // ▼ 設定定数
 const JSON_FILE_NAME = 'news.json';
 const MY_WEBSITE_URL = 'https://gadget-hunter-xi.vercel.app/';
-const MODEL_NAME = 'gemini-1.5-flash';
+const MODEL_NAME = 'gemini-2-27b-it';
 
 // ==========================================
 // 🧠 プロンプト設定定数
@@ -628,7 +628,10 @@ function retryFailedArticles() {
 
            console.log(`✅ 修復完了: ${gen.title_en}`);
          }
-       } catch(e) { console.log("Retry failed"); }
+       } catch(e) { 
+         console.log(`❌ Retry failed: ${e.toString()}`);
+         logError('Retry', 'ARTICLE_RETRY', e, `記事: ${row[1].substring(0, 50)}`);
+       }
 
        console.log("⏳ Cooling down (5s)...");
        Utilities.sleep(5000); 
