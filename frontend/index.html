@@ -3,6 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    
+    <!-- ✅ CSP (Content Security Policy) - XSS対策 -->
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self';
+        script-src 'self' 'unsafe-inline' https://utteranc.es https://cdn.jsdelivr.net;
+        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+        font-src 'self' https://fonts.gstatic.com;
+        img-src 'self' data: https:;
+        connect-src 'self' https://api.exchangerate-api.com;
+        frame-src https://utteranc.es;
+        base-uri 'self';
+        form-action 'none';
+    ">
+    
+    <!-- ✅ セキュリティヘッダー追加 -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+    
     <title>GADGET HUNTER - Tech Leak Intelligence</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1149,6 +1168,70 @@
         const CACHE_TIMESTAMP_KEY = 'gadget_hunter_cache_timestamp';
         const CACHE_DURATION = 5 * 60 * 1000; // 5分間キャッシュ（API制限対策）
         const DEBUG = true; // デバッグモード（本番ではfalseに）
+        const ALLOWED_ORIGINS = ['https://gadget-hunter-xi.vercel.app', 'http://localhost:3000']; // CORS許可リスト
+
+        // ✅ XSS対策：HTMLエスケープ関数
+        function escapeHtml(unsafe) {
+            if (!unsafe) return '';
+            const div = document.createElement('div');
+            div.textContent = unsafe;
+            return div.innerHTML;
+        }
+
+        // ✅ XSS対策：安全なHTML挿入（DOMPurify代替）
+        function sanitizeHTML(html) {
+            if (!html) return '';
+            // 許可するタグのホワイトリスト
+            const allowedTags = ['p', 'br', 'strong', 'em', 'h1', 'h2', 'h3', 'ul', 'ol', 'li', 'a', 'span'];
+            const div = document.createElement('div');
+            div.innerHTML = html;
+            
+            // 許可されていないタグを削除
+            const allElements = div.querySelectorAll('*');
+            allElements.forEach(el => {
+                if (!allowedTags.includes(el.tagName.toLowerCase())) {
+                    el.remove();
+                }
+                // すべての属性を削除（href以外）
+                Array.from(el.attributes).forEach(attr => {
+                    if (attr.name !== 'href' || el.tagName.toLowerCase() !== 'a') {
+                        el.removeAttribute(attr.name);
+                    }
+                });
+                // リンクはhttps://のみ許可
+                if (el.tagName.toLowerCase() === 'a') {
+                    const href = el.getAttribute('href');
+                    if (!href || (!href.startsWith('https://') && !href.startsWith('http://'))) {
+                        el.removeAttribute('href');
+                    }
+                }
+            });
+            
+            return div.innerHTML;
+        }
+
+        // ✅ URL検証
+        function isValidUrl(url) {
+            try {
+                const urlObj = new URL(url);
+                return urlObj.protocol === 'https:' || urlObj.protocol === 'http:';
+            } catch (e) {
+                return false;
+            }
+        }
+
+        // ✅ キャッシュ整合性検証（改ざん検出）
+        function getCacheChecksum(data) {
+            // 簡易的なチェックサム（実運用ではHMACを推奨）
+            const str = JSON.stringify(data);
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                const char = str.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash;
+            }
+            return hash.toString();
+        }
 
         // デバッグログ用ヘルパー関数
         function debugLog(...args) {
@@ -1166,20 +1249,33 @@
         let isLoading = false;
         let filteredNewsCache = [];
 
-        // localStorageキャッシュ機能
+        // localStorageキャッシュ機能（改ざん検出機能付き）
         function getCachedData() {
             try {
                 const cachedData = localStorage.getItem(CACHE_KEY);
                 const cachedTimestamp = localStorage.getItem(CACHE_TIMESTAMP_KEY);
+                const cachedChecksum = localStorage.getItem(CACHE_KEY + '_checksum');
                 
-                if (cachedData && cachedTimestamp) {
+                if (cachedData && cachedTimestamp && cachedChecksum) {
                     const now = Date.now();
                     const timestamp = parseInt(cachedTimestamp, 10);
                     
                     // キャッシュが有効期限内か確認
                     if (now - timestamp < CACHE_DURATION) {
+                        const data = JSON.parse(cachedData);
+                        
+                        // ✅ 整合性検証（改ざん検出）
+                        const checksum = getCacheChecksum(data);
+                        if (checksum !== cachedChecksum) {
+                            console.warn('⚠️ Cache integrity check failed! Possible tampering detected.');
+                            localStorage.removeItem(CACHE_KEY);
+                            localStorage.removeItem(CACHE_TIMESTAMP_KEY);
+                            localStorage.removeItem(CACHE_KEY + '_checksum');
+                            return null;
+                        }
+                        
                         debugLog('📦 Using cached data (valid for', Math.round((CACHE_DURATION - (now - timestamp)) / 1000), 'more seconds)');
-                        return JSON.parse(cachedData);
+                        return data;
                     } else {
                         debugLog('⏰ Cache expired, fetching new data');
                     }
@@ -1192,9 +1288,11 @@
 
         function setCachedData(data) {
             try {
+                const checksum = getCacheChecksum(data);
                 localStorage.setItem(CACHE_KEY, JSON.stringify(data));
                 localStorage.setItem(CACHE_TIMESTAMP_KEY, Date.now().toString());
-                debugLog('💾 Data cached successfully');
+                localStorage.setItem(CACHE_KEY + '_checksum', checksum);
+                debugLog('💾 Data cached successfully with integrity check');
             } catch (error) {
                 console.warn('Cache write error:', error);
             }
@@ -1399,13 +1497,20 @@
                 // APIからデータ取得を試みる
                 debugLog('🔄 APIからデータ取得中...', API_URL);
                 
+                // ✅ リクエストタイムアウト設定（DoS対策）
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000); // 10秒タイムアウト
+                
                 const response = await fetch(API_URL, {
                     method: 'GET',
                     redirect: 'follow',
                     headers: {
                         'Accept': 'application/json'
-                    }
+                    },
+                    signal: controller.signal
                 });
+                
+                clearTimeout(timeoutId);
 
                 debugLog('📡 レスポンス受信:', response.status, response.statusText);
 
@@ -1418,11 +1523,23 @@
                     
                     if (Array.isArray(data) && data.length > 0) {
                         // APIデータにcategoryとleakScoreを自動判定して追加
-                        allNews = data.map(item => ({
-                            ...item,
-                            category: item.category || detectCategory(item.title || '', item.summary || ''),
-                            leakScore: item.score || item.leakScore || 75  // GASの"score"を"leakScore"として使用
-                        }));
+                        allNews = data.map(item => {
+                            // ✅ XSS対策：必須フィールドのサニタイズ
+                            return {
+                                date: escapeHtml(item.date || ''),
+                                title: escapeHtml(item.title || ''),
+                                title_en: escapeHtml(item.title_en || item.title || ''),
+                                url: isValidUrl(item.url) ? item.url : '#',
+                                summary: escapeHtml(item.summary || ''),
+                                summary_en: escapeHtml(item.summary_en || item.summary || ''),
+                                content: sanitizeHTML(item.content || ''),
+                                content_en: sanitizeHTML(item.content_en || item.content || ''),
+                                category: item.category || detectCategory(item.title || '', item.summary || ''),
+                                leakScore: Math.min(100, Math.max(0, parseInt(item.score || item.leakScore || 75))),
+                                isMultiSource: Boolean(item.isMultiSource),
+                                review_en: escapeHtml(item.review_en || '')
+                            };
+                        });
                         
                         debugLog('🎉 データ処理完了！記事数:', allNews.length);
                         
@@ -1541,7 +1658,7 @@
             title.className = 'news-title';
             
             const titleText = document.createElement('span');
-            // 言語切り替え対応
+            // ✅ XSS対策：既にエスケープ済みのデータを使用
             const displayTitle = currentLang === 'en' ? (news.title_en || news.title) : news.title;
             titleText.textContent = displayTitle || 'Untitled';
             
@@ -1780,6 +1897,7 @@
             }
 
             if (contentHTML && contentHTML.trim() !== '') {
+                // ✅ XSS対策：既にサニタイズ済み（loadNews時に処理済み）
                 modalContent.innerHTML = contentHTML;
             } else {
                 // contentがない場合はsummaryを表示
@@ -1800,19 +1918,34 @@
             }
 
             // ソースリンク設定
-            modalSourceLink.href = news.url || '#';
+            if (isValidUrl(news.url)) {
+                modalSourceLink.href = news.url;
+            } else {
+                modalSourceLink.href = '#';
+                modalSourceLink.style.pointerEvents = 'none';
+                modalSourceLink.style.opacity = '0.5';
+            }
 
-            // Utterances コメント欄を初期化
-            loadUtterances(news.url);
+            // Utterances コメント欄を初期化（XSS対策：URL検証済み）
+            if (isValidUrl(news.url)) {
+                loadUtterances(news.url);
+            }
 
             // モーダルを表示
             modal.classList.add('active');
             document.body.classList.add('modal-open');
         }
 
-        // Utterances コメント欄を読み込む
+        // Utterances コメント欄を読み込む（XSS対策強化）
         function loadUtterances(articleUrl) {
             const container = document.getElementById('utterances-container');
+            
+            // ✅ URL検証（XSS対策）
+            if (!isValidUrl(articleUrl)) {
+                console.warn('⚠️ Invalid URL for Utterances:', articleUrl);
+                container.innerHTML = '<p style="color: var(--text-secondary);">コメント機能は利用できません</p>';
+                return;
+            }
             
             // 既存のUtterancesをクリア
             container.innerHTML = '';
