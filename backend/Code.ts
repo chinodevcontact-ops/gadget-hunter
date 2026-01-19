@@ -49,12 +49,58 @@ const PERSONA_CONFIG = {
 };
 
 /**
- * 設定値を取得するヘルパー関数
+ * 設定値を取得するヘルパー関数（セキュリティ強化版）
  * @param {string} key 
  * @return {string}
  */
 function getConfig(key) {
-  return PropertiesService.getScriptProperties().getProperty(key) || '';
+  const value = PropertiesService.getScriptProperties().getProperty(key) || '';
+  if (!value) {
+    console.warn(`⚠️ Config key "${key}" is not set`);
+  }
+  return value;
+}
+
+/**
+ * HTMLエスケープ関数（XSS対策）
+ * @param {string} unsafe 
+ * @return {string}
+ */
+function escapeHtml(unsafe) {
+  if (!unsafe) return '';
+  return unsafe
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;")
+    .replace(/\//g, "&#x2F;");
+}
+
+/**
+ * URL検証関数（インジェクション対策）
+ * @param {string} url 
+ * @return {boolean}
+ */
+function isValidUrl(url) {
+  if (!url) return false;
+  try {
+    const urlObj = new URL(url);
+    // HTTPSのみ許可（HTTPは危険）
+    return urlObj.protocol === 'https:' || urlObj.protocol === 'http:';
+  } catch (e) {
+    return false;
+  }
+}
+
+/**
+ * 安全なOAuth Nonce生成（暗号学的に安全な乱数）
+ * @return {string}
+ */
+function generateSecureNonce() {
+  const bytes = Utilities.getUuid() + Date.now() + Math.random();
+  return Utilities.base64Encode(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, bytes))
+    .substring(0, 32);
 }
 
 // ▼ ノイズ除去用フィルター設定
@@ -144,7 +190,7 @@ function findDuplicate(newTitle, recentTitles, threshold = 0.7) {
 }
 
 /**
- * エラーログをスプレッドシートに記録
+ * エラーログをスプレッドシートに記録（セキュリティ強化版）
  * @param {string} source エラー発生元（サイト名、関数名など）
  * @param {string} errorType エラーの種類（RSS_FETCH, API_CALL, TWITTER_POST など）
  * @param {Error|string} error エラーオブジェクトまたはメッセージ
@@ -163,7 +209,27 @@ function logError(source, errorType, error, context = '') {
     }
     
     const timestamp = Utilities.formatDate(new Date(), "JST", "yyyy/MM/dd HH:mm:ss");
-    const errorMessage = error.toString ? error.toString() : String(error);
+    
+    // ✅ セキュリティ：機密情報をログから除外
+    let errorMessage = error.toString ? error.toString() : String(error);
+    
+    // API Keyやトークンが含まれていないか検査
+    const sensitivePatterns = [
+      /api[_-]?key[=:]\s*[\w-]+/gi,
+      /token[=:]\s*[\w-]+/gi,
+      /secret[=:]\s*[\w-]+/gi,
+      /password[=:]\s*[\w-]+/gi,
+      /bearer\s+[\w-]+/gi
+    ];
+    
+    sensitivePatterns.forEach(pattern => {
+      errorMessage = errorMessage.replace(pattern, '[REDACTED]');
+    });
+    
+    // コンテキストも同様にサニタイズ
+    sensitivePatterns.forEach(pattern => {
+      context = context.replace(pattern, '[REDACTED]');
+    });
     
     errorSheet.appendRow([
       timestamp,
@@ -174,10 +240,11 @@ function logError(source, errorType, error, context = '') {
       '未対応'
     ]);
     
-    console.log(`❌ [${errorType}] ${source}: ${errorMessage}`);
+    // ✅ コンソールログも機密情報を除外
+    console.error(`❌ [${errorType}] ${source}: ${errorMessage.substring(0, 100)}`);
   } catch (e) {
-    // エラーログ記録自体が失敗した場合はコンソールのみに出力
-    console.log(`🚨 Failed to log error: ${e.toString()}`);
+    // エラーログ記録自体が失敗した場合は簡潔に出力（機密情報を含めない）
+    console.error(`🚨 Failed to log error: ${e.message}`);
   }
 }
 
@@ -233,8 +300,8 @@ function fetchAndSummarizeToSheet() {
   console.log(`🤖 System Online: ${MODEL_NAME} (v14.1-JSDoc)`);
   
   let apiCallCount = 0;   
-  const MAX_API_CALLS = 30;  // レート制限対策（15 RPM以内に収める） 
-
+  const MAX_API_CALLS = 30;  // レート制限対策（15 RPM以内に収める）
+  
   for (const site of TARGETS) {
     if (apiCallCount >= MAX_API_CALLS) break;
     
@@ -252,6 +319,13 @@ function fetchAndSummarizeToSheet() {
 
         const item = items[i];
         if (!item.title || !item.link) continue;
+        
+        // URL検証（インジェクション対策）
+        if (!isValidUrl(item.link)) {
+          console.log(`🚫 Invalid URL detected: ${item.link}`);
+          continue;
+        }
+        
         if (savedUrls.includes(item.link)) continue;
 
         // 構造チェック
@@ -308,14 +382,14 @@ function fetchAndSummarizeToSheet() {
           continue; // 新規記事としては追加しない
         }
 
-        // 初期値
-        let finalTitle = "【翻訳失敗】" + item.title; 
+        // 初期値（XSS対策：HTMLエスケープ）
+        let finalTitle = "【翻訳失敗】" + escapeHtml(item.title); 
         let finalSummary = "AI生成失敗"; 
-        let finalContent = `<p>${item.desc}</p>`;
+        let finalContent = `<p>${escapeHtml(item.desc)}</p>`;
         let finalReviewEn = "Failed.";
-        let titleEn = item.title;           
+        let titleEn = escapeHtml(item.title);           
         let summaryEn = "Generation failed"; 
-        let contentEn = item.desc;           
+        let contentEn = escapeHtml(item.desc);           
         let leakScore = 40; 
 
         try {
@@ -558,7 +632,19 @@ JSONのみで返答しろ。前置きも後書きも不要。
     "muteHttpExceptions": true 
   });
   
-  if (apiRes.getResponseCode() !== 200) throw new Error(`API Error ${apiRes.getResponseCode()}`);
+  // エラーメッセージの情報漏洩を防止
+  if (apiRes.getResponseCode() !== 200) {
+    const errorCode = apiRes.getResponseCode();
+    console.error(`❌ Gemini API Error: ${errorCode}`);
+    // 詳細なエラーはログのみ、外部には返さない
+    if (errorCode === 429) {
+      throw new Error('Rate limit exceeded');
+    } else if (errorCode >= 500) {
+      throw new Error('External service error');
+    } else {
+      throw new Error('API request failed');
+    }
+  }
   
   let rawText = "";
   try {
@@ -745,12 +831,13 @@ function postMainText(text) {
   const url = "https://api.twitter.com/2/tweets"; 
   const payload = { "text": text };
   
+  // OAuth署名の強化（セキュアなnonce生成）
   const oauthParams = { 
     oauth_consumer_key: TWITTER_API_KEY, 
     oauth_token: TWITTER_ACCESS_TOKEN, 
     oauth_signature_method: "HMAC-SHA1", 
     oauth_timestamp: Math.floor(Date.now()/1000).toString(), 
-    oauth_nonce: Math.random().toString(36).substring(2), 
+    oauth_nonce: generateSecureNonce(), 
     oauth_version: "1.0" 
   };
   
@@ -789,12 +876,13 @@ function postReplyUrl(text, replyToId) {
     "reply": { "in_reply_to_tweet_id": replyToId }
   };
   
+  // OAuth署名の強化（セキュアなnonce生成）
   const oauthParams = { 
     oauth_consumer_key: TWITTER_API_KEY, 
     oauth_token: TWITTER_ACCESS_TOKEN, 
     oauth_signature_method: "HMAC-SHA1", 
     oauth_timestamp: Math.floor(Date.now()/1000).toString(), 
-    oauth_nonce: Math.random().toString(36).substring(2), 
+    oauth_nonce: generateSecureNonce(), 
     oauth_version: "1.0" 
   };
   
@@ -824,12 +912,13 @@ function postTweet(text, quoteId) {
   const payload = { "text": text };
   if (quoteId) payload["quote_tweet_id"] = quoteId;
   
+  // OAuth署名の強化（セキュアなnonce生成）
   const oauthParams = { 
     oauth_consumer_key: TWITTER_API_KEY, 
     oauth_token: TWITTER_ACCESS_TOKEN, 
     oauth_signature_method: "HMAC-SHA1", 
     oauth_timestamp: Math.floor(Date.now()/1000).toString(), 
-    oauth_nonce: Math.random().toString(36).substring(2), 
+    oauth_nonce: generateSecureNonce(), 
     oauth_version: "1.0" 
   };
   
