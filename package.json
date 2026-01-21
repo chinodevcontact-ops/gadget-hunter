@@ -1,0 +1,14 @@
+{
+  "name": "gadget-hunter",
+  "version": "1.0.0",
+  "description": "Tech News Site with AI-generated articles",
+  "scripts": {
+    "build": "node scripts/generate-articles.js"
+  },
+  "dependencies": {
+    "fs-extra": "^11.2.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

@@ -1,0 +1,52 @@
+# ==========================================
+# GADGET HUNTER - Security Configuration
+# ==========================================
+
+# ✅ セキュリティヘッダー
+<IfModule mod_headers.c>
+    # XSS Protection
+    Header set X-XSS-Protection "1; mode=block"
+    
+    # MIME Type Sniffing 防止
+    Header set X-Content-Type-Options "nosniff"
+    
+    # Clickjacking 防止
+    Header set X-Frame-Options "SAMEORIGIN"
+    
+    # Referrer Policy
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+    
+    # Content Security Policy
+    Header set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://utteranc.es; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://api.exchangerate-api.com; frame-src https://utteranc.es;"
+    
+    # HSTS (HTTPS強制)
+    Header set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+</IfModule>
+
+# ✅ ディレクトリリスティング無効化
+Options -Indexes
+
+# ✅ サーバー情報の非表示
+ServerSignature Off
+
+# ✅ レート制限（mod_evasive）
+<IfModule mod_evasive20.c>
+    DOSHashTableSize 3097
+    DOSPageCount 5
+    DOSSiteCount 100
+    DOSPageInterval 1
+    DOSSiteInterval 1
+    DOSBlockingPeriod 10
+</IfModule>
+
+# ✅ ファイルアクセス制限
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# ✅ バックアップファイルへのアクセス禁止
+<FilesMatch "\.(bak|config|sql|fla|psd|ini|log|sh|inc|swp|dist)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>

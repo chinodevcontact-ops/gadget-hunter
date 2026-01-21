@@ -822,7 +822,12 @@ function checkAndTweetNewArticles() {
       console.log("⏳ Cooling down (5s)...");
       Utilities.sleep(5000);
       
-      const replyText = `👇 詳細はこちら\n${MY_WEBSITE_URL}`;
+      // 個別記事URLの生成（OGP対応）
+      const titleEn = row[9] || ''; // title_en
+      const slug = generateSlug(titleEn || title);
+      const articleUrl = `${MY_WEBSITE_URL}articles/${slug}`;
+      
+      const replyText = `👇 詳細はこちら\n${articleUrl}`;
       postReplyUrl(replyText, mainTweetId);
       
       console.log(`✅ Stage 2 完了`);
@@ -833,6 +838,21 @@ function checkAndTweetNewArticles() {
       logError('Twitter', 'TWO_STAGE_POST', e, `記事: ${title.substring(0, 50)}`);
     }
   }
+}
+
+/**
+ * タイトルからURL用のスラッグを生成（フロントエンドのビルドスクリプトと同じロジック）
+ * @param {string} text
+ * @return {string}
+ */
+function generateSlug(text) {
+  if (!text) return 'unknown-' + Date.now();
+  return text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/[\s\W-]+/g, '-') // 英数字以外をハイフンに
+    .replace(/^-+|-+$/g, ''); // 前後のハイフン削除
 }
 
 // ★★★ Task B: テキスト投稿 ★★★
