@@ -103,6 +103,18 @@ function generateSecureNonce() {
     .substring(0, 32);
 }
 
+/**
+ * 人間らしいランダムな待機時間を生成（Anti-Bot Detection）
+ * @param {number} minMs - 最小待機時間（ミリ秒）
+ * @param {number} maxMs - 最大待機時間（ミリ秒）
+ * @return {void}
+ */
+function humanLikeSleep(minMs, maxMs) {
+  const sleepTime = Math.floor(Math.random() * (maxMs - minMs + 1)) + minMs;
+  console.log(`⏳ Human-like cooling down (${(sleepTime / 1000).toFixed(1)}s)...`);
+  Utilities.sleep(sleepTime);
+}
+
 // ▼ ノイズ除去用フィルター設定
 const STRICT_FILTER = {
   MIN_LENGTH: 20,
@@ -432,8 +444,7 @@ function fetchAndSummarizeToSheet() {
         ]);
         
         if (apiCallCount < MAX_API_CALLS) {
-            console.log("⏳ Cooling down (5s)..."); 
-            Utilities.sleep(5000); 
+            humanLikeSleep(10000, 30000); // 10〜30秒のランダム待機
         }
       }
     } catch (e) {
@@ -737,8 +748,7 @@ function retryFailedArticles() {
          logError('Retry', 'ARTICLE_RETRY', e, `記事: ${row[1].substring(0, 50)}`);
        }
 
-       console.log("⏳ Cooling down (5s)...");
-       Utilities.sleep(5000); 
+       humanLikeSleep(15000, 45000); // 15〜45秒のランダム待機（Gemini API Rate Limit対策） 
     }
   }
 }
@@ -818,9 +828,8 @@ function checkAndTweetNewArticles() {
       
       console.log(`✅ Stage 1 完了 (ID: ${mainTweetId})`);
       
-      // 【Stage 2】5秒待機
-      console.log("⏳ Cooling down (5s)...");
-      Utilities.sleep(5000);
+      // 【Stage 2】人間らしい待機（Anti-Bot Detection）
+      humanLikeSleep(30000, 90000); // 30〜90秒のランダム待機（X API Bot Detection回避）
       
       // 個別記事URLの生成（OGP対応）
       const titleEn = row[9] || ''; // title_en
