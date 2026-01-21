@@ -1035,16 +1035,27 @@ function saveJsonToDrive(sheet) {
     
     const folder = DriveApp.getFolderById(getConfig('FOLDER_ID'));
     
-    // 既存のファイルをすべて削除（クリーンアップ）
+    // 既存ファイルを検索・更新（File ID固定化）
     const files = folder.getFilesByName(JSON_FILE_NAME);
-    while (files.hasNext()) {
-      files.next().setTrashed(true);
+    let file;
+    
+    if (files.hasNext()) {
+      // 既存ファイルがあれば内容を更新（IDは変わらない）
+      file = files.next();
+      file.setContent(JSON.stringify(data));
+      console.log(`🔄 JSON Updated (Existing File)`);
+      
+      // 重複ファイルがあれば削除（クリーンアップ）
+      while (files.hasNext()) {
+        files.next().setTrashed(true);
+      }
+    } else {
+      // 新規作成（初回のみ）
+      file = folder.createFile(JSON_FILE_NAME, JSON.stringify(data), "application/json");
+      console.log(`🆕 JSON Created (New File)`);
     }
     
-    // 新しいファイルを作成
-    const file = folder.createFile(JSON_FILE_NAME, JSON.stringify(data), "application/json");
     file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-    console.log(`🚀 JSON Updated (Global)`);
     console.log(`📁 File ID: ${file.getId()}`);
   } catch(e) { 
     console.log(`❌ 保存エラー: ${e.toString()}`);
