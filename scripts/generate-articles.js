@@ -47,7 +47,7 @@ async function main() {
     ) + '...';
     
     // 画像URLの決定（将来的に記事ごとの画像を追加する場合に備えて）
-    const image = article.imageUrl || `${BASE_URL}/ogp-default.jpg`;
+    const image = article.imageUrl || `${BASE_URL}/ogp-default.svg`;
     const url = `${BASE_URL}/articles/${slug}`;
 
     // HTMLの置換処理

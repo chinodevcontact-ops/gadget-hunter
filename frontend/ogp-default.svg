@@ -1,0 +1,66 @@
+<svg width="1200" height="630" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1200" height="630" fill="#000000"/>
+  
+  <!-- Grid Pattern -->
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#00ff41" stroke-width="0.5" opacity="0.1"/>
+    </pattern>
+    
+    <!-- Glow Effect -->
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Grid Background -->
+  <rect width="1200" height="630" fill="url(#grid)"/>
+  
+  <!-- Diagonal Lines -->
+  <line x1="0" y1="0" x2="1200" y2="630" stroke="#00ff41" stroke-width="2" opacity="0.1"/>
+  <line x1="0" y1="630" x2="1200" y2="0" stroke="#00ff41" stroke-width="2" opacity="0.1"/>
+  
+  <!-- Top Border -->
+  <rect x="0" y="0" width="1200" height="4" fill="#00ff41"/>
+  
+  <!-- Bottom Border -->
+  <rect x="0" y="626" width="1200" height="4" fill="#00ff41"/>
+  
+  <!-- Main Logo Text -->
+  <text x="600" y="280" font-family="'Courier New', monospace" font-size="80" font-weight="bold" 
+        fill="#00ff41" text-anchor="middle" filter="url(#glow)">
+    GADGET HUNTER
+  </text>
+  
+  <!-- Subtitle -->
+  <text x="600" y="340" font-family="'Courier New', monospace" font-size="32" 
+        fill="#00aa2b" text-anchor="middle">
+    Tech Leak Intelligence
+  </text>
+  
+  <!-- Decorative Elements -->
+  <circle cx="200" cy="150" r="3" fill="#00ff41" opacity="0.6"/>
+  <circle cx="1000" cy="150" r="3" fill="#00ff41" opacity="0.6"/>
+  <circle cx="200" cy="480" r="3" fill="#00ff41" opacity="0.6"/>
+  <circle cx="1000" cy="480" r="3" fill="#00ff41" opacity="0.6"/>
+  
+  <!-- Scan Line Effect -->
+  <rect x="0" y="310" width="1200" height="1" fill="#00ff41" opacity="0.3"/>
+  
+  <!-- Corner Brackets -->
+  <path d="M 100 100 L 100 80 L 120 80" stroke="#00ff41" stroke-width="2" fill="none"/>
+  <path d="M 1100 100 L 1100 80 L 1080 80" stroke="#00ff41" stroke-width="2" fill="none"/>
+  <path d="M 100 530 L 100 550 L 120 550" stroke="#00ff41" stroke-width="2" fill="none"/>
+  <path d="M 1100 530 L 1100 550 L 1080 550" stroke="#00ff41" stroke-width="2" fill="none"/>
+  
+  <!-- Bottom Info Text -->
+  <text x="600" y="500" font-family="'Courier New', monospace" font-size="20" 
+        fill="#a0a0b8" text-anchor="middle">
+    AI-Powered Tech News Analysis
+  </text>
+</svg>
