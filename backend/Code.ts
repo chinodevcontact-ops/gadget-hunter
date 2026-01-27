@@ -457,7 +457,7 @@ function fetchAndSummarizeToSheet() {
     }
   }
   
-  retryFailedArticles();
+  retryFailedArticles(30); // 通常実行時は直近30行のみ（パフォーマンス考慮）
   cleanupAndSave(sheet);
 }
 
@@ -704,30 +704,41 @@ JSONのみで返答しろ。前置きも後書きも不要。
 // ----------------------------------------------------
 // 🔄 リトライ機能
 // ----------------------------------------------------
-function retryFailedArticles() {
+/**
+ * 過去の失敗記事を修復（全行チェック版）
+ * @param {number} maxRowsToCheck チェックする最大行数（デフォルト: 全行）
+ * @return {number} 修復した記事数
+ */
+function retryFailedArticles(maxRowsToCheck = null) {
   const ss = SpreadsheetApp.openById(getConfig('SPREADSHEET_ID'));
   const sheet = ss.getSheets()[0];
   const lastRow = sheet.getLastRow();
-  if (lastRow < 2) return;
+  if (lastRow < 2) return 0;
 
-  const startRow = Math.max(2, lastRow - 30 + 1);
+  // maxRowsToCheckが指定されていない場合は全行チェック
+  const startRow = maxRowsToCheck 
+    ? Math.max(2, lastRow - maxRowsToCheck + 1)
+    : 2;
+  
   const data = sheet.getRange(startRow, 1, lastRow - startRow + 1, 12).getValues(); 
   
   const currentRate = getUsdJpyRate();
   const now = new Date();
   const todayStr = Utilities.formatDate(now, "JST", "yyyy/MM/dd HH:mm");
 
+  let fixedCount = 0;
+
   for (let i = 0; i < data.length; i++) {
     const row = data[i];
-    const isTranslationFailed = row[1].includes("【翻訳失敗】");
-    const isEnglishMissing = row[9] === ""; 
+    const isTranslationFailed = row[1] && row[1].toString().includes("【翻訳失敗】");
+    const isEnglishMissing = !row[9] || row[9] === ""; 
     const isDone = row[8] === "DONE";
 
     if ((isTranslationFailed || isEnglishMissing) && row[2] && !isDone) {
-       console.log(`🚑 Retrying/Filling English: ${row[1]}`);
+       console.log(`🚑 Retrying/Filling English: ${row[1] || 'Unknown'}`);
        try {
-         let sourceTitle = row[1].replace("【翻訳失敗】", "");
-         let sourceBody = row[4]; 
+         let sourceTitle = (row[1] || "").toString().replace("【翻訳失敗】", "");
+         let sourceBody = row[4] || ""; 
 
          const gen = callGeminiAPI(sourceTitle, sourceBody, todayStr, currentRate, "");
          if (gen) {
@@ -746,14 +757,41 @@ function retryFailedArticles() {
            sheet.getRange(rNum, 12).setValue(conEn);
 
            console.log(`✅ 修復完了: ${gen.title_en}`);
+           fixedCount++;
          }
        } catch(e) { 
          console.log(`❌ Retry failed: ${e.toString()}`);
-         logError('Retry', 'ARTICLE_RETRY', e, `記事: ${row[1].substring(0, 50)}`);
+         logError('Retry', 'ARTICLE_RETRY', e, `記事: ${(row[1] || 'Unknown').toString().substring(0, 50)}`);
        }
 
        humanLikeSleep(15000, 45000); // 15〜45秒のランダム待機（Gemini API Rate Limit対策） 
     }
+  }
+  
+  if (fixedCount > 0) {
+    console.log(`🎉 合計 ${fixedCount} 件の記事を修復しました`);
+  }
+  
+  return fixedCount;
+}
+
+/**
+ * 過去の全エラー記事を修復する関数（GASエディタから直接実行可能）
+ * 使用例: repairAllFailedArticles()  // 全行チェック
+ * 使用例: repairAllFailedArticles(100)  // 直近100行のみ
+ * @param {number} maxRowsToCheck チェックする最大行数（null = 全行）
+ * @return {number} 修復した記事数
+ */
+function repairAllFailedArticles(maxRowsToCheck = null) {
+  try {
+    console.log(`🔍 失敗記事の修復を開始します...${maxRowsToCheck ? ` (直近${maxRowsToCheck}行)` : ' (全行)'}`);
+    const fixedCount = retryFailedArticles(maxRowsToCheck);
+    console.log(`✅ 修復完了: ${fixedCount} 件の記事を修復しました`);
+    return fixedCount;
+  } catch (e) {
+    console.log(`❌ 修復エラー: ${e.toString()}`);
+    logError('Repair All', 'REPAIR_ALL_ERROR', e, `maxRowsToCheck: ${maxRowsToCheck}`);
+    return 0;
   }
 }
 
