@@ -30,6 +30,10 @@ const JSON_FILE_NAME = 'news.json';
 const MY_WEBSITE_URL = 'https://gadget-hunter-xi.vercel.app/';
 const MODEL_NAME = 'gemma-3-27b-it';
 
+// ▼ データクリーンアップ設定
+const CLEANUP_DAYS_TO_KEEP = 30; // 30日以上古い記事を削除
+const CLEANUP_MAX_ROWS = 300;    // 最大300行まで保持（ヘッダー除く）
+
 // ==========================================
 // 🧠 プロンプト設定定数
 // ==========================================
@@ -1020,7 +1024,13 @@ function decodeHTMLEntities(text) {
   return text.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'"); 
 }
 
-function cleanupAndSave(sheet) {
+/**
+ * 古い記事を削除（日付ベース + 行数制限の両方でチェック）
+ * @param {Sheet} sheet スプレッドシートのシートオブジェクト
+ * @param {number} daysToKeep 保持する日数（デフォルト: CLEANUP_DAYS_TO_KEEP）
+ * @param {number} maxRows 最大保持行数（デフォルト: CLEANUP_MAX_ROWS）
+ */
+function cleanupAndSave(sheet, daysToKeep = CLEANUP_DAYS_TO_KEEP, maxRows = CLEANUP_MAX_ROWS) {
     // 引数がない場合はスプレッドシートを取得
     if (!sheet) {
       const ss = SpreadsheetApp.openById(getConfig('SPREADSHEET_ID'));
@@ -1028,13 +1038,98 @@ function cleanupAndSave(sheet) {
     }
     
     const lastRow = sheet.getLastRow();
-    // ヘッダー1行 + データ300行 = 301行を超えたら古い記事を削除
-    if (lastRow > 301) {
-        const rowsToDelete = lastRow - 301;
-        sheet.deleteRows(2, rowsToDelete);
-        console.log(`🗑️ 古い記事 ${rowsToDelete} 件を削除しました`);
+    if (lastRow < 2) {
+      saveJsonToDrive(sheet);
+      return; // データがない場合は終了
     }
+    
+    // 日付列（1列目）を取得
+    const dateRange = sheet.getRange(2, 1, lastRow - 1, 1);
+    const dates = dateRange.getValues();
+    
+    const now = new Date();
+    const cutoffDate = new Date(now.getTime() - (daysToKeep * 24 * 60 * 60 * 1000));
+    
+    // 削除する行のインデックスを収集（下から上へ削除するため逆順）
+    const rowsToDelete = [];
+    
+    for (let i = dates.length - 1; i >= 0; i--) {
+      const rowIndex = i + 2; // 実際の行番号（ヘッダー+1）
+      const dateValue = dates[i][0];
+      
+      // 日付がDateオブジェクトか文字列かを判定
+      let articleDate;
+      if (dateValue instanceof Date) {
+        articleDate = dateValue;
+      } else if (typeof dateValue === 'string' && dateValue) {
+        // 文字列の場合はパースを試みる
+        articleDate = new Date(dateValue);
+        if (isNaN(articleDate.getTime())) {
+          // パース失敗時はスキップ（無効な日付）
+          continue;
+        }
+      } else {
+        // 日付が無効な場合はスキップ
+        continue;
+      }
+      
+      // 日付が古い、または行数制限を超えている場合
+      if (articleDate < cutoffDate || (lastRow - rowsToDelete.length) > maxRows + 1) {
+        rowsToDelete.push(rowIndex);
+      }
+    }
+    
+    // 行を削除（下から上へ削除することでインデックスがずれない）
+    if (rowsToDelete.length > 0) {
+      // 連続した行はまとめて削除（効率的）
+      rowsToDelete.sort((a, b) => b - a); // 降順ソート
+      
+      let deleteCount = 0;
+      let startRow = rowsToDelete[0];
+      let endRow = rowsToDelete[0];
+      
+      for (let i = 1; i < rowsToDelete.length; i++) {
+        if (rowsToDelete[i] === endRow - 1) {
+          // 連続している
+          endRow = rowsToDelete[i];
+        } else {
+          // 連続が途切れたので削除
+          const count = startRow - endRow + 1;
+          sheet.deleteRows(endRow, count);
+          deleteCount += count;
+          startRow = rowsToDelete[i];
+          endRow = rowsToDelete[i];
+        }
+      }
+      
+      // 最後の連続範囲を削除
+      const count = startRow - endRow + 1;
+      sheet.deleteRows(endRow, count);
+      deleteCount += count;
+      
+      console.log(`🗑️ 古い記事 ${deleteCount} 件を削除しました（${daysToKeep}日以上前、または${maxRows}行超過）`);
+    }
+    
     saveJsonToDrive(sheet);
+}
+
+/**
+ * 手動で古い記事を削除する関数（GASエディタから直接実行可能）
+ * 使用例: manualCleanupOldArticles(30, 300)  // 30日以上前、最大300行
+ * 使用例: manualCleanupOldArticles(7, 100)   // 7日以上前、最大100行（より積極的）
+ * @param {number} daysToKeep 保持する日数（デフォルト: CLEANUP_DAYS_TO_KEEP）
+ * @param {number} maxRows 最大保持行数（デフォルト: CLEANUP_MAX_ROWS）
+ */
+function manualCleanupOldArticles(daysToKeep = CLEANUP_DAYS_TO_KEEP, maxRows = CLEANUP_MAX_ROWS) {
+  try {
+    const ss = SpreadsheetApp.openById(getConfig('SPREADSHEET_ID'));
+    const sheet = ss.getSheets()[0];
+    cleanupAndSave(sheet, daysToKeep, maxRows);
+    console.log(`✅ クリーンアップ完了: ${daysToKeep}日以上前の記事を削除、最大${maxRows}行保持`);
+  } catch (e) {
+    console.log(`❌ クリーンアップエラー: ${e.toString()}`);
+    logError('Manual Cleanup', 'CLEANUP_ERROR', e, `daysToKeep: ${daysToKeep}, maxRows: ${maxRows}`);
+  }
 }
 
 function saveJsonToDrive(sheet) {
