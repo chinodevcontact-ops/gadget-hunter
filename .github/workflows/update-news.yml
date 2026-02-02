@@ -30,6 +30,17 @@ jobs:
             exit 1
           fi
       
+      - name: 🛡️ Validate JSON integrity
+        run: |
+          if jq empty frontend/data/news.json > /dev/null 2>&1; then
+            echo "✅ JSON is valid."
+          else
+            echo "❌ Invalid JSON detected! (Google Drive limitation or corrupt file)"
+            echo "--- First 50 lines (debug) ---"
+            head -50 frontend/data/news.json
+            exit 1
+          fi
+      
       - name: 🔍 Check for changes
         id: check_changes
         run: |
