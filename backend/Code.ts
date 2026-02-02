@@ -33,6 +33,7 @@ const MODEL_NAME = 'gemma-3-27b-it';
 // ▼ データクリーンアップ設定
 const CLEANUP_DAYS_TO_KEEP = 30; // 30日以上古い記事を削除
 const CLEANUP_MAX_ROWS = 300;    // 最大300行まで保持（ヘッダー除く）
+// 移行の合図: news.json が重い / GitHub Diff が辛い / GAS メモリ制限に当たり始めたら DB・月次アーカイブを検討
 
 // ==========================================
 // 🧠 プロンプト設定定数
@@ -1035,6 +1036,10 @@ function createSignature(method, url, params, apiSecret, tokenSecret) {
   return Utilities.base64Encode(Utilities.computeHmacSignature(Utilities.MacAlgorithm.HMAC_SHA_1, signatureBaseString, signingKey));
 }
 
+/**
+ * RSS/Atom を正規表現でパース（高速だが仕様差に弱い）。
+ * TODO: Refactor to XmlService when RSS format changes or ReDoS/edge cases appear.
+ */
 function parseRSSRegex(xmlText) {
   const items = [];
   const itemMatches = xmlText.match(/<(item|entry)>[\s\S]*?<\/\1>/gi);
