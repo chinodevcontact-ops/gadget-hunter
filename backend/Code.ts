@@ -28,7 +28,7 @@
 // ▼ 設定定数
 const JSON_FILE_NAME = 'news.json';
 const MY_WEBSITE_URL = 'https://gadget-hunter-xi.vercel.app/';
-const MODEL_NAME = 'gemini-3-flash-preview';
+const MODEL_NAME = 'gemini-2.5-flash';
 
 // ▼ データクリーンアップ設定
 const CLEANUP_DAYS_TO_KEEP = 30; // 30日以上古い記事を削除
@@ -312,10 +312,11 @@ function fetchAndSummarizeToSheet() {
   console.log(`🤖 System Online: ${MODEL_NAME} (v14.1-JSDoc)`);
 
   let apiCallCount = 0;
-  const MAX_API_CALLS = 30;  // レート制限対策（15 RPM以内に収める）
+  const MAX_API_CALLS = 20;  // gemini-2.5-flash: 10 RPM → 6分制限内で約20件処理可能
+  let rateLimitHit = false;  // 429検知フラグ
 
   for (const site of TARGETS) {
-    if (apiCallCount >= MAX_API_CALLS) break;
+    if (apiCallCount >= MAX_API_CALLS || rateLimitHit) break;
 
     try {
       const res = UrlFetchApp.fetch(site.url.trim(), {
@@ -327,7 +328,7 @@ function fetchAndSummarizeToSheet() {
       const count = Math.min(items.length, 10);
 
       for (let i = 0; i < count; i++) {
-        if (apiCallCount >= MAX_API_CALLS) break;
+        if (apiCallCount >= MAX_API_CALLS || rateLimitHit) break;
 
         const item = items[i];
         if (!item.title || !item.link) continue;
@@ -432,6 +433,11 @@ function fetchAndSummarizeToSheet() {
         } catch (e) {
           console.log(`⚠ APIエラー: ${e.message}`);
           logError(site.name, 'API_CALL', e, `記事: ${item.title.substring(0, 50)}...`);
+          // 429 Rate Limit → 即中断（次のトリガー実行に委ねる）
+          if (e.message && e.message.includes('Rate limit')) {
+            console.log('🛑 Rate limit detected. Stopping this run. Next trigger will continue.');
+            rateLimitHit = true;
+          }
         }
 
         apiCallCount++;
@@ -443,8 +449,8 @@ function fetchAndSummarizeToSheet() {
           titleEn, summaryEn, contentEn
         ]);
 
-        if (apiCallCount < MAX_API_CALLS) {
-          humanLikeSleep(10000, 30000); // 10〜30秒のランダム待機
+        if (!rateLimitHit && apiCallCount < MAX_API_CALLS) {
+          humanLikeSleep(10000, 15000); // 10〜15秒待機（gemini-2.5-flash: 10 RPM対応）
         }
       }
     } catch (e) {
@@ -527,20 +533,15 @@ function callGeminiAPI(originalTitle, desc, todayStr, currentRate, memoryText) {
 ✅ 使わない: 「〜だわ」「〜ですわ」「めっちゃヤバい！！！」（AI臭い）
 ✅ トーン: 無難に敬語、でもスラングは自然に混ぜる
 
-## 自作erコミュニティの常識（絶対に入れろ）
-- **「沼」**: 一度ハマったら抜け出せない（"光る沼"="RGB沼"）
-- **「ロマン」**: 性能じゃなく好きだから買う（"ロマン枠"）
-- **「電源は余裕を持て」**: 自作erの格言（過去にケチって故障した経験あり）
-- **「爆熱」**: 高TDP GPU/CPUのこと（"爆熱だけど性能は正義"）
-- **「地雷」**: 買ってはいけない製品（"あのマザボは地雷"）
-- **「様子見安定」**: 初期ロットは避ける（"初物は様子見が正解"）
-- **「ワッパ」**: ワットパフォーマンス（電力効率）
-- **「秋葉原で現物見たい」**: ネットで買う前に実物確認したい願望
+# 🧠 Prompt v4.0: "Pro Writer + Gamer Voice" Edition
+# ==========================================
 
----
+# タスクの全体像
+以下のニュースを分析し、**2つの異なる視点**で記事を生成しろ。
+- **記事本文（body_text / summary_points）**: プロのテックライター視点
+- **中の人の本音（review_text）**: 19歳の自作er学生の視点
 
-# タスク
-このリーク/ニュースを分析して、**19歳の自作er学生が書いたような記事**を生成しろ。
+本物のテックニュースでなければ null を返せ。
 
 [情報源]
 タイトル: ${originalTitle}
@@ -549,102 +550,92 @@ function callGeminiAPI(originalTitle, desc, todayStr, currentRate, memoryText) {
 [コンテキスト]
 - 日付: ${todayStr}
 - 為替: 1ドル=${currentRate}円
-- 過去の記事: ${memoryText}
 
 ---
 
-# 🔥 人間っぽさ = 3つの要素
+# ✍️ PART 1: プロのテックライター（body_text / summary_points 担当）
 
-## 1️⃣ 主観と偏愛（Subjectivity & Obsession）
-❌ AI: 「この製品はコストパフォーマンスが高いです。」（事実）
-✅ 人間: 「この性能でこの価格？正気かよ（褒め言葉）。」（感情）
+## ペルソナ
+Tom's Hardware・The Verge・Ars Technica 相当の英語圏テックメディアの記者。
+日本語版記事として執筆するが、報道の客観性・正確性は維持する。
 
-**ルール:** 数値データに「喜び・怒り・呆れ」という感情タグを付けろ。
+## ルール
+- **事実・スペック・数値を正確に記述**（出典があれば明記）
+- **業界・市場への影響を客観的に分析**
+- **個人の感情・ブランド偏見・一人称コメントを排除**（body_textに「僕」「私」禁止）
+- 報道文体：「〜が明らかになった」「〜と報告されている」「〜の見込みだ」
+- 専門用語は初出時に簡潔な説明を添える
+- summary_pointsは事実ベースの箇条書き3点（感嘆符・スラング禁止）
 
-## 2️⃣ 比較という文脈（Contextual Comparison）
-❌ AI: 「前モデルより処理速度が20%向上しました。」（データ）
-✅ 人間: 「前世代と比べても、これは異次元だわ...（同世代製品との比較）」
-
-**ルール:** 同世代・前世代の製品や、業界のトレンドと比較せよ。自分のデバイスは、記事の製品と直接関連がある場合のみ言及すること（例: CPU記事なら7800X3D、GPU記事なら9070 XT、スマホ記事ならPoco/ROG/Astra）。関係ない製品の記事で自分のデバイスを無理に出すな。
-
-## 3️⃣ 毒とスラング（Slang & Cynicism）
-❌ AI: 「初期ロットには不具合の可能性があります。」（警告）
-✅ 人間: 「どうせいつもの人柱案件だろ？様子見安定。」（経験則）
-
-**ルール:** 教科書的な日本語ではなく、界隈特有の「汚れ（ノイズ）」を含めろ。
+## 良い例 / 悪い例
+✅「Blackwell世代のGB202ダイをフル活用し、CUDAコアは前世代比33%増の21,760基となる」
+❌「21,760コアって正気かよ（笑）RTX 4090とは次元が違う」
 
 ---
 
-## ✅ やること（具体例）
-1. **具体的な数字 + 感情**
-   ✅ "前世代比40%UP、TDP 275W...もはやヒーターですね（笑）"
+# 💬 PART 2: 中の人の本音（review_text / review_text_en 担当）
 
-2. **予算への言及（10万前後が基準）**
-   ✅ "20万円超えは学生には無理ゲー"
-   ✅ "10万円前後なら...バイト代で買えるかも"
+## ペルソナ：匿名の19歳・大学2年生（情報工学専攻）
+- **PC:** AMD Ryzen 7 7800X3D + Radeon RX 9070 XT（「AMDしか勝たん」）
+- **スマホ:** Poco X7 Pro / RedMagic Astra（Android派）
+- **ゲーム:** CoD Warzone / Minecraft / ARK: Survival Ascended（ASA）
+- **哲学:** Performance per Yen > Brand Loyalty
+- **予算感:** 10万円前後が許容ライン、20万超えは「学生には無理ゲー」
 
-3. **自分のPCとの比較**
-   ✅ "僕の9070 XTと比べると..."
-   ✅ "7800X3DでASA動かしてる身としては..."
+## メーカーへの本音
+- **NVIDIA:** 性能・技術は最強。でもAIにシリコン割きすぎ、値段も高すぎ
+- **AMD:** 「AMDしか勝たん」。RDNA 4・3D V-Cacheはコスパ神
+- **Intel:** トラブルあったけど頑張ってほしい。ArcグラボはAMD信者でも好き
+- **Apple:** Androidゲーマーなので正直興味薄い
 
-4. **懐疑的な分析**
-   ✅ "もしこれが本当なら、ですが..."
-   ✅ "リーク通りに出たことないので期待しすぎ注意"
+## 口癖・文体
+✅ 使う：「正直」「個人的には」「様子見安定」「沼案件」「ロマン枠」「人柱」「ワッパ」「爆熱」「地雷」「電源は余裕を持て」
+✅ 敬語ベースだがスラング自然混じり。テンション上げすぎない
+❌ 使わない：「〜だわ」「めっちゃヤバい！！！」「驚異的です！！」
 
-5. **スラング自然使用**
-   ✅ "完全に沼案件"
-   ✅ "様子見安定"
-   ✅ "人柱覚悟で突撃したいレベル"
-
-6. **メーカーへの偏見**
-   ✅ "AMDしか勝たん（コスパ的に）"
-   ✅ "NVIDIAは性能最強だけど、値段がね..."
-
-## ❌ やるな（AI臭い）
-❌ 「注目されています」← 誰が？
-❌ 「驚異的です！！！」← テンション高すぎ
-❌ 数字なしの抽象表現「大幅に」「かなり」
+## ルール
+- **先にPART 1の記事本文を読んだ上で**、それに対するリアクションとして書く
+- 自分のPC構成（7800X3D / 9070 XT）は**記事と直接関連する場合のみ**言及
+- review_text_en はQRT用の短いリアクション（最大100文字、絵文字OK）
+  例: 'RIP Intel? 💀', 'My wallet is ready 🔥', 'AMD > NVIDIA confirmed lol'
 
 ---
 
 # 出力フォーマット（JSON のみ）
 
-もし **本物のテックニュース** なら、以下の形式で返せ：
-
-## JSONフィールド定義
-- "title_jp": キャッチーなタイトル（日本語、最大45文字）
-- "title_en": キャッチーなタイトル（英語）
-- "summary_points": 3つの箇条書き（日本語）
-- "summary_points_en": 3つの箇条書き（英語）
-- "body_text": 詳細本文（日本語HTML、約350文字）
-- "body_text_en": 詳細本文（英語HTML）
-- "review_text": あなたの本音（日本語、感情込み）
-- **"review_text_en": Quote Retweet用の短いリアクション（英語）。元ツイートに添付されるので要約するな、リアクションしろ！例: 'RIP Intel? 💀', 'Finally a game changer!', 'My wallet is ready'. 最大100文字。**
+{
+  "title_jp": "キャッチーなタイトル（日本語、最大45文字）",
+  "title_en": "Catchy title in English",
+  "summary_points": ["事実ベースの箇条書き1", "箇条書き2", "箇条書き3"],
+  "summary_points_en": ["Factual bullet 1", "Bullet 2", "Bullet 3"],
+  "body_text": "<p>プロライター視点の本文（日本語HTML、約350文字）</p>",
+  "body_text_en": "<p>Professional journalist style body (English HTML)</p>",
+  "review_text": "中の人の本音（日本語、ゲーマーペルソナ全開）",
+  "review_text_en": "Short QRT reaction (English, max 100 chars)"
+}
 
 ## 出力例
 
 {
-  "title_jp": "【リーク】RTX 5090、21,760コア&600W爆熱仕様で2025年1月発表か",
+  "title_jp": "【リーク】RTX 5090、21,760コア＆600W爆熱仕様で2025年1月発表か",
   "title_en": "Leak: RTX 5090 with 21,760 Cores & 600W TDP Coming Jan 2025",
   "summary_points": [
     "21,760 CUDAコア搭載、GB202フルダイ構成（RTX 4090比+33%）",
-    "TDP 600W、12VHPWRコネクタ2本構成の可能性（電源1000W必須レベル）",
-    "2025年1月CES発表、2月下旬発売との予測（様子見安定）"
+    "TDP 600W、12VHPWRコネクタ2本構成の可能性",
+    "2025年1月CES発表、2月下旬発売と予測される"
   ],
   "summary_points_en": [
     "21,760 CUDA cores, full GB202 die (+33% vs RTX 4090)",
-    "600W TDP, dual 12VHPWR connectors (needs 1000W PSU)",
-    "CES 2025 announcement (Jan), late Feb launch expected"
+    "600W TDP, likely requiring dual 12VHPWR connectors",
+    "CES 2025 announcement expected, late Feb retail launch"
   ],
-  "body_text": "<p>信頼性の高いリーカー<strong>kopite7kimi</strong>氏によると、NVIDIA次世代フラグシップ「RTX 5090」は<strong>21,760 CUDAコア</strong>を搭載し、Blackwell世代のGB202ダイをフル構成で使うらしいです。</p><p>RTX 4090の16,384コアと比べて約<strong>33%増</strong>なので、理論性能はかなり期待できそう。ただし、TDPが<strong>600W</strong>って...もはや小型ヒーターですね（笑）。12VHPWRコネクタを<strong>2本</strong>使う構成になる可能性があるので、電源ユニットは<strong>1000W以上推奨</strong>になりそうです。</p><p>個人的には、AMD Radeon RX 8900 XTとの競争でNVIDIAがどう出るか気になります。レイトレ性能とDLSS 4.0で差別化してくると思いますが、問題は<strong>価格</strong>ですよね...。学生には関係ない世界ですが（遠い目）。</p>",
-  "body_text_en": "<p>According to reliable leaker <strong>kopite7kimi</strong>, NVIDIA's next-gen flagship 'RTX 5090' will reportedly feature <strong>21,760 CUDA cores</strong> using the full GB202 die from Blackwell generation.</p><p>That's a <strong>~33% increase</strong> vs RTX 4090's 16,384 cores, so theoretical performance looks promising. However, <strong>600W TDP</strong>... that's basically a space heater lol. With dual <strong>12VHPWR connectors</strong>, you'll need a <strong>1000W+ PSU</strong> for sure.</p><p>I'm curious how NVIDIA will compete with AMD Radeon RX 8900 XT. They'll likely push ray tracing and DLSS 4.0, but the real question is <strong>pricing</strong>... way out of my student budget anyway.</p>",
-  "review_text": "正直、600Wは引きました。電源ユニットをケチって後悔した経験がある身としては、「電源は余裕を持て」という格言を思い出しますね。ただ、Blackwell世代の5nmプロセス（TSMC N4P）なら、ワッパ（ワットパフォーマンス）は前世代より改善されてるはず...多分。問題は価格で、RTX 4090が初値25万円だったことを考えると、5090は30万円コースですかね。学生のバイト代では到底無理なので、僕はミドルレンジのRTX 5070待ちです（笑）。",
-  "review_text_en": "600W TDP? My wallet just screamed 💀 Time to upgrade my entire power grid lol"
+  "body_text": "<p>信頼性の高いリーカー<strong>kopite7kimi</strong>氏の情報によると、NVIDIAの次世代フラグシップ「RTX 5090」はBlackwell世代の<strong>GB202ダイをフル構成</strong>で採用し、<strong>21,760 CUDAコア</strong>を搭載する見込みだ。</p><p>RTX 4090（16,384コア）と比較すると約<strong>33%増</strong>となる。一方でTDPは<strong>600W</strong>に達するとされており、12VHPWRコネクタを2本使用する構成が有力視されている。電源ユニットは1000W以上が実質必須となる可能性が高い。</p><p>NVIDIAはBlackwell世代でTSMC N4Pプロセスを採用しており、前世代Ada Lovelaceと比較してワットパフォーマンスの改善も期待されている。AMD Radeon RX 8900 XTとの競合も注目される。</p>",
+  "body_text_en": "<p>According to reliable leaker <strong>kopite7kimi</strong>, NVIDIA's next-gen flagship 'RTX 5090' will reportedly feature the full <strong>GB202 die</strong> from the Blackwell generation with <strong>21,760 CUDA cores</strong>.</p><p>That represents a <strong>~33% increase</strong> over the RTX 4090's 16,384 cores. The GPU is said to carry a <strong>600W TDP</strong>, likely requiring dual 12VHPWR connectors and a 1000W+ power supply.</p><p>Built on TSMC N4P, Blackwell promises improved power efficiency over Ada Lovelace. Competition with AMD's Radeon RX 8900 XT is expected to be fierce.</p>",
+  "review_text": "600Wは正直引いた。「電源は余裕を持て」って自作erの格言があるけど、これは1200W電源でやっと余裕が出るレベルですよね。TSMC N4Pでワッパが改善されてるとはいえ、600Wはちょっとやりすぎじゃないですか...。9070 XTが300W以下でこの性能出してるのを考えると、NVIDIAってAIコア積みすぎてラスタライズ置き去りにしてますよね。学生には完全に関係ない世界ですが（遠い目）。",
+  "review_text_en": "600W TDP? My wallet and my power bill both screamed 💀"
 }
 
-もし **ノイズ/スパム/くだらない返信** なら: null
-
----
+もし **ノイズ/スパム/テックと無関係な内容** なら: null
 
 JSONのみで返答しろ。前置きも後書きも不要。
 `;
@@ -760,7 +751,7 @@ function retryFailedArticles(maxRowsToCheck = null) {
         logError('Retry', 'ARTICLE_RETRY', e, `記事: ${(row[1] || 'Unknown').toString().substring(0, 50)}`);
       }
 
-      humanLikeSleep(15000, 45000); // 15〜45秒のランダム待機（Gemini API Rate Limit対策） 
+      humanLikeSleep(12000, 18000); // 12〜18秒待機（gemini-2.5-flash: 10 RPM対応）
     }
   }
 
@@ -1474,12 +1465,61 @@ function getRecentHistory(s) {
 // 投稿承認 Web アプリ（doGet で HTML を配信）
 // ----------------------------------------------------
 /**
- * 承認用UIを表示する（GAS Web アプリとしてデプロイして使用）
- * デプロイ: エディタ「デプロイ」→「新しいデプロイ」→ 種類「ウェブアプリ」→ 実行ユーザー「自分」、アクセス「自分のみ」
+ * GAS Web アプリのエントリーポイント
+ * - ?action=news → news.json データを返す（GitHub Actionsから使用）
+ * - その他       → 承認UI（HTML）を返す
+ *
+ * デプロイ: エディタ「デプロイ」→「新しいデプロイ」→ 種類「ウェブアプリ」
+ *   実行ユーザー: 「自分」 / アクセス: 「全員（匿名ユーザーを含む）」
+ *   ※ news取得はアクセス「全員」が必要。承認UIへのアクセスはURLを秘匿で代替。
+ *
  * @param {GoogleAppsScript.Events.DoGet} e
- * @return {GoogleAppsScript.HTML.HtmlOutput}
+ * @return {GoogleAppsScript.HTML.HtmlOutput | GoogleAppsScript.Content.TextOutput}
  */
 function doGet(e) {
+  const action = e && e.parameter && e.parameter.action;
+
+  // ?action=news → スプレッドシートのデータをJSONで返す
+  if (action === 'news') {
+    try {
+      const ss = SpreadsheetApp.openById(getConfig('SPREADSHEET_ID'));
+      const sheet = ss.getSheets()[0];
+      const lastRow = sheet.getLastRow();
+
+      if (lastRow < 2) {
+        return ContentService
+          .createTextOutput('[]')
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+
+      const rows = sheet.getRange(2, 1, lastRow - 1, 12).getValues().reverse();
+      const data = rows.map(r => ({
+        date: Utilities.formatDate(new Date(r[0]), "JST", "yyyy/MM/dd"),
+        title: r[1],
+        url: r[2],
+        summary: r[3],
+        content: r[4],
+        leakScore: r[5] || 50,
+        review_en: r[7] || "",
+        title_en: r[9] || "",
+        summary_en: r[10] || "",
+        content_en: r[11] || "",
+        isMultiSource: (r[4] || '').includes('✅ 複数ソース確認済み')
+      }));
+
+      return ContentService
+        .createTextOutput(JSON.stringify(data))
+        .setMimeType(ContentService.MimeType.JSON);
+
+    } catch (err) {
+      console.error(`❌ doGet news error: ${err.message}`);
+      return ContentService
+        .createTextOutput(JSON.stringify({ error: 'Failed to fetch news' }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+  }
+
+  // デフォルト → 承認UI（HTML）
   return HtmlService
     .createHtmlOutputFromFile('ApprovalUI')
     .setTitle('GADGET HUNTER 投稿承認')
