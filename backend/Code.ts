@@ -89,13 +89,8 @@ function escapeHtml(unsafe) {
  */
 function isValidUrl(url) {
   if (!url) return false;
-  try {
-    const urlObj = new URL(url);
-    // HTTPSのみ許可（HTTPは危険）
-    return urlObj.protocol === 'https:' || urlObj.protocol === 'http:';
-  } catch (e) {
-    return false;
-  }
+  // GASではnew URL()が動作しないケースがあるため正規表現で検証
+  return /^https?:\/\/[^\s"'<>]+$/i.test(url.trim());
 }
 
 /**
