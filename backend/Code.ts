@@ -1203,9 +1203,13 @@ function cleanupAndSave(sheet, daysToKeep = CLEANUP_DAYS_TO_KEEP, maxRows = CLEA
   const now = new Date();
   const cutoffDate = new Date(now.getTime() - (daysToKeep * 24 * 60 * 60 * 1000));
 
-  // 削除する行のインデックスを収集（下から上へ削除するため逆順）
+  // 削除する行のインデックスを収集
+  // スプレッドシートは古い記事が上（小rowIndex）・新しい記事が下（大rowIndex）
+  // → 新しい順にmaxRows件をキープし、それ以外（古い記事）を削除する
   const rowsToDelete = [];
+  let keepCount = 0;
 
+  // 新しい記事側（下）から走査してキープ数をカウント
   for (let i = dates.length - 1; i >= 0; i--) {
     const rowIndex = i + 2; // 実際の行番号（ヘッダー+1）
     const dateValue = dates[i][0];
@@ -1215,19 +1219,20 @@ function cleanupAndSave(sheet, daysToKeep = CLEANUP_DAYS_TO_KEEP, maxRows = CLEA
     if (dateValue instanceof Date) {
       articleDate = dateValue;
     } else if (typeof dateValue === 'string' && dateValue) {
-      // 文字列の場合はパースを試みる
       articleDate = new Date(dateValue);
       if (isNaN(articleDate.getTime())) {
-        // パース失敗時はスキップ（無効な日付）
+        rowsToDelete.push(rowIndex); // 無効な日付は削除
         continue;
       }
     } else {
-      // 日付が無効な場合はスキップ
+      rowsToDelete.push(rowIndex); // 日付なしは削除
       continue;
     }
 
-    // 日付が古い、または行数制限を超えている場合
-    if (articleDate < cutoffDate || (lastRow - rowsToDelete.length) > maxRows + 1) {
+    // 最新maxRows件 かつ 30日以内 → キープ、それ以外 → 削除
+    if (keepCount < maxRows && articleDate >= cutoffDate) {
+      keepCount++;
+    } else {
       rowsToDelete.push(rowIndex);
     }
   }
