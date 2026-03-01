@@ -19,7 +19,7 @@ jobs:
         run: |
           echo "📡 Fetching latest news from GAS..."
           mkdir -p frontend/data
-          curl -L -o frontend/data/news.json "https://docs.google.com/uc?export=download&id=1UatoZrNZOiww43BBm1OgRWJ02stKZn8z"
+          curl -L -o frontend/data/news.json "https://docs.google.com/uc?export=download&id=16wDUTRL2V6_nbt6W4sKSBJThEUmp82pV"
           
           if [ -f frontend/data/news.json ]; then
             echo "✅ news.json downloaded successfully"
@@ -96,7 +96,7 @@ jobs:
             - **コミット:** ${context.sha.substring(0, 7)}
             
             ### 🔍 確認すべき点
-            1. Google DriveのファイルID (1UatoZrNZOiww43BBm1OgRWJ02stKZn8z) が正しいか
+            1. Google DriveのファイルID (16wDUTRL2V6_nbt6W4sKSBJThEUmp82pV) が正しいか
             2. ファイルの共有設定が「リンクを知っている全員」になっているか
             3. GASが正常に動作しているか
             
