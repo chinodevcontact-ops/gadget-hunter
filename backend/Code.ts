@@ -135,7 +135,7 @@ const STRICT_FILTER = {
  */
 function calculateSimilarity(text1, text2) {
   if (!text1 || !text2) return 0;
-  
+
   // 正規化：小文字化、記号削除、単語分割
   const normalize = (text) => {
     return text.toLowerCase()
@@ -143,16 +143,16 @@ function calculateSimilarity(text1, text2) {
       .split(/\s+/)               // 空白で分割
       .filter(w => w.length > 2); // 2文字以下の単語を除外
   };
-  
+
   const words1 = new Set(normalize(text1));
   const words2 = new Set(normalize(text2));
-  
+
   if (words1.size === 0 || words2.size === 0) return 0;
-  
+
   // Jaccard類似度: 積集合 / 和集合
   const intersection = [...words1].filter(w => words2.has(w)).length;
   const union = words1.size + words2.size - intersection;
-  
+
   return union > 0 ? intersection / union : 0;
 }
 
@@ -164,12 +164,12 @@ function calculateSimilarity(text1, text2) {
 function getRecentTitles(sheet) {
   const lastRow = sheet.getLastRow();
   if (lastRow < 2) return [];
-  
+
   const now = new Date();
   const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-  
+
   const data = sheet.getRange(2, 1, lastRow - 1, 12).getValues(); // 全カラム取得
-  
+
   const results = [];
   for (let i = 0; i < data.length; i++) {
     const row = data[i];
@@ -217,19 +217,19 @@ function logError(source, errorType, error, context = '') {
   try {
     const ss = SpreadsheetApp.openById(getConfig('SPREADSHEET_ID'));
     let errorSheet = ss.getSheetByName('ErrorLog');
-    
+
     // ErrorLogシートが存在しない場合は作成
     if (!errorSheet) {
       errorSheet = ss.insertSheet('ErrorLog');
       errorSheet.appendRow(['タイムスタンプ', '発生元', 'エラー種別', 'エラー内容', '詳細', 'ステータス']);
       errorSheet.getRange(1, 1, 1, 6).setFontWeight('bold').setBackground('#f3f3f3');
     }
-    
+
     const timestamp = Utilities.formatDate(new Date(), "JST", "yyyy/MM/dd HH:mm:ss");
-    
+
     // ✅ セキュリティ：機密情報をログから除外
     let errorMessage = error.toString ? error.toString() : String(error);
-    
+
     // API Keyやトークンが含まれていないか検査
     const sensitivePatterns = [
       /api[_-]?key[=:]\s*[\w-]+/gi,
@@ -238,16 +238,16 @@ function logError(source, errorType, error, context = '') {
       /password[=:]\s*[\w-]+/gi,
       /bearer\s+[\w-]+/gi
     ];
-    
+
     sensitivePatterns.forEach(pattern => {
       errorMessage = errorMessage.replace(pattern, '[REDACTED]');
     });
-    
+
     // コンテキストも同様にサニタイズ
     sensitivePatterns.forEach(pattern => {
       context = context.replace(pattern, '[REDACTED]');
     });
-    
+
     errorSheet.appendRow([
       timestamp,
       source,
@@ -256,7 +256,7 @@ function logError(source, errorType, error, context = '') {
       context,
       '未対応'
     ]);
-    
+
     // ✅ コンソールログも機密情報を除外
     console.error(`❌ [${errorType}] ${source}: ${errorMessage.substring(0, 100)}`);
   } catch (e) {
@@ -271,7 +271,7 @@ function logError(source, errorType, error, context = '') {
 function fetchAndSummarizeToSheet() {
   const ss = SpreadsheetApp.openById(getConfig('SPREADSHEET_ID'));
   const sheet = ss.getSheets()[0];
-  
+
   // ヘッダー拡張
   if (sheet.getLastRow() > 0) {
     const header = sheet.getRange(1, 1, 1, 12).getValues()[0];
@@ -282,28 +282,28 @@ function fetchAndSummarizeToSheet() {
     if (header[11] !== '本文(英)') sheet.getRange(1, 12).setValue('本文(英)');
   } else {
     sheet.appendRow([
-        '日付', 'タイトル', 'URL', '要約', '詳細本文', '注目度', 'ツイート状態', 
-        '英語レビュー', '再試行済み', 'タイトル(英)', '要約(英)', '本文(英)'
+      '日付', 'タイトル', 'URL', '要約', '詳細本文', '注目度', 'ツイート状態',
+      '英語レビュー', '再試行済み', 'タイトル(英)', '要約(英)', '本文(英)'
     ]);
   }
 
-  const currentRate = getUsdJpyRate(); 
+  const currentRate = getUsdJpyRate();
   const now = new Date();
   const todayStr = Utilities.formatDate(now, "JST", "yyyy年MM月dd日 HH:mm");
-  const pastMemory = getRecentHistory(sheet); 
-  
+  const pastMemory = getRecentHistory(sheet);
+
   let savedUrls = [];
   if (sheet.getLastRow() > 1) {
     savedUrls = sheet.getRange(2, 3, sheet.getLastRow() - 1, 1).getValues().flat();
   }
-  
+
   // 重複チェック用：過去24時間の記事タイトルを取得
   const recentTitles = getRecentTitles(sheet);
   console.log(`📊 過去24時間の記事数: ${recentTitles.length}件`);
 
   const TARGETS = [
     { name: 'Wccftech', url: 'https://wccftech.com/feed/' },
-    { name: 'MacRumors', url: 'https://www.macrumors.com/macrumors.xml' }, 
+    { name: 'MacRumors', url: 'https://www.macrumors.com/macrumors.xml' },
     { name: 'TechPowerUp', url: 'https://www.techpowerup.com/rss/news' },
     { name: 'VideoCardz', url: 'https://videocardz.com/feed' },
     { name: 'kopite7kimi', url: 'https://nitter.net/kopite7kimi/rss' },
@@ -315,46 +315,46 @@ function fetchAndSummarizeToSheet() {
   ];
 
   console.log(`🤖 System Online: ${MODEL_NAME} (v14.1-JSDoc)`);
-  
-  let apiCallCount = 0;   
+
+  let apiCallCount = 0;
   const MAX_API_CALLS = 30;  // レート制限対策（15 RPM以内に収める）
-  
+
   for (const site of TARGETS) {
     if (apiCallCount >= MAX_API_CALLS) break;
-    
+
     try {
-      const res = UrlFetchApp.fetch(site.url.trim(), { 
-        "headers": { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" }, 
-        "muteHttpExceptions": true 
+      const res = UrlFetchApp.fetch(site.url.trim(), {
+        "headers": { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" },
+        "muteHttpExceptions": true
       });
-      
+
       const items = parseRSSRegex(res.getContentText());
-      const count = Math.min(items.length, 10); 
+      const count = Math.min(items.length, 10);
 
       for (let i = 0; i < count; i++) {
         if (apiCallCount >= MAX_API_CALLS) break;
 
         const item = items[i];
         if (!item.title || !item.link) continue;
-        
+
         // URL検証（インジェクション対策）
         if (!isValidUrl(item.link)) {
           console.log(`🚫 Invalid URL detected: ${item.link}`);
           continue;
         }
-        
+
         if (savedUrls.includes(item.link)) continue;
 
         // 構造チェック
         if (site.url.includes("nitter") || site.url.includes("xcancel")) {
-            if (item.title.startsWith("R to ") || item.title.startsWith("@")) continue; 
-            if (item.desc.length < STRICT_FILTER.MIN_LENGTH) continue;
-            
-            const hasLinkOrTag = /http|#/.test(item.desc);
-            const hasKeyword = STRICT_FILTER.REQUIRED_KEYWORDS.test(item.title + " " + item.desc);
+          if (item.title.startsWith("R to ") || item.title.startsWith("@")) continue;
+          if (item.desc.length < STRICT_FILTER.MIN_LENGTH) continue;
 
-            if (STRICT_FILTER.REQUIRE_MEDIA_OR_TAG && !hasLinkOrTag) continue;
-            if (!hasKeyword) continue;
+          const hasLinkOrTag = /http|#/.test(item.desc);
+          const hasKeyword = STRICT_FILTER.REQUIRED_KEYWORDS.test(item.title + " " + item.desc);
+
+          if (STRICT_FILTER.REQUIRE_MEDIA_OR_TAG && !hasLinkOrTag) continue;
+          if (!hasKeyword) continue;
         }
 
         // 重複チェック：過去24時間の記事と類似していないか確認
@@ -378,17 +378,17 @@ function fetchAndSummarizeToSheet() {
 両方の情報を統合し、重複を排除し、追加情報があれば含めて、より包括的な記事を生成してください。`;
 
             const mergedData = callGeminiAPI(item.title, mergedPrompt, todayStr, currentRate, pastMemory.text);
-            
+
             if (mergedData) {
               // 既存記事を更新
               const updatedLeakScore = Math.min(100, duplicateArticle.leakScore + 15); // +15ポイント（複数ソース確認）
               const updatedSummary = mergedData.summary_points ? mergedData.summary_points.map(s => "• " + s).join('\n') : duplicateArticle.summary;
               const updatedContent = `${mergedData.body_text}<h3>中の人の本音 (JP)</h3><p>${mergedData.review_text}</p><p class="multi-source">✅ 複数ソース確認済み</p>`;
-              
+
               sheet.getRange(duplicateArticle.rowIndex, 4).setValue(updatedSummary);  // 要約更新
               sheet.getRange(duplicateArticle.rowIndex, 5).setValue(updatedContent);  // 本文更新
               sheet.getRange(duplicateArticle.rowIndex, 6).setValue(updatedLeakScore); // スコア更新
-              
+
               console.log(`✅ 統合完了: Leak Score ${duplicateArticle.leakScore} → ${updatedLeakScore}`);
               apiCallCount++;
             }
@@ -400,39 +400,39 @@ function fetchAndSummarizeToSheet() {
         }
 
         // 初期値（XSS対策：HTMLエスケープ）
-        let finalTitle = "【翻訳失敗】" + escapeHtml(item.title); 
-        let finalSummary = "AI生成失敗"; 
+        let finalTitle = "【翻訳失敗】" + escapeHtml(item.title);
+        let finalSummary = "AI生成失敗";
         let finalContent = `<p>${escapeHtml(item.desc)}</p>`;
         let finalReviewEn = "Failed.";
-        let titleEn = escapeHtml(item.title);           
-        let summaryEn = "Generation failed"; 
-        let contentEn = escapeHtml(item.desc);           
-        let leakScore = 40; 
+        let titleEn = escapeHtml(item.title);
+        let summaryEn = "Generation failed";
+        let contentEn = escapeHtml(item.desc);
+        let leakScore = 40;
 
         try {
           // AI生成
           const generatedData = callGeminiAPI(item.title, item.desc, todayStr, currentRate, pastMemory.text);
-          
+
           if (!generatedData) {
-             console.log(`🗑️ AI判定ノイズ: ${item.title}`);
-             continue; 
+            console.log(`🗑️ AI判定ノイズ: ${item.title}`);
+            continue;
           }
 
           if (generatedData) {
-             finalTitle = generatedData.title_jp;
-             if (Array.isArray(generatedData.summary_points)) {
-                 finalSummary = generatedData.summary_points.map(s => "• " + s).join('\n');
-             }
-             finalContent = `${generatedData.body_text}<h3>中の人の本音 (JP)</h3><p>${generatedData.review_text}</p>`;
-             finalReviewEn = generatedData.review_text_en || "Wow.";
+            finalTitle = generatedData.title_jp;
+            if (Array.isArray(generatedData.summary_points)) {
+              finalSummary = generatedData.summary_points.map(s => "• " + s).join('\n');
+            }
+            finalContent = `${generatedData.body_text}<h3>中の人の本音 (JP)</h3><p>${generatedData.review_text}</p>`;
+            finalReviewEn = generatedData.review_text_en || "Wow.";
 
-             titleEn = generatedData.title_en || item.title;
-             if (Array.isArray(generatedData.summary_points_en)) {
-                 summaryEn = generatedData.summary_points_en.map(s => "• " + s).join('\n');
-             } else { summaryEn = generatedData.body_text_en.substring(0, 100) + "..."; }
-             contentEn = `${generatedData.body_text_en}<h3>Review (EN)</h3><p>${generatedData.review_text_en}</p>`;
+            titleEn = generatedData.title_en || item.title;
+            if (Array.isArray(generatedData.summary_points_en)) {
+              summaryEn = generatedData.summary_points_en.map(s => "• " + s).join('\n');
+            } else { summaryEn = generatedData.body_text_en.substring(0, 100) + "..."; }
+            contentEn = `${generatedData.body_text_en}<h3>Review (EN)</h3><p>${generatedData.review_text_en}</p>`;
 
-             console.log(`✅ 生成成功: ${finalTitle}`);
+            console.log(`✅ 生成成功: ${finalTitle}`);
           }
         } catch (e) {
           console.log(`⚠ APIエラー: ${e.message}`);
@@ -443,13 +443,13 @@ function fetchAndSummarizeToSheet() {
         leakScore = calculateLeakScore({ title: finalTitle, summary: finalSummary, content: finalContent, url: item.link });
 
         sheet.appendRow([
-            Utilities.formatDate(new Date(), "JST", "yyyy/MM/dd"), 
-            finalTitle, item.link, finalSummary, finalContent, leakScore, "", finalReviewEn, "",
-            titleEn, summaryEn, contentEn
+          Utilities.formatDate(new Date(), "JST", "yyyy/MM/dd"),
+          finalTitle, item.link, finalSummary, finalContent, leakScore, "", finalReviewEn, "",
+          titleEn, summaryEn, contentEn
         ]);
-        
+
         if (apiCallCount < MAX_API_CALLS) {
-            humanLikeSleep(10000, 30000); // 10〜30秒のランダム待機
+          humanLikeSleep(10000, 30000); // 10〜30秒のランダム待機
         }
       }
     } catch (e) {
@@ -457,7 +457,7 @@ function fetchAndSummarizeToSheet() {
       logError(site.name, 'RSS_FETCH', e, `URL: ${site.url}`);
     }
   }
-  
+
   retryFailedArticles(30); // 通常実行時は直近30行のみ（パフォーマンス考慮）
   cleanupAndSave(sheet);
 }
@@ -477,7 +477,7 @@ function callGeminiAPI(originalTitle, desc, todayStr, currentRate, memoryText) {
   const API_KEY = getConfig('GEMINI_API_KEY');
   const modelId = MODEL_NAME.split('/').pop() || MODEL_NAME;
   const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${API_KEY}`;
-  
+
   const prompt = `
 # ==========================================
 # 🧠 Prompt v3.1: "Tech-Detailed Gamer/Engineer" Edition
@@ -653,19 +653,19 @@ function callGeminiAPI(originalTitle, desc, todayStr, currentRate, memoryText) {
 
 JSONのみで返答しろ。前置きも後書きも不要。
 `;
-  
-  const payload = { 
+
+  const payload = {
     "contents": [{ "parts": [{ "text": prompt }] }],
-    "safetySettings": [ { "category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE" } ]
+    "safetySettings": [{ "category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE" }]
   };
 
-  const apiRes = UrlFetchApp.fetch(apiUrl, { 
-    "method": "post", 
-    "contentType": "application/json", 
-    "payload": JSON.stringify(payload), 
-    "muteHttpExceptions": true 
+  const apiRes = UrlFetchApp.fetch(apiUrl, {
+    "method": "post",
+    "contentType": "application/json",
+    "payload": JSON.stringify(payload),
+    "muteHttpExceptions": true
   });
-  
+
   // エラーメッセージの情報漏洩を防止
   if (apiRes.getResponseCode() !== 200) {
     const errorCode = apiRes.getResponseCode();
@@ -679,14 +679,14 @@ JSONのみで返答しろ。前置きも後書きも不要。
       throw new Error('API request failed');
     }
   }
-  
+
   let rawText = "";
   try {
     const jsonResponse = JSON.parse(apiRes.getContentText());
     if (jsonResponse.candidates && jsonResponse.candidates[0].content) {
       rawText = jsonResponse.candidates[0].content.parts[0].text;
       let cleanJson = rawText.replace(/```json/g, "").replace(/```/g, "").trim();
-      
+
       if (cleanJson === "null" || cleanJson.includes("null")) return null;
 
       const firstBrace = cleanJson.indexOf('{');
@@ -696,7 +696,7 @@ JSONのみで返答しろ。前置きも後書きも不要。
       }
     }
   } catch (e) {
-    console.log(`❌ JSON Parse Error. Raw: ${rawText.substring(0, 50)}...`); 
+    console.log(`❌ JSON Parse Error. Raw: ${rawText.substring(0, 50)}...`);
     throw e;
   }
   return null;
@@ -717,12 +717,12 @@ function retryFailedArticles(maxRowsToCheck = null) {
   if (lastRow < 2) return 0;
 
   // maxRowsToCheckが指定されていない場合は全行チェック
-  const startRow = maxRowsToCheck 
+  const startRow = maxRowsToCheck
     ? Math.max(2, lastRow - maxRowsToCheck + 1)
     : 2;
-  
-  const data = sheet.getRange(startRow, 1, lastRow - startRow + 1, 12).getValues(); 
-  
+
+  const data = sheet.getRange(startRow, 1, lastRow - startRow + 1, 12).getValues();
+
   const currentRate = getUsdJpyRate();
   const now = new Date();
   const todayStr = Utilities.formatDate(now, "JST", "yyyy/MM/dd HH:mm");
@@ -732,47 +732,47 @@ function retryFailedArticles(maxRowsToCheck = null) {
   for (let i = 0; i < data.length; i++) {
     const row = data[i];
     const isTranslationFailed = row[1] && row[1].toString().includes("【翻訳失敗】");
-    const isEnglishMissing = !row[9] || row[9] === ""; 
+    const isEnglishMissing = !row[9] || row[9] === "";
     const isDone = row[8] === "DONE";
 
     if ((isTranslationFailed || isEnglishMissing) && row[2] && !isDone) {
-       console.log(`🚑 Retrying/Filling English: ${row[1] || 'Unknown'}`);
-       try {
-         let sourceTitle = (row[1] || "").toString().replace("【翻訳失敗】", "");
-         let sourceBody = row[4] || ""; 
+      console.log(`🚑 Retrying/Filling English: ${row[1] || 'Unknown'}`);
+      try {
+        let sourceTitle = (row[1] || "").toString().replace("【翻訳失敗】", "");
+        let sourceBody = row[4] || "";
 
-         const gen = callGeminiAPI(sourceTitle, sourceBody, todayStr, currentRate, "");
-         if (gen) {
-           const rNum = startRow + i;
-           sheet.getRange(rNum, 2).setValue(gen.title_jp);
-           sheet.getRange(rNum, 4).setValue(gen.summary_points.map(s => "• " + s).join('\n'));
-           sheet.getRange(rNum, 5).setValue(`${gen.body_text}<h3>中の人の本音 (JP)</h3><p>${gen.review_text}</p>`);
-           sheet.getRange(rNum, 8).setValue(gen.review_text_en || "Fixed.");
-           sheet.getRange(rNum, 9).setValue("DONE");
-           
-           let sumEn = gen.summary_points_en ? gen.summary_points_en.map(s => "• " + s).join('\n') : "Fixed.";
-           let conEn = `${gen.body_text_en}<h3>Review (EN)</h3><p>${gen.review_text_en}</p>`;
-           
-           sheet.getRange(rNum, 10).setValue(gen.title_en || "Fixed Title");
-           sheet.getRange(rNum, 11).setValue(sumEn);
-           sheet.getRange(rNum, 12).setValue(conEn);
+        const gen = callGeminiAPI(sourceTitle, sourceBody, todayStr, currentRate, "");
+        if (gen) {
+          const rNum = startRow + i;
+          sheet.getRange(rNum, 2).setValue(gen.title_jp);
+          sheet.getRange(rNum, 4).setValue(gen.summary_points.map(s => "• " + s).join('\n'));
+          sheet.getRange(rNum, 5).setValue(`${gen.body_text}<h3>中の人の本音 (JP)</h3><p>${gen.review_text}</p>`);
+          sheet.getRange(rNum, 8).setValue(gen.review_text_en || "Fixed.");
+          sheet.getRange(rNum, 9).setValue("DONE");
 
-           console.log(`✅ 修復完了: ${gen.title_en}`);
-           fixedCount++;
-         }
-       } catch(e) { 
-         console.log(`❌ Retry failed: ${e.toString()}`);
-         logError('Retry', 'ARTICLE_RETRY', e, `記事: ${(row[1] || 'Unknown').toString().substring(0, 50)}`);
-       }
+          let sumEn = gen.summary_points_en ? gen.summary_points_en.map(s => "• " + s).join('\n') : "Fixed.";
+          let conEn = `${gen.body_text_en}<h3>Review (EN)</h3><p>${gen.review_text_en}</p>`;
 
-       humanLikeSleep(15000, 45000); // 15〜45秒のランダム待機（Gemini API Rate Limit対策） 
+          sheet.getRange(rNum, 10).setValue(gen.title_en || "Fixed Title");
+          sheet.getRange(rNum, 11).setValue(sumEn);
+          sheet.getRange(rNum, 12).setValue(conEn);
+
+          console.log(`✅ 修復完了: ${gen.title_en}`);
+          fixedCount++;
+        }
+      } catch (e) {
+        console.log(`❌ Retry failed: ${e.toString()}`);
+        logError('Retry', 'ARTICLE_RETRY', e, `記事: ${(row[1] || 'Unknown').toString().substring(0, 50)}`);
+      }
+
+      humanLikeSleep(15000, 45000); // 15〜45秒のランダム待機（Gemini API Rate Limit対策） 
     }
   }
-  
+
   if (fixedCount > 0) {
     console.log(`🎉 合計 ${fixedCount} 件の記事を修復しました`);
   }
-  
+
   return fixedCount;
 }
 
@@ -797,17 +797,147 @@ function repairAllFailedArticles(maxRowsToCheck = null) {
 }
 
 // ----------------------------------------------------
-// 3. X (Twitter) 自動投稿 - Task B: 2段階投稿実装
+// 3. X (Twitter) 投稿 - 承認制（自動投稿は廃止、キューに追加のみ）
 // ----------------------------------------------------
+const PENDING_TWEETS_SHEET_NAME = 'PendingTweets';
+
+/**
+ * PendingTweets シートを取得または作成（列: type, mainText, replyText, quoteTweetId, title, url, articleRowIndex, createdAt, status, tweetedAt）
+ * @return {GoogleAppsScript.Spreadsheet.Sheet}
+ */
+function getOrCreatePendingSheet() {
+  const ss = SpreadsheetApp.openById(getConfig('SPREADSHEET_ID'));
+  let pendingSheet = ss.getSheetByName(PENDING_TWEETS_SHEET_NAME);
+  if (!pendingSheet) {
+    pendingSheet = ss.insertSheet(PENDING_TWEETS_SHEET_NAME);
+    pendingSheet.appendRow(['type', 'mainText', 'replyText', 'quoteTweetId', 'title', 'url', 'articleRowIndex', 'createdAt', 'status', 'tweetedAt']);
+    pendingSheet.getRange(1, 1, 1, 10).setFontWeight('bold');
+  }
+  return pendingSheet;
+}
+
+/**
+ * 承認待ちツイートをキューに追加（実際には投稿しない）
+ * @param {Object} opts
+ * @param {string} opts.type - 'two_stage' | 'quote'
+ * @param {string} [opts.mainText]
+ * @param {string} [opts.replyText]
+ * @param {string} [opts.quoteTweetId]
+ * @param {string} opts.title
+ * @param {string} opts.url
+ * @param {number} opts.articleRowIndex - メインシートの行（1始まり）
+ */
+function enqueuePendingTweet(opts) {
+  const sheet = getOrCreatePendingSheet();
+  const now = new Date();
+  const createdAt = Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy/MM/dd HH:mm');
+  sheet.appendRow([
+    opts.type || 'two_stage',
+    opts.mainText || '',
+    opts.replyText || '',
+    opts.quoteTweetId || '',
+    opts.title || '',
+    opts.url || '',
+    opts.articleRowIndex || 0,
+    createdAt,
+    'pending',
+    ''
+  ]);
+}
+
+/**
+ * 承認待ち一覧を取得（承認UI用）
+ * @return {Array<{id: number, type: string, mainText: string, replyText: string, quoteTweetId: string, title: string, url: string, createdAt: string}>}
+ */
+function getPendingTweets() {
+  const sheet = getOrCreatePendingSheet();
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return [];
+  const data = sheet.getRange(2, 1, lastRow, 10).getValues();
+  const out = [];
+  for (let i = 0; i < data.length; i++) {
+    const row = data[i];
+    if (row[8] !== 'pending') continue; // status
+    out.push({
+      id: i + 2, // シート行番号（2始まり）
+      type: row[0] || 'two_stage',
+      mainText: row[1] || '',
+      replyText: row[2] || '',
+      quoteTweetId: row[3] || '',
+      title: row[4] || '',
+      url: row[5] || '',
+      createdAt: row[7] || ''
+    });
+  }
+  return out;
+}
+
+/**
+ * 承認してXに投稿する（承認UIから呼ばれる）
+ * @param {number} pendingRowId - PendingTweets の行番号（2始まり）
+ * @return {{ ok: boolean, message: string }}
+ */
+function approveAndPost(pendingRowId) {
+  const sheet = getOrCreatePendingSheet();
+  const row = sheet.getRange(pendingRowId, 1, pendingRowId, 10).getValues()[0];
+  const type = row[0];
+  const status = row[8];
+  if (status !== 'pending') {
+    return { ok: false, message: 'すでに処理済みです' };
+  }
+  try {
+    if (type === 'quote') {
+      const mainText = row[1];
+      const quoteTweetId = row[3];
+      postTweet(mainText, quoteTweetId);
+      const articleRowIndex = parseInt(row[6], 10);
+      if (articleRowIndex >= 2) {
+        const ss = SpreadsheetApp.openById(getConfig('SPREADSHEET_ID'));
+        const mainSheet = ss.getSheets()[0];
+        mainSheet.getRange(articleRowIndex, 7).setValue('QuoteRT済み');
+      }
+    } else {
+      const mainText = row[1];
+      const replyText = row[2];
+      const mainTweetId = postMainText(mainText);
+      if (!mainTweetId) return { ok: false, message: 'メイン投稿に失敗しました' };
+      humanLikeSleep(3000, 8000);
+      postReplyUrl(replyText, mainTweetId);
+      const articleRowIndex = parseInt(row[6], 10);
+      if (articleRowIndex >= 2) {
+        const ss = SpreadsheetApp.openById(getConfig('SPREADSHEET_ID'));
+        const mainSheet = ss.getSheets()[0];
+        mainSheet.getRange(articleRowIndex, 7).setValue('2段階投稿済み');
+      }
+    }
+    const tweetedAt = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy/MM/dd HH:mm');
+    sheet.getRange(pendingRowId, 9).setValue('posted');
+    sheet.getRange(pendingRowId, 10).setValue(tweetedAt);
+    return { ok: true, message: '投稿しました' };
+  } catch (e) {
+    logError('Twitter', 'APPROVE_POST', e, `pendingRow: ${pendingRowId}`);
+    return { ok: false, message: (e && e.message) || '投稿に失敗しました' };
+  }
+}
+
+/**
+ * 承認待ちを破棄する（投稿しない）
+ * @param {number} pendingRowId - PendingTweets の行番号（2始まり）
+ */
+function discardPending(pendingRowId) {
+  const sheet = getOrCreatePendingSheet();
+  sheet.getRange(pendingRowId, 9).setValue('discarded');
+}
+
 function checkAndTweetNewArticles() {
   const ss = SpreadsheetApp.openById(getConfig('SPREADSHEET_ID'));
   const sheet = ss.getSheets()[0];
   const lastRow = sheet.getLastRow();
   if (lastRow < 2) return;
-  
-  const range = sheet.getRange(2, 1, lastRow - 1, 8);
+
+  const range = sheet.getRange(2, 1, lastRow - 1, 10);
   const data = range.getValues();
-  
+
   const PRIORITY_REGEX = /RTX|GTX|GeForce|NVIDIA|Radeon|AMD|Ryzen|Intel|Core|GPU|CPU|Motherboard|ASRock|ASUS|MSI|GIGABYTE|ZOTAC|Kopite7kimi|Leak|Spec/i;
 
   let targetIndex = -1;
@@ -818,7 +948,7 @@ function checkAndTweetNewArticles() {
     if (row[6] === "" && row[1] && !row[1].includes("【翻訳失敗】") && PRIORITY_REGEX.test(row[1] + " " + row[3])) {
       console.log(`⚡ 優先ターゲット発見: ${row[1]}`);
       targetIndex = i;
-      break; 
+      break;
     }
   }
 
@@ -838,56 +968,50 @@ function checkAndTweetNewArticles() {
     const targetUrl = row[2];
     const reviewEn = row[7] || "Check this out!";
     const title = row[1];
-    
-    // コバンザメ判定 (既存ロジック)
-    if (targetUrl.includes("twitter.com") || targetUrl.includes("x.com") || targetUrl.includes("nitter")) {
-        const idMatch = targetUrl.match(/\/status\/(\d+)/);
-        if (idMatch) {
-            const tweetId = idMatch[1];
-            console.log(`🦈 Shark Triggered: ${tweetId}`);
-            const quoteText = `${reviewEn}\n\nVia: ${MY_WEBSITE_URL}\n#GadgetHunter`;
-            try {
-                postTweet(quoteText, tweetId);
-                sheet.getRange(2 + targetIndex, 7).setValue("QuoteRT済み");
-                return;
-            } catch(e) { 
-                console.log(`Quote Error: ${e.message}`);
-                logError('Twitter', 'QUOTE_RT', e, `記事: ${title.substring(0, 50)}`);
-            }
-        }
-    }
+    const articleRowIndex = 2 + targetIndex;
 
-    // ★★★ Task B: 2段階投稿 ★★★
-    try {
-      // 【Stage 1】テキストのみ
-      let shortSummary = row[3].split('\n')[0].replace(/[•・]/g, '').trim().substring(0, 90);
-      const mainText = `🚨【CONFIDENTIAL】\n\n${title}\n\n${shortSummary}...\n\n#GadgetHunter`;
-      const mainTweetId = postMainText(mainText);
-      
-      if (!mainTweetId) {
-        console.log("❌ メイン投稿失敗");
+    // コバンザメ判定 → 承認待ちキューに追加
+    if (targetUrl.includes("twitter.com") || targetUrl.includes("x.com") || targetUrl.includes("nitter")) {
+      const idMatch = targetUrl.match(/\/status\/(\d+)/);
+      if (idMatch) {
+        const tweetId = idMatch[1];
+        console.log(`🦈 Shark Queued (Quote): ${tweetId}`);
+        const quoteText = `${reviewEn}\n\nVia: ${MY_WEBSITE_URL}\n#GadgetHunter`;
+        enqueuePendingTweet({
+          type: 'quote',
+          mainText: quoteText,
+          quoteTweetId: tweetId,
+          title,
+          url: targetUrl,
+          articleRowIndex
+        });
+        sheet.getRange(articleRowIndex, 7).setValue("承認待ち");
         return;
       }
-      
-      console.log(`✅ Stage 1 完了 (ID: ${mainTweetId})`);
-      
-      // 【Stage 2】人間らしい待機（Anti-Bot Detection）
-      humanLikeSleep(30000, 90000); // 30〜90秒のランダム待機（X API Bot Detection回避）
-      
-      // 個別記事URLの生成（OGP対応）
-      const titleEn = row[9] || ''; // title_en
+    }
+
+    // 2段階投稿用 → 承認待ちキューに追加
+    try {
+      let shortSummary = row[3].split('\n')[0].replace(/[•・]/g, '').trim().substring(0, 90);
+      const mainText = `🚨【CONFIDENTIAL】\n\n${title}\n\n${shortSummary}...\n\n#GadgetHunter`;
+      const titleEn = row[9] || '';
       const slug = generateSlug(titleEn || title);
       const articleUrl = `${MY_WEBSITE_URL}articles/${slug}`;
-      
       const replyText = `👇 詳細はこちら\n${articleUrl}`;
-      postReplyUrl(replyText, mainTweetId);
-      
-      console.log(`✅ Stage 2 完了`);
-      sheet.getRange(2 + targetIndex, 7).setValue("2段階投稿済み");
-      
-    } catch (e) { 
-      console.log(`Tweet Error: ${e.message}`);
-      logError('Twitter', 'TWO_STAGE_POST', e, `記事: ${title.substring(0, 50)}`);
+
+      enqueuePendingTweet({
+        type: 'two_stage',
+        mainText,
+        replyText,
+        title,
+        url: targetUrl,
+        articleRowIndex
+      });
+      sheet.getRange(articleRowIndex, 7).setValue("承認待ち");
+      console.log(`✅ 承認待ちキューに追加: ${title.substring(0, 50)}`);
+    } catch (e) {
+      console.log(`Enqueue Error: ${e.message}`);
+      logError('Twitter', 'ENQUEUE_PENDING', e, `記事: ${title.substring(0, 50)}`);
     }
   }
 }
@@ -917,34 +1041,34 @@ function postMainText(text) {
   const TWITTER_API_SECRET = getConfig('TWITTER_API_SECRET');
   const TWITTER_ACCESS_TOKEN = getConfig('TWITTER_ACCESS_TOKEN');
   const TWITTER_ACCESS_SECRET = getConfig('TWITTER_ACCESS_SECRET');
-  
-  const url = "https://api.twitter.com/2/tweets"; 
+
+  const url = "https://api.twitter.com/2/tweets";
   const payload = { "text": text };
-  
+
   // OAuth署名の強化（セキュアなnonce生成）
-  const oauthParams = { 
-    oauth_consumer_key: TWITTER_API_KEY, 
-    oauth_token: TWITTER_ACCESS_TOKEN, 
-    oauth_signature_method: "HMAC-SHA1", 
-    oauth_timestamp: Math.floor(Date.now()/1000).toString(), 
-    oauth_nonce: generateSecureNonce(), 
-    oauth_version: "1.0" 
+  const oauthParams = {
+    oauth_consumer_key: TWITTER_API_KEY,
+    oauth_token: TWITTER_ACCESS_TOKEN,
+    oauth_signature_method: "HMAC-SHA1",
+    oauth_timestamp: Math.floor(Date.now() / 1000).toString(),
+    oauth_nonce: generateSecureNonce(),
+    oauth_version: "1.0"
   };
-  
+
   const signature = createSignature("POST", url, oauthParams, TWITTER_API_SECRET, TWITTER_ACCESS_SECRET);
   oauthParams.oauth_signature = signature;
-  
-  const authHeader = "OAuth " + Object.keys(oauthParams).map(k => 
+
+  const authHeader = "OAuth " + Object.keys(oauthParams).map(k =>
     encodeURIComponent(k) + '="' + encodeURIComponent(oauthParams[k]) + '"'
   ).join(", ");
-  
-  const response = UrlFetchApp.fetch(url, { 
-    method: "post", 
-    headers: { "Authorization": authHeader, "Content-Type": "application/json" }, 
-    payload: JSON.stringify(payload), 
-    muteHttpExceptions: true 
+
+  const response = UrlFetchApp.fetch(url, {
+    method: "post",
+    headers: { "Authorization": authHeader, "Content-Type": "application/json" },
+    payload: JSON.stringify(payload),
+    muteHttpExceptions: true
   });
-  
+
   const responseData = JSON.parse(response.getContentText());
   return responseData.data ? responseData.data.id : null;
 }
@@ -959,35 +1083,35 @@ function postReplyUrl(text, replyToId) {
   const TWITTER_API_SECRET = getConfig('TWITTER_API_SECRET');
   const TWITTER_ACCESS_TOKEN = getConfig('TWITTER_ACCESS_TOKEN');
   const TWITTER_ACCESS_SECRET = getConfig('TWITTER_ACCESS_SECRET');
-  
-  const url = "https://api.twitter.com/2/tweets"; 
-  const payload = { 
+
+  const url = "https://api.twitter.com/2/tweets";
+  const payload = {
     "text": text,
     "reply": { "in_reply_to_tweet_id": replyToId }
   };
-  
+
   // OAuth署名の強化（セキュアなnonce生成）
-  const oauthParams = { 
-    oauth_consumer_key: TWITTER_API_KEY, 
-    oauth_token: TWITTER_ACCESS_TOKEN, 
-    oauth_signature_method: "HMAC-SHA1", 
-    oauth_timestamp: Math.floor(Date.now()/1000).toString(), 
-    oauth_nonce: generateSecureNonce(), 
-    oauth_version: "1.0" 
+  const oauthParams = {
+    oauth_consumer_key: TWITTER_API_KEY,
+    oauth_token: TWITTER_ACCESS_TOKEN,
+    oauth_signature_method: "HMAC-SHA1",
+    oauth_timestamp: Math.floor(Date.now() / 1000).toString(),
+    oauth_nonce: generateSecureNonce(),
+    oauth_version: "1.0"
   };
-  
+
   const signature = createSignature("POST", url, oauthParams, TWITTER_API_SECRET, TWITTER_ACCESS_SECRET);
   oauthParams.oauth_signature = signature;
-  
-  const authHeader = "OAuth " + Object.keys(oauthParams).map(k => 
+
+  const authHeader = "OAuth " + Object.keys(oauthParams).map(k =>
     encodeURIComponent(k) + '="' + encodeURIComponent(oauthParams[k]) + '"'
   ).join(", ");
-  
-  UrlFetchApp.fetch(url, { 
-    method: "post", 
-    headers: { "Authorization": authHeader, "Content-Type": "application/json" }, 
-    payload: JSON.stringify(payload), 
-    muteHttpExceptions: true 
+
+  UrlFetchApp.fetch(url, {
+    method: "post",
+    headers: { "Authorization": authHeader, "Content-Type": "application/json" },
+    payload: JSON.stringify(payload),
+    muteHttpExceptions: true
   });
 }
 
@@ -997,39 +1121,39 @@ function postTweet(text, quoteId) {
   const TWITTER_API_SECRET = getConfig('TWITTER_API_SECRET');
   const TWITTER_ACCESS_TOKEN = getConfig('TWITTER_ACCESS_TOKEN');
   const TWITTER_ACCESS_SECRET = getConfig('TWITTER_ACCESS_SECRET');
-  
-  const url = "https://api.twitter.com/2/tweets"; 
+
+  const url = "https://api.twitter.com/2/tweets";
   const payload = { "text": text };
   if (quoteId) payload["quote_tweet_id"] = quoteId;
-  
+
   // OAuth署名の強化（セキュアなnonce生成）
-  const oauthParams = { 
-    oauth_consumer_key: TWITTER_API_KEY, 
-    oauth_token: TWITTER_ACCESS_TOKEN, 
-    oauth_signature_method: "HMAC-SHA1", 
-    oauth_timestamp: Math.floor(Date.now()/1000).toString(), 
-    oauth_nonce: generateSecureNonce(), 
-    oauth_version: "1.0" 
+  const oauthParams = {
+    oauth_consumer_key: TWITTER_API_KEY,
+    oauth_token: TWITTER_ACCESS_TOKEN,
+    oauth_signature_method: "HMAC-SHA1",
+    oauth_timestamp: Math.floor(Date.now() / 1000).toString(),
+    oauth_nonce: generateSecureNonce(),
+    oauth_version: "1.0"
   };
-  
+
   const signature = createSignature("POST", url, oauthParams, TWITTER_API_SECRET, TWITTER_ACCESS_SECRET);
   oauthParams.oauth_signature = signature;
-  
-  const authHeader = "OAuth " + Object.keys(oauthParams).map(k => 
+
+  const authHeader = "OAuth " + Object.keys(oauthParams).map(k =>
     encodeURIComponent(k) + '="' + encodeURIComponent(oauthParams[k]) + '"'
   ).join(", ");
-  
-  UrlFetchApp.fetch(url, { 
-    method: "post", 
-    headers: { "Authorization": authHeader, "Content-Type": "application/json" }, 
-    payload: JSON.stringify(payload), 
-    muteHttpExceptions: true 
+
+  UrlFetchApp.fetch(url, {
+    method: "post",
+    headers: { "Authorization": authHeader, "Content-Type": "application/json" },
+    payload: JSON.stringify(payload),
+    muteHttpExceptions: true
   });
 }
 
 function createSignature(method, url, params, apiSecret, tokenSecret) {
   const signingKey = encodeURIComponent(apiSecret) + "&" + encodeURIComponent(tokenSecret);
-  const paramString = Object.keys(params).sort().map(k => 
+  const paramString = Object.keys(params).sort().map(k =>
     encodeURIComponent(k) + "=" + encodeURIComponent(params[k])
   ).join("&");
   const signatureBaseString = method.toUpperCase() + "&" + encodeURIComponent(url) + "&" + encodeURIComponent(paramString);
@@ -1044,17 +1168,17 @@ function parseRSSRegex(xmlText) {
   const items = [];
   const itemMatches = xmlText.match(/<(item|entry)>[\s\S]*?<\/\1>/gi);
   if (!itemMatches) return [];
-  
+
   for (const itemStr of itemMatches) {
     const titleMatch = itemStr.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
     const title = titleMatch ? decodeHTMLEntities(titleMatch[1]) : "No Title";
     let link = "";
     const linkTagMatch = itemStr.match(/<link>([\s\S]*?)<\/link>/i);
     const linkHrefMatch = itemStr.match(/<link[^>]+href=["']([^"']+)["']/i);
-    if (linkHrefMatch) link = linkHrefMatch[1]; 
-    else if (linkTagMatch) link = linkTagMatch[1]; 
+    if (linkHrefMatch) link = linkHrefMatch[1];
+    else if (linkTagMatch) link = linkTagMatch[1];
     link = link.trim();
-    if (!/^https?:\/\//i.test(link)) link = ""; 
+    if (!/^https?:\/\//i.test(link)) link = "";
     const descMatch = itemStr.match(/<(description|content|summary)[^>]*>([\s\S]*?)<\/\1>/i);
     let desc = descMatch ? decodeHTMLEntities(descMatch[2].replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1')) : "";
     desc = desc.replace(/<[^>]*>?/gm, '').substring(0, 3000);
@@ -1063,8 +1187,8 @@ function parseRSSRegex(xmlText) {
   return items;
 }
 
-function decodeHTMLEntities(text) { 
-  return text.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'"); 
+function decodeHTMLEntities(text) {
+  return text.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
 }
 
 /**
@@ -1074,86 +1198,86 @@ function decodeHTMLEntities(text) {
  * @param {number} maxRows 最大保持行数（デフォルト: CLEANUP_MAX_ROWS）
  */
 function cleanupAndSave(sheet, daysToKeep = CLEANUP_DAYS_TO_KEEP, maxRows = CLEANUP_MAX_ROWS) {
-    // 引数がない場合はスプレッドシートを取得
-    if (!sheet) {
-      const ss = SpreadsheetApp.openById(getConfig('SPREADSHEET_ID'));
-      sheet = ss.getSheets()[0];
-    }
-    
-    const lastRow = sheet.getLastRow();
-    if (lastRow < 2) {
-      saveJsonToDrive(sheet);
-      return; // データがない場合は終了
-    }
-    
-    // 日付列（1列目）を取得
-    const dateRange = sheet.getRange(2, 1, lastRow - 1, 1);
-    const dates = dateRange.getValues();
-    
-    const now = new Date();
-    const cutoffDate = new Date(now.getTime() - (daysToKeep * 24 * 60 * 60 * 1000));
-    
-    // 削除する行のインデックスを収集（下から上へ削除するため逆順）
-    const rowsToDelete = [];
-    
-    for (let i = dates.length - 1; i >= 0; i--) {
-      const rowIndex = i + 2; // 実際の行番号（ヘッダー+1）
-      const dateValue = dates[i][0];
-      
-      // 日付がDateオブジェクトか文字列かを判定
-      let articleDate;
-      if (dateValue instanceof Date) {
-        articleDate = dateValue;
-      } else if (typeof dateValue === 'string' && dateValue) {
-        // 文字列の場合はパースを試みる
-        articleDate = new Date(dateValue);
-        if (isNaN(articleDate.getTime())) {
-          // パース失敗時はスキップ（無効な日付）
-          continue;
-        }
-      } else {
-        // 日付が無効な場合はスキップ
+  // 引数がない場合はスプレッドシートを取得
+  if (!sheet) {
+    const ss = SpreadsheetApp.openById(getConfig('SPREADSHEET_ID'));
+    sheet = ss.getSheets()[0];
+  }
+
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) {
+    saveJsonToDrive(sheet);
+    return; // データがない場合は終了
+  }
+
+  // 日付列（1列目）を取得
+  const dateRange = sheet.getRange(2, 1, lastRow - 1, 1);
+  const dates = dateRange.getValues();
+
+  const now = new Date();
+  const cutoffDate = new Date(now.getTime() - (daysToKeep * 24 * 60 * 60 * 1000));
+
+  // 削除する行のインデックスを収集（下から上へ削除するため逆順）
+  const rowsToDelete = [];
+
+  for (let i = dates.length - 1; i >= 0; i--) {
+    const rowIndex = i + 2; // 実際の行番号（ヘッダー+1）
+    const dateValue = dates[i][0];
+
+    // 日付がDateオブジェクトか文字列かを判定
+    let articleDate;
+    if (dateValue instanceof Date) {
+      articleDate = dateValue;
+    } else if (typeof dateValue === 'string' && dateValue) {
+      // 文字列の場合はパースを試みる
+      articleDate = new Date(dateValue);
+      if (isNaN(articleDate.getTime())) {
+        // パース失敗時はスキップ（無効な日付）
         continue;
       }
-      
-      // 日付が古い、または行数制限を超えている場合
-      if (articleDate < cutoffDate || (lastRow - rowsToDelete.length) > maxRows + 1) {
-        rowsToDelete.push(rowIndex);
+    } else {
+      // 日付が無効な場合はスキップ
+      continue;
+    }
+
+    // 日付が古い、または行数制限を超えている場合
+    if (articleDate < cutoffDate || (lastRow - rowsToDelete.length) > maxRows + 1) {
+      rowsToDelete.push(rowIndex);
+    }
+  }
+
+  // 行を削除（下から上へ削除することでインデックスがずれない）
+  if (rowsToDelete.length > 0) {
+    // 連続した行はまとめて削除（効率的）
+    rowsToDelete.sort((a, b) => b - a); // 降順ソート
+
+    let deleteCount = 0;
+    let startRow = rowsToDelete[0];
+    let endRow = rowsToDelete[0];
+
+    for (let i = 1; i < rowsToDelete.length; i++) {
+      if (rowsToDelete[i] === endRow - 1) {
+        // 連続している
+        endRow = rowsToDelete[i];
+      } else {
+        // 連続が途切れたので削除
+        const count = startRow - endRow + 1;
+        sheet.deleteRows(endRow, count);
+        deleteCount += count;
+        startRow = rowsToDelete[i];
+        endRow = rowsToDelete[i];
       }
     }
-    
-    // 行を削除（下から上へ削除することでインデックスがずれない）
-    if (rowsToDelete.length > 0) {
-      // 連続した行はまとめて削除（効率的）
-      rowsToDelete.sort((a, b) => b - a); // 降順ソート
-      
-      let deleteCount = 0;
-      let startRow = rowsToDelete[0];
-      let endRow = rowsToDelete[0];
-      
-      for (let i = 1; i < rowsToDelete.length; i++) {
-        if (rowsToDelete[i] === endRow - 1) {
-          // 連続している
-          endRow = rowsToDelete[i];
-        } else {
-          // 連続が途切れたので削除
-          const count = startRow - endRow + 1;
-          sheet.deleteRows(endRow, count);
-          deleteCount += count;
-          startRow = rowsToDelete[i];
-          endRow = rowsToDelete[i];
-        }
-      }
-      
-      // 最後の連続範囲を削除
-      const count = startRow - endRow + 1;
-      sheet.deleteRows(endRow, count);
-      deleteCount += count;
-      
-      console.log(`🗑️ 古い記事 ${deleteCount} 件を削除しました（${daysToKeep}日以上前、または${maxRows}行超過）`);
-    }
-    
-    saveJsonToDrive(sheet);
+
+    // 最後の連続範囲を削除
+    const count = startRow - endRow + 1;
+    sheet.deleteRows(endRow, count);
+    deleteCount += count;
+
+    console.log(`🗑️ 古い記事 ${deleteCount} 件を削除しました（${daysToKeep}日以上前、または${maxRows}行超過）`);
+  }
+
+  saveJsonToDrive(sheet);
 }
 
 /**
@@ -1182,62 +1306,117 @@ function saveJsonToDrive(sheet) {
       const ss = SpreadsheetApp.openById(getConfig('SPREADSHEET_ID'));
       sheet = ss.getSheets()[0];
     }
-    
+
     const lastRow = sheet.getLastRow();
     if (lastRow < 2) return;
-    const rows = sheet.getRange(2, 1, lastRow - 1, 12).getValues().reverse(); 
+    const rows = sheet.getRange(2, 1, lastRow - 1, 12).getValues().reverse();
     const data = rows.map(r => ({
       date: Utilities.formatDate(new Date(r[0]), "JST", "yyyy/MM/dd"),
-      title: r[1], 
-      url: r[2], 
-      summary: r[3], 
-      content: r[4], 
+      title: r[1],
+      url: r[2],
+      summary: r[3],
+      content: r[4],
       leakScore: r[5] || 50,
       review_en: r[7] || "",
-      title_en: r[9] || "", 
-      summary_en: r[10] || "", 
+      title_en: r[9] || "",
+      summary_en: r[10] || "",
       content_en: r[11] || "",
       isMultiSource: (r[4] || '').includes('✅ 複数ソース確認済み')  // 統合記事フラグ
     }));
-    
+
     const folder = DriveApp.getFolderById(getConfig('FOLDER_ID'));
-    
-    // 既存ファイルを検索・更新（File ID固定化）
-    const files = folder.getFilesByName(JSON_FILE_NAME);
+    const props = PropertiesService.getScriptProperties();
+    let fileId = props.getProperty('NEWS_JSON_FILE_ID');
     let file;
-    
-    if (files.hasNext()) {
-      // 既存ファイルがあれば内容を更新（IDは変わらない）
-      file = files.next();
-      file.setContent(JSON.stringify(data));
-      console.log(`🔄 JSON Updated (Existing File)`);
-      
-      // 重複ファイルがあれば削除（クリーンアップ）
-      while (files.hasNext()) {
-        files.next().setTrashed(true);
+
+    // 保存済みのファイルIDがある場合、まずそれを使う
+    if (fileId) {
+      try {
+        file = DriveApp.getFileById(fileId);
+        file.setContent(JSON.stringify(data));
+        console.log(`🔄 JSON Updated (Cached File ID: ${fileId})`);
+      } catch (e) {
+        // ファイルが見つからない場合はリセット
+        console.log(`⚠️ Cached file ID invalid, searching folder...`);
+        file = null;
+        fileId = null;
       }
-    } else {
-      // 新規作成（初回のみ）
-      file = folder.createFile(JSON_FILE_NAME, JSON.stringify(data), "application/json");
-      console.log(`🆕 JSON Created (New File)`);
     }
-    
+
+    // ファイルIDが無い場合はフォルダ内を検索
+    if (!file) {
+      const files = folder.getFilesByName(JSON_FILE_NAME);
+      if (files.hasNext()) {
+        file = files.next();
+        file.setContent(JSON.stringify(data));
+        fileId = file.getId();
+        console.log(`🔄 JSON Updated (Found in folder: ${fileId})`);
+
+        // 重複ファイルがあれば削除
+        while (files.hasNext()) {
+          files.next().setTrashed(true);
+        }
+      } else {
+        // 新規作成（初回のみ）
+        file = folder.createFile(JSON_FILE_NAME, JSON.stringify(data), "application/json");
+        fileId = file.getId();
+        console.log(`🆕 JSON Created (New File ID: ${fileId})`);
+      }
+
+      // ファイルIDをScriptPropertiesに保存（次回以降使い回す）
+      props.setProperty('NEWS_JSON_FILE_ID', fileId);
+    }
+
     file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-    console.log(`📁 File ID: ${file.getId()}`);
-  } catch(e) { 
+    console.log(`📁 File ID: ${fileId}`);
+    console.log(`🔗 Download URL: https://drive.google.com/uc?export=download&id=${fileId}`);
+  } catch (e) {
     console.log(`❌ 保存エラー: ${e.toString()}`);
     logError('Google Drive', 'JSON_SAVE', e, `ファイル名: ${JSON_FILE_NAME}`);
   }
 }
 
-function getUsdJpyRate() { 
-  try{ 
+/**
+ * 🔧 ヘルパー関数: news.jsonのファイルIDを取得・表示
+ * GASエディタからこの関数を手動実行すると、現在のファイルIDとダウンロードURLが表示されます。
+ * GitHub Actionsのワークフローに設定するファイルIDを確認するのに使います。
+ */
+function getNewsJsonFileId() {
+  const folder = DriveApp.getFolderById(getConfig('FOLDER_ID'));
+  const files = folder.getFilesByName(JSON_FILE_NAME);
+
+  if (files.hasNext()) {
+    const file = files.next();
+    const fileId = file.getId();
+
+    // ScriptPropertiesにも保存
+    PropertiesService.getScriptProperties().setProperty('NEWS_JSON_FILE_ID', fileId);
+
+    console.log(`✅ news.json found!`);
+    console.log(`📁 File ID: ${fileId}`);
+    console.log(`🔗 Download URL: https://drive.google.com/uc?export=download&id=${fileId}`);
+    console.log(`📋 ↑ このIDをGitHub Actionsのワークフローに設定してください`);
+
+    // 共有設定を確認・更新
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    console.log(`🔓 共有設定: リンクを知っている全員が閲覧可能`);
+
+    return fileId;
+  } else {
+    console.log(`❌ news.json not found in folder!`);
+    console.log(`💡 saveJsonToDrive()を先に実行してファイルを作成してください`);
+    return null;
+  }
+}
+
+function getUsdJpyRate() {
+  try {
     const response = UrlFetchApp.fetch("https://api.exchangerate-api.com/v4/latest/USD");
     const data = JSON.parse(response.getContentText());
-    return Math.floor(data.rates.JPY); 
-  } catch(e) {
+    return Math.floor(data.rates.JPY);
+  } catch (e) {
     return 150;
-  } 
+  }
 }
 
 function calculateLeakScore(article) {
@@ -1251,47 +1430,63 @@ function calculateLeakScore(article) {
   return Math.max(0, Math.min(100, Math.round(score)));
 }
 
-function getSourceScore(url) { 
-  const d = extractDomain(url); 
-  const s = { 'apple.com': 30, 'samsung.com': 30, 'nvidia.com': 30, 'xcancel.com': 20, 'nitter.net': 15 }; 
-  return s[d] || 15; 
+function getSourceScore(url) {
+  const d = extractDomain(url);
+  const s = { 'apple.com': 30, 'samsung.com': 30, 'nvidia.com': 30, 'xcancel.com': 20, 'nitter.net': 15 };
+  return s[d] || 15;
 }
 
-function getEvidenceScore(t) { 
-  let s = 0; 
-  if(/official|発表/.test(t)) s += 25; 
-  if(/benchmark|流出/.test(t)) s += 22; 
-  return s || 10; 
+function getEvidenceScore(t) {
+  let s = 0;
+  if (/official|発表/.test(t)) s += 25;
+  if (/benchmark|流出/.test(t)) s += 22;
+  return s || 10;
 }
 
-function getSpecificityScore(t) { 
-  let s = 0; 
-  if(/\$|¥/.test(t)) s += 5; 
-  if(/GB|GHz/.test(t)) s += 4; 
-  return Math.min(20, s); 
+function getSpecificityScore(t) {
+  let s = 0;
+  if (/\$|¥/.test(t)) s += 5;
+  if (/GB|GHz/.test(t)) s += 4;
+  return Math.min(20, s);
 }
 
-function getCertaintyScore(t, s) { 
-  const txt = (t + ' ' + s).toLowerCase(); 
-  if(/confirmed/.test(txt)) return 15; 
-  if(/rumor/.test(txt)) return -10; 
-  return 0; 
+function getCertaintyScore(t, s) {
+  const txt = (t + ' ' + s).toLowerCase();
+  if (/confirmed/.test(txt)) return 15;
+  if (/rumor/.test(txt)) return -10;
+  return 0;
 }
 
-function getTimelinessScore(t) { 
-  if(/soon/.test(t)) return 10; 
-  return 0; 
+function getTimelinessScore(t) {
+  if (/soon/.test(t)) return 10;
+  return 0;
 }
 
-function extractDomain(u) { 
-  try{ 
+function extractDomain(u) {
+  try {
     const match = u.match(/^https?:\/\/(?:www\.)?([^\/]+)/i);
-    return match ? match[1].toLowerCase() : ''; 
-  } catch(e) {
+    return match ? match[1].toLowerCase() : '';
+  } catch (e) {
     return '';
-  } 
+  }
 }
 
-function getRecentHistory(s) { 
-  return { text: "", count: 0 }; 
+function getRecentHistory(s) {
+  return { text: "", count: 0 };
+}
+
+// ----------------------------------------------------
+// 投稿承認 Web アプリ（doGet で HTML を配信）
+// ----------------------------------------------------
+/**
+ * 承認用UIを表示する（GAS Web アプリとしてデプロイして使用）
+ * デプロイ: エディタ「デプロイ」→「新しいデプロイ」→ 種類「ウェブアプリ」→ 実行ユーザー「自分」、アクセス「自分のみ」
+ * @param {GoogleAppsScript.Events.DoGet} e
+ * @return {GoogleAppsScript.HTML.HtmlOutput}
+ */
+function doGet(e) {
+  return HtmlService
+    .createHtmlOutputFromFile('ApprovalUI')
+    .setTitle('GADGET HUNTER 投稿承認')
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
