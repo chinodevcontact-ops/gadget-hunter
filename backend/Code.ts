@@ -459,8 +459,14 @@ function fetchAndSummarizeToSheet() {
     }
   }
 
-  retryFailedArticles(30); // 通常実行時は直近30行のみ（パフォーマンス考慮）
-  cleanupAndSave(sheet);
+  if (rateLimitHit) {
+    console.log('⚠️ Rate limit hit during this run. Skipping retry, saving current state...');
+    cleanupAndSave(sheet); // 今処理できた分だけ保存して終了
+  } else {
+    retryFailedArticles(30); // 通常実行時は直近30行のみ（パフォーマンス考慮）
+    cleanupAndSave(sheet);
+  }
+  console.log(`✅ Run complete. Processed ${apiCallCount} articles.`);
 }
 
 // ----------------------------------------------------
