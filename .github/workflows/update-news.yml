@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      issues: write
     
     steps:
       - name: 📥 Checkout repository
@@ -81,6 +82,7 @@ jobs:
           CURRENT_DATE=$(date +'%Y-%m-%d %H:%M JST')
           
           git commit -m "🤖 Auto-update: $ARTICLE_COUNT articles from GAS [$CURRENT_DATE]"
+          git pull --rebase origin main
           git push
           
           echo "✅ Successfully pushed updates to GitHub!"
@@ -92,6 +94,7 @@ jobs:
       
       - name: 🚨 Create Issue on Failure
         if: failure()
+        continue-on-error: true
         uses: actions/github-script@v7
         with:
           script: |
