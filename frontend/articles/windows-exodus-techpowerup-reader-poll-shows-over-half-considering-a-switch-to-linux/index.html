@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     
-    <!-- ✅ CSP (Content Security Policy) - XSS対策 -->
+    <!-- CSP -->
     <meta http-equiv="Content-Security-Policy" content="
         default-src 'self';
         script-src 'self' 'unsafe-inline' https://utteranc.es https://cdn.jsdelivr.net;
@@ -17,12 +17,26 @@
         form-action 'none';
     ">
     
-    <!-- ✅ セキュリティヘッダー追加 -->
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
     <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
     
     <title>Windowsからの脱却志向!? TechPowerUp読者調査でLinuxへの移行意欲が過半数を突破！ | GADGET HUNTER</title>
+    
+    <!-- OGP -->
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Windowsからの脱却志向!? TechPowerUp読者調査でLinuxへの移行意欲が過半数を突破！">
+    <meta property="og:description" content="• TechPowerUpの読者調査で、Windows 10サポート終了とWindows 11への不満から、Windows OSからの移行を検討するユーザーが61.8%に達しました。 • Linuxへの移行を検討するユーザーが55.4%と最も多く、macOSへの移行は4.5%に留まりました。 • W...">
+    <meta property="og:url" content="https://gadget-hunter-xi.vercel.app/articles/windows-exodus-techpowerup-reader-poll-shows-over-half-considering-a-switch-to-linux">
+    <meta property="og:image" content="https://gadget-hunter-xi.vercel.app/ogp-default.svg">
+    <meta property="og:site_name" content="GADGET HUNTER">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Windowsからの脱却志向!? TechPowerUp読者調査でLinuxへの移行意欲が過半数を突破！">
+    <meta name="twitter:description" content="• TechPowerUpの読者調査で、Windows 10サポート終了とWindows 11への不満から、Windows OSからの移行を検討するユーザーが61.8%に達しました。 • Linuxへの移行を検討するユーザーが55.4%と最も多く、macOSへの移行は4.5%に留まりました。 • W...">
+    <meta name="twitter:image" content="https://gadget-hunter-xi.vercel.app/ogp-default.svg">
+    <link rel="canonical" href="https://gadget-hunter-xi.vercel.app/articles/windows-exodus-techpowerup-reader-poll-shows-over-half-considering-a-switch-to-linux">
+    <meta name="description" content="• TechPowerUpの読者調査で、Windows 10サポート終了とWindows 11への不満から、Windows OSからの移行を検討するユーザーが61.8%に達しました。 • Linuxへの移行を検討するユーザーが55.4%と最も多く、macOSへの移行は4.5%に留まりました。 • W...">
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -59,12 +73,12 @@
             background-attachment: fixed;
         }
 
-        /* スティッキーヘッダー with backdrop-filter */
+        /* ===== ヘッダー ===== */
         .header {
             background: rgba(10, 10, 10, 0.95);
             border-bottom: 2px solid var(--neon-green);
             box-shadow: 0 0 20px var(--green-glow);
-            padding: 1.5rem 2rem;
+            padding: 1rem 2rem;
             position: sticky;
             top: 0;
             z-index: 1000;
@@ -73,40 +87,58 @@
         }
 
         .header-content {
-            max-width: 1400px;
+            max-width: 900px;
             margin: 0 auto;
-        }
-
-        .header-top {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 1.5rem;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 255, 65, 0.1);
+            border: 1px solid rgba(0, 255, 65, 0.3);
+            border-radius: 6px;
+            color: var(--neon-green);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            min-height: 40px;
+        }
+
+        .back-btn:hover {
+            background: var(--neon-green);
+            color: #000;
+            box-shadow: 0 0 15px var(--green-glow);
         }
 
         .logo {
             font-family: 'Orbitron', sans-serif;
-            font-size: 2rem;
+            font-size: 1.5rem;
             font-weight: 900;
             color: var(--neon-green);
             text-shadow: 0 0 30px var(--green-glow);
             letter-spacing: 2px;
+            text-decoration: none;
         }
 
-        .tagline {
-            color: var(--neon-green);
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            text-shadow: 0 0 10px var(--green-glow);
-        }
-
-        /* 言語切り替え */
         .lang-switcher {
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            font-family: 'Orbitron', sans-serif;
         }
 
         .lang-btn {
@@ -114,218 +146,52 @@
             border: 2px solid rgba(0, 255, 65, 0.3);
             color: var(--text-secondary);
             font-family: 'Orbitron', sans-serif;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 700;
-            padding: 0.5rem 1rem;
+            padding: 0.4rem 0.8rem;
             border-radius: 6px;
             cursor: pointer;
             transition: all 0.3s ease;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            min-width: 48px;
-            min-height: 40px;
+            min-height: 36px;
         }
 
         .lang-btn:hover {
             border-color: var(--neon-green);
             color: var(--neon-green);
-            box-shadow: 0 0 10px var(--green-glow);
         }
 
         .lang-btn.active {
             background: var(--neon-green);
             color: #000;
             border-color: var(--neon-green);
-            box-shadow: 0 0 20px var(--green-glow-strong);
-            text-shadow: none;
+            box-shadow: 0 0 15px var(--green-glow-strong);
         }
 
         .lang-divider {
             color: rgba(0, 255, 65, 0.5);
             font-size: 1rem;
-            font-weight: 300;
         }
 
-        /* 検索バー */
-        .search-container {
-            position: relative;
-            margin-bottom: 1rem;
-        }
-
-        .search-box {
-            width: 100%;
-            padding: 1rem 1.5rem;
-            background: var(--bg-card);
-            border: 2px solid rgba(0, 255, 65, 0.3);
-            border-radius: 8px;
-            color: var(--text-primary);
-            font-family: 'Roboto Mono', monospace;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            outline: none;
-            min-height: 48px;
-        }
-
-        .search-box:focus {
-            border-color: var(--neon-green);
-            box-shadow: 0 0 20px var(--green-glow);
-        }
-
-        .search-box::placeholder {
-            color: var(--text-secondary);
-        }
-
-        .search-icon {
-            position: absolute;
-            right: 1.5rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--neon-green);
-            font-size: 1.2rem;
-            pointer-events: none;
-        }
-
-        /* カテゴリーフィルター */
-        .category-filters {
-            display: flex;
-            gap: 0.8rem;
-            flex-wrap: wrap;
-        }
-
-        .category-tag {
-            padding: 0.6rem 1.2rem;
-            background: rgba(0, 255, 65, 0.1);
-            border: 1px solid rgba(0, 255, 65, 0.3);
-            border-radius: 20px;
-            color: var(--neon-green);
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            user-select: none;
-            min-height: 44px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .category-tag:hover {
-            background: rgba(0, 255, 65, 0.2);
-            border-color: var(--neon-green);
-            box-shadow: 0 0 15px var(--green-glow);
-        }
-
-        .category-tag.active {
-            background: var(--neon-green);
-            color: #000;
-            border-color: var(--neon-green);
-            box-shadow: 0 0 20px var(--green-glow-strong);
-            font-weight: 700;
-        }
-
+        /* ===== 記事コンテナ ===== */
         .container {
-            max-width: 1400px;
+            max-width: 900px;
             margin: 0 auto;
             padding: 2rem 1.5rem;
         }
 
-        .loading-container {
+        /* ===== 記事メタ情報 ===== */
+        .article-meta {
             display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 60vh;
-            gap: 2rem;
-        }
-
-        .loading-spinner {
-            width: 80px;
-            height: 80px;
-            border: 4px solid var(--bg-card);
-            border-top: 4px solid var(--neon-green);
-            border-right: 4px solid var(--neon-green);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .loading-text {
-            font-size: 1.2rem;
-            color: var(--neon-green);
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            animation: pulse 1.5s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 0.5; }
-            50% { opacity: 1; }
-        }
-
-        /* デスクトップ：1列リスト（スマホ風） */
-        .news-grid {
-            display: grid;
-            grid-template-columns: 1fr;
             gap: 1rem;
-            max-width: 800px;
-            margin: 0 auto;
-            animation: fadeIn 0.6s ease-in;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* カード共通スタイル（コンパクト版） */
-        .news-card {
-            background: var(--bg-card);
-            border: 2px solid rgba(0, 255, 65, 0.2);
-            border-radius: 8px;
-            padding: 1.2rem;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            cursor: pointer;
-        }
-
-        .news-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 3px;
-            background: var(--neon-green);
-            transform: scaleX(0);
-            transform-origin: left;
-            transition: transform 0.4s ease;
-        }
-
-        /* デスクトップ：カードホバーエフェクト（控えめ版） */
-        .news-card:hover {
-            transform: translateY(-3px);
-            border-color: var(--neon-green);
-            box-shadow: 0 8px 25px var(--green-glow);
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.6rem;
             flex-wrap: wrap;
-            gap: 0.5rem;
+            align-items: center;
+            margin-bottom: 1.5rem;
         }
 
-        .news-date {
+        .article-date {
             color: var(--neon-green);
-            font-size: 0.75rem;
+            font-size: 0.8rem;
             text-transform: uppercase;
             letter-spacing: 1px;
             padding: 0.3rem 0.8rem;
@@ -334,103 +200,77 @@
             border: 1px solid rgba(0, 255, 65, 0.3);
         }
 
-        .card-category {
+        .article-category {
             padding: 0.3rem 0.8rem;
             background: rgba(0, 255, 65, 0.15);
             border: 1px solid rgba(0, 255, 65, 0.4);
             border-radius: 4px;
             color: var(--neon-green);
-            font-size: 0.7rem;
+            font-size: 0.75rem;
             text-transform: uppercase;
             letter-spacing: 1px;
             font-weight: 700;
         }
 
-        .news-title {
+        /* ===== タイトル ===== */
+        .article-title {
             font-family: 'Orbitron', sans-serif;
-            font-size: 1.1rem;
-            font-weight: 700;
-            margin-bottom: 0.8rem;
-            line-height: 1.4;
-        }
-
-        .news-title a {
+            font-size: 1.8rem;
+            font-weight: 900;
             color: var(--neon-green);
-            text-decoration: none;
-            transition: all 0.3s ease;
-            position: relative;
-            cursor: default; /* デスクトップではクリック不可 */
-            pointer-events: none; /* デスクトップではクリック無効 */
+            line-height: 1.3;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 0 20px var(--green-glow);
         }
 
-        .news-title a:hover {
-            text-shadow: 0 0 20px var(--green-glow-strong);
-        }
-
-        /* リーク信頼度メーター（コンパクト版） */
+        /* ===== リーク信頼度 ===== */
         .leak-score-container {
-            margin-bottom: 0.6rem;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: var(--bg-card);
+            border: 1px solid rgba(0, 255, 65, 0.2);
+            border-radius: 8px;
         }
 
         .leak-score-label {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 0.3rem;
-            font-size: 0.75rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
             color: var(--text-secondary);
         }
 
         .leak-score-value {
             color: var(--neon-green);
             font-weight: 700;
-            font-size: 0.85rem;
+            font-size: 1rem;
         }
 
         .leak-score-bar {
             width: 100%;
-            height: 6px;
+            height: 8px;
             background: rgba(0, 255, 65, 0.1);
             border-radius: 10px;
             overflow: hidden;
-            position: relative;
-            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
         }
 
         .leak-score-fill {
             height: 100%;
             border-radius: 10px;
-            transition: width 0.8s ease, background 0.3s ease;
-            position: relative;
+            transition: width 0.8s ease;
             box-shadow: 0 0 15px currentColor;
-        }
-
-        .leak-score-fill::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-            animation: shimmer 2s infinite;
-        }
-
-        @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
         }
 
         .score-low { background: #ff3333; color: #ff3333; }
         .score-medium { background: #ffaa00; color: #ffaa00; }
         .score-high { background: var(--neon-green); color: var(--neon-green); }
 
-        /* 複数ソース確認済みバッジ */
         .multi-source-badge {
             display: inline-flex;
             align-items: center;
             gap: 0.4rem;
-            margin-top: 0.5rem;
+            margin-top: 0.8rem;
             padding: 0.4rem 0.8rem;
             background: linear-gradient(135deg, rgba(0, 255, 65, 0.2), rgba(0, 200, 255, 0.2));
             border: 1.5px solid var(--neon-green);
@@ -440,37 +280,33 @@
             color: var(--neon-green);
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            box-shadow: 0 0 15px rgba(0, 255, 65, 0.3), inset 0 0 10px rgba(0, 255, 65, 0.1);
+            box-shadow: 0 0 15px rgba(0, 255, 65, 0.3);
             animation: pulse-badge 2s ease-in-out infinite;
         }
 
-        .multi-source-badge .badge-icon {
-            font-size: 1rem;
-            filter: drop-shadow(0 0 5px var(--neon-green));
-        }
-
-        .multi-source-badge .badge-text {
-            font-size: 0.7rem;
-        }
-
         @keyframes pulse-badge {
-            0%, 100% { 
-                box-shadow: 0 0 15px rgba(0, 255, 65, 0.3), inset 0 0 10px rgba(0, 255, 65, 0.1);
-                border-color: var(--neon-green);
-            }
-            50% { 
-                box-shadow: 0 0 25px rgba(0, 255, 65, 0.6), inset 0 0 15px rgba(0, 255, 65, 0.2);
-                border-color: rgba(0, 255, 65, 0.8);
-            }
+            0%, 100% { box-shadow: 0 0 15px rgba(0, 255, 65, 0.3); }
+            50% { box-shadow: 0 0 25px rgba(0, 255, 65, 0.6); }
         }
 
-        .news-summary {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            line-height: 1.7;
-            margin-top: 0.8rem;
-            padding-top: 0.8rem;
-            border-top: 1px solid rgba(0, 255, 65, 0.2);
+        /* ===== 要約セクション ===== */
+        .summary-section {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid rgba(0, 255, 65, 0.2);
+            border-radius: 8px;
+            border-left: 4px solid var(--neon-green);
+        }
+
+        .summary-section h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--neon-green);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
         }
 
         .summary-points {
@@ -482,6 +318,8 @@
             position: relative;
             padding-left: 1.5rem;
             margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
         }
 
         .summary-points li::before {
@@ -492,266 +330,25 @@
             font-weight: 700;
         }
 
-        /* デスクトップ：要約は常に表示 */
-        .card-expandable {
-            max-height: none;
-            opacity: 1;
-            transform: translateY(0);
-            margin-top: 1rem;
-        }
-
-        .read-more-btn {
-            display: inline-block;
-            margin-top: 0.8rem;
-            padding: 0.6rem 1.2rem;
-            background: var(--neon-green);
-            color: #000;
-            border: none;
-            border-radius: 6px;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 0.8rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px var(--green-glow);
-            min-height: 40px;
-            text-decoration: none;
-        }
-
-        .read-more-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px var(--green-glow-strong);
-        }
-
-        .no-results {
-            text-align: center;
-            padding: 4rem 2rem;
+        .summary-section p {
             color: var(--text-secondary);
+            line-height: 1.7;
         }
 
-        .no-results-icon {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-            opacity: 0.5;
+        /* ===== 本文 ===== */
+        .article-content {
+            margin-bottom: 2rem;
         }
 
-        .no-results-text {
-            font-size: 1.2rem;
-        }
-
-        .error-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 60vh;
-            gap: 1.5rem;
-        }
-
-        .error-icon {
-            font-size: 4rem;
-            color: #ff3333;
-        }
-
-        .error-text {
-            font-size: 1.3rem;
-            color: #ff3333;
-            text-align: center;
-            max-width: 600px;
-        }
-
-        .retry-btn {
-            padding: 0.8rem 2rem;
-            background: var(--neon-green);
-            border: none;
-            border-radius: 6px;
-            color: #000;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1rem;
-            font-weight: 700;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 15px var(--green-glow);
-            min-height: 44px;
-        }
-
-        .retry-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px var(--green-glow-strong);
-        }
-
-        .footer {
-            text-align: center;
-            padding: 2rem;
-            color: var(--text-secondary);
-            font-size: 0.85rem;
-            border-top: 1px solid rgba(0, 255, 65, 0.2);
-            margin-top: 4rem;
-        }
-
-        /* ===== 記事リーダーモーダル（Article Reader Overlay） ===== */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            z-index: 2000;
-            display: none;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .modal-overlay.active {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 1;
-        }
-
-        .modal-container {
-            background: #050505;
-            border: 1px solid var(--neon-green);
-            box-shadow: 0 0 40px var(--green-glow-strong);
-            border-radius: 12px;
-            width: 90%;
-            max-width: 900px;
-            max-height: 90vh;
-            overflow: hidden;
-            position: relative;
-            transform: translateY(50px);
-            opacity: 0;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .modal-overlay.active .modal-container {
-            transform: translateY(0);
-            opacity: 1;
-        }
-
-        .modal-header {
-            background: var(--bg-secondary);
-            border-bottom: 1px solid var(--neon-green);
-            padding: 1.5rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 1rem;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-
-        .modal-header-content {
-            flex: 1;
-        }
-
-        .modal-title {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--neon-green);
-            margin-bottom: 0.8rem;
-            line-height: 1.3;
-        }
-
-        .modal-meta {
-            display: flex;
-            gap: 1.5rem;
-            flex-wrap: wrap;
-            align-items: center;
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-        }
-
-        .modal-date {
-            color: var(--neon-green);
-            font-weight: 700;
-        }
-
-        .modal-score {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .modal-score-bar {
-            width: 60px;
-            height: 6px;
-            background: rgba(0, 255, 65, 0.2);
-            border-radius: 10px;
-            overflow: hidden;
-        }
-
-        .modal-score-fill {
-            height: 100%;
-            border-radius: 10px;
-            box-shadow: 0 0 10px currentColor;
-        }
-
-        .modal-close-btn {
-            background: transparent;
-            border: 2px solid var(--neon-green);
-            color: var(--neon-green);
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            font-size: 1.5rem;
-            line-height: 1;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal-close-btn:hover {
-            background: var(--neon-green);
-            color: #000;
-            box-shadow: 0 0 20px var(--green-glow-strong);
-            transform: rotate(90deg);
-        }
-
-        .modal-body {
-            padding: 2rem;
-            overflow-y: auto;
-            max-height: calc(90vh - 200px);
-        }
-
-        .modal-body::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .modal-body::-webkit-scrollbar-track {
-            background: var(--bg-secondary);
-        }
-
-        .modal-body::-webkit-scrollbar-thumb {
-            background: var(--neon-green);
-            border-radius: 10px;
-        }
-
-        .modal-content {
-            font-size: 1.05rem;
-            line-height: 1.8;
-            color: var(--text-primary);
-        }
-
-        .modal-content p {
+        .article-content p {
             margin-bottom: 1.5rem;
+            line-height: 1.8;
+            font-size: 1.05rem;
         }
 
-        .modal-content h3 {
+        .article-content h3 {
             font-family: 'Orbitron', sans-serif;
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             font-weight: 700;
             color: var(--neon-green);
             margin: 2rem 0 1rem;
@@ -760,1380 +357,257 @@
             box-shadow: -5px 0 15px var(--green-glow);
         }
 
-        .modal-content strong {
+        .article-content strong {
             color: var(--neon-green);
             font-weight: 700;
         }
 
-        .modal-content ul {
+        .article-content ul {
             margin-left: 2rem;
             margin-bottom: 1.5rem;
         }
 
-        .modal-content li {
+        .article-content li {
             margin-bottom: 0.5rem;
+            line-height: 1.7;
         }
 
-        .modal-footer {
-            background: var(--bg-secondary);
-            border-top: 1px solid rgba(0, 255, 65, 0.2);
-            padding: 1rem 2rem;
+        /* ===== ソースリンク ===== */
+        .source-section {
+            margin-bottom: 2rem;
+            padding: 1rem 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid rgba(0, 255, 65, 0.2);
+            border-radius: 8px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
         }
 
-        .modal-source {
+        .source-label {
             font-size: 0.85rem;
             color: var(--text-secondary);
         }
 
-        .modal-source a {
-            color: var(--neon-green);
+        .source-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            background: var(--neon-green);
+            color: #000;
+            border-radius: 6px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 700;
             text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 1px;
             transition: all 0.3s ease;
+            box-shadow: 0 4px 12px var(--green-glow);
         }
 
-        .modal-source a:hover {
-            text-shadow: 0 0 10px var(--green-glow);
+        .source-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px var(--green-glow-strong);
         }
 
-        /* モバイル用モーダル調整 */
+        /* ===== コメント ===== */
+        .comments-section {
+            margin-bottom: 2rem;
+        }
+
+        .comments-section h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--neon-green);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* ===== フッター ===== */
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            border-top: 1px solid rgba(0, 255, 65, 0.2);
+            margin-top: 2rem;
+        }
+
+        /* ===== 言語切替用の非表示 ===== */
+        [data-lang="en"] { display: none; }
+        body.lang-en [data-lang="ja"] { display: none; }
+        body.lang-en [data-lang="en"] { display: block; }
+
+        /* 一部inline要素の場合 */
+        span[data-lang="en"] { display: none; }
+        body.lang-en span[data-lang="ja"] { display: none; }
+        body.lang-en span[data-lang="en"] { display: inline; }
+
+        /* ===== レスポンシブ ===== */
         @media (max-width: 768px) {
-            .modal-container {
-                width: 100%;
-                max-width: 100%;
-                max-height: 100vh;
-                border-radius: 0;
-            }
-
-            .modal-header {
-                padding: 1rem;
-            }
-
-            .modal-title {
-                font-size: 1.2rem;
-            }
-
-            .modal-body {
-                padding: 1rem;
-                max-height: calc(100vh - 180px);
-            }
-
-            .modal-content {
-                font-size: 1rem;
-                line-height: 1.7;
-            }
-
-            .modal-content h3 {
-                font-size: 1.1rem;
-            }
-
-            .modal-footer {
-                padding: 1rem;
+            .header-content {
                 flex-direction: column;
-                gap: 0.5rem;
-            }
-        }
-
-        /* body固定用 */
-        body.modal-open {
-            overflow: hidden;
-        }
-
-        /* ===== モバイル専用スタイル (768px以下) ===== */
-        @media (max-width: 768px) {
-            /* モバイルではアコーディオン動作（超軽量版） */
-            .card-expandable {
-                display: none;
-                opacity: 0;
-                transform: translateY(-5px);
-                margin-top: 0;
-            }
-
-            .news-card.expanded .card-expandable {
-                display: block;
-                animation: expandFadeIn 0.25s ease-out forwards;
-                margin-top: 1rem;
-            }
-
-            @keyframes expandFadeIn {
-                0% {
-                    opacity: 0;
-                    transform: translateY(-5px);
-                }
-                100% {
-                    opacity: 1;
-                    transform: translateY(0);
-                }
-            }
-
-            /* ヘッダー最適化 - 高密度化 */
-            .header {
-                padding: 0.7rem;
-            }
-
-            .header-top {
-                flex-direction: column;
-                gap: 0.4rem;
+                gap: 0.8rem;
                 align-items: flex-start;
-                margin-bottom: 0.7rem;
             }
 
-            .logo {
+            .article-title {
                 font-size: 1.3rem;
             }
 
-            .tagline {
-                font-size: 0.65rem;
-                letter-spacing: 1.5px;
-            }
-
-            .search-box {
-                font-size: 16px; /* iOS zoom 防止 */
-                padding: 0.7rem 0.9rem;
-            }
-
-            .category-filters {
-                gap: 0.4rem;
-            }
-
-            .category-tag {
-                font-size: 0.7rem;
-                padding: 0.4rem 0.8rem;
-                min-height: 40px;
-            }
-
-            /* コンテナ - 高密度化 */
             .container {
-                padding: 1rem 0.7rem;
+                padding: 1rem;
             }
 
-            /* モバイル：リスト形式に変更 - 高密度化 */
-            .news-grid {
-                grid-template-columns: 1fr;
-                gap: 0.6rem;
-            }
-
-            /* コンパクトカードデザイン - 高密度化 */
-            .news-card {
-                padding: 0.7rem;
-                border-radius: 8px;
-                min-height: auto;
-            }
-
-            .news-card:hover {
-                transform: none; /* モバイルではホバーなし */
-            }
-
-            /* アコーディオンスタイル */
-            .news-card {
-                transition: transform 0.15s ease-out;
-            }
-
-            .news-card:active {
-                transform: scale(0.98);
-            }
-
-            .card-header {
-                margin-bottom: 0.4rem;
-            }
-
-            .news-date {
-                font-size: 0.6rem;
-                padding: 0.2rem 0.5rem;
-            }
-
-            .card-category {
-                font-size: 0.6rem;
-                padding: 0.2rem 0.5rem;
-            }
-
-            /* タイトルを2行に制限 - 高密度化 */
-            .news-title {
-                font-size: 0.95rem;
-                line-height: 1.25;
-                margin-bottom: 0.4rem;
-                display: -webkit-box;
-                -webkit-line-clamp: 2;
-                -webkit-box-orient: vertical;
-                overflow: hidden;
-            }
-
-            /* モバイルではタイトルクリック有効化（アコーディオン用） */
-            .news-title a {
-                cursor: pointer;
-                pointer-events: auto;
-            }
-
-            /* 信頼度バーをミニマルに - 高密度化 */
-            .leak-score-container {
-                margin-bottom: 0.4rem;
-            }
-
-            .leak-score-label {
-                font-size: 0.65rem;
-                margin-bottom: 0.25rem;
-            }
-
-            .leak-score-value {
-                font-size: 0.75rem;
-            }
-
-            .leak-score-bar {
-                height: 5px;
-            }
-
-            /* 複数ソースバッジ - モバイル用小型化 */
-            .multi-source-badge {
-                margin-top: 0.3rem;
-                padding: 0.3rem 0.6rem;
-                font-size: 0.65rem;
-            }
-
-            .multi-source-badge .badge-icon {
-                font-size: 0.85rem;
-            }
-
-            .multi-source-badge .badge-text {
-                font-size: 0.6rem;
-            }
-
-            /* 要約は初期状態で非表示（アコーディオンで表示） - 高密度化 */
-            .news-summary {
-                font-size: 0.85rem;
-                line-height: 1.5;
-                padding-top: 0.6rem;
-            }
-
-            .summary-points li {
-                margin-bottom: 0.3rem;
-                font-size: 0.8rem;
-            }
-
-            /* 展開インジケーター */
-            .news-card::after {
-                content: '▼';
-                position: absolute;
-                bottom: 1rem;
-                right: 1rem;
-                color: var(--neon-green);
-                font-size: 0.8rem;
-                transition: transform 0.3s ease;
-            }
-
-            .news-card.expanded::after {
-                transform: rotate(180deg);
-            }
-
-            .read-more-btn {
-                width: 100%;
+            .source-section {
+                flex-direction: column;
+                align-items: stretch;
                 text-align: center;
-                padding: 0.8rem;
-                font-size: 0.85rem;
-            }
-
-            /* フッター */
-            .footer {
-                font-size: 0.75rem;
-                padding: 1.5rem 1rem;
             }
         }
 
-        /* さらに小さい画面（iPhone SE等） */
-        @media (max-width: 375px) {
-            .logo {
-                font-size: 1.3rem;
-            }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
-            .news-title {
-                font-size: 0.95rem;
-            }
-
-            .category-tag {
-                font-size: 0.7rem;
-                padding: 0.4rem 0.8rem;
-            }
+        .container {
+            animation: fadeIn 0.6s ease-in;
         }
     </style>
-
-    <!-- Article-specific OGP tags (Generated at build time) -->
-    <meta property="og:type" content="article">
-    <meta property="og:title" content="Windowsからの脱却志向!? TechPowerUp読者調査でLinuxへの移行意欲が過半数を突破！">
-    <meta property="og:description" content="• TechPowerUpの読者調査で、Windows 10サポート終了とWindows 11への不満から、Windows OSからの移行を検討するユーザーが61.8%に達しました。 • Linuxへの移行を検討するユーザーが55.4%と最も多く、macOSへの移行は4.5%に留まりました。 • W...">
-    <meta property="og:url" content="https://gadget-hunter-xi.vercel.app/articles/windows-exodus-techpowerup-reader-poll-shows-over-half-considering-a-switch-to-linux">
-    <meta property="og:image" content="https://gadget-hunter-xi.vercel.app/ogp-default.jpg">
-    <meta property="og:site_name" content="GADGET HUNTER">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Windowsからの脱却志向!? TechPowerUp読者調査でLinuxへの移行意欲が過半数を突破！">
-    <meta name="twitter:description" content="• TechPowerUpの読者調査で、Windows 10サポート終了とWindows 11への不満から、Windows OSからの移行を検討するユーザーが61.8%に達しました。 • Linuxへの移行を検討するユーザーが55.4%と最も多く、macOSへの移行は4.5%に留まりました。 • W...">
-    <meta name="twitter:image" content="https://gadget-hunter-xi.vercel.app/ogp-default.jpg">
-    <link rel="canonical" href="https://gadget-hunter-xi.vercel.app/articles/windows-exodus-techpowerup-reader-poll-shows-over-half-considering-a-switch-to-linux">
-    <meta name="description" content="• TechPowerUpの読者調査で、Windows 10サポート終了とWindows 11への不満から、Windows OSからの移行を検討するユーザーが61.8%に達しました。 • Linuxへの移行を検討するユーザーが55.4%と最も多く、macOSへの移行は4.5%に留まりました。 • W...">
-    
 </head>
 <body>
+    <!-- ヘッダー -->
     <header class="header">
         <div class="header-content">
-            <div class="header-top">
-                <div>
-                    <h1 class="logo">GADGET HUNTER</h1>
-                    <div class="tagline">[ Confidential Tech Leaks ]</div>
-                </div>
-                
-                <!-- 言語切り替え -->
-                <div class="lang-switcher">
-                    <button class="lang-btn" data-lang="en">EN</button>
-                    <span class="lang-divider">|</span>
-                    <button class="lang-btn active" data-lang="ja">JP</button>
-                </div>
+            <div class="header-left">
+                <a href="/" class="back-btn">← <span data-lang="ja">ホームに戻る</span><span data-lang="en">Back to Home</span></a>
+                <a href="/" class="logo">GADGET HUNTER</a>
             </div>
-            
-            <!-- 検索バー -->
-            <div class="search-container">
-                <input 
-                    type="text" 
-                    id="search-input" 
-                    class="search-box" 
-                    placeholder="Search leaks by keyword..."
-                    autocomplete="off"
-                >
-                <span class="search-icon">🔍</span>
-            </div>
-
-            <!-- カテゴリーフィルター -->
-            <div class="category-filters">
-                <div class="category-tag active" data-category="all">All Leaks</div>
-                <div class="category-tag" data-category="GPU">GPU</div>
-                <div class="category-tag" data-category="CPU">CPU</div>
-                <div class="category-tag" data-category="PC Parts">PC Parts</div>
-                <div class="category-tag" data-category="Laptop">Laptop</div>
-                <div class="category-tag" data-category="Peripherals">Peripherals</div>
-                <div class="category-tag" data-category="Smartphone">Smartphone</div>
-                <div class="category-tag" data-category="Gaming">Gaming</div>
-                <div class="category-tag" data-category="AI">AI</div>
+            <div class="lang-switcher">
+                <button class="lang-btn active" data-lang="ja" onclick="switchLanguage('ja')">JA</button>
+                <span class="lang-divider">|</span>
+                <button class="lang-btn" data-lang="en" onclick="switchLanguage('en')">EN</button>
             </div>
         </div>
     </header>
 
+    <!-- 記事本体 -->
     <main class="container">
+        <!-- メタ情報 -->
+        <div class="article-meta">
+            <span class="article-date">2026/01/16</span>
+            <span class="article-category">General</span>
+        </div>
+
+        <!-- タイトル -->
+        <h1 class="article-title" data-lang="ja">Windowsからの脱却志向!? TechPowerUp読者調査でLinuxへの移行意欲が過半数を突破！</h1>
+        <h1 class="article-title" data-lang="en">Windows Exodus? TechPowerUp Reader Poll Shows Over Half Considering a Switch to Linux!</h1>
+
+        <!-- リーク信頼度 -->
+        <div class="leak-score-container">
+            <div class="leak-score-label">
+                <span data-lang="ja">リーク信頼度</span>
+                <span data-lang="en">Leak Credibility</span>
+                <span class="leak-score-value">65%</span>
+            </div>
+            <div class="leak-score-bar">
+                <div class="leak-score-fill score-medium" style="width: 65%"></div>
+            </div>
+            
+        </div>
+
+        <!-- 要約 -->
+        <div class="summary-section">
+            <h2 data-lang="ja">📋 要約</h2>
+            <h2 data-lang="en">📋 Summary</h2>
+            <div data-lang="ja"><ul class="summary-points"><li>TechPowerUpの読者調査で、Windows 10サポート終了とWindows 11への不満から、Windows OSからの移行を検討するユーザーが61.8%に達しました。</li><li>Linuxへの移行を検討するユーザーが55.4%と最も多く、macOSへの移行は4.5%に留まりました。</li><li>Windows 11のインターフェースの劣化や、Microsoft製品のBloatware化が不満の主な原因として挙げられています。</li></ul></div>
+            <div data-lang="en"><ul class="summary-points"><li>A TechPowerUp reader poll reveals that 61.8% of users are considering moving away from the Windows OS due to the end of support for Windows 10 and dissatisfaction with Windows 11.</li><li>Linux is the most popular alternative, with 55.4% of respondents considering a switch, while only 4.5% are willing to move to macOS.</li><li>The primary sources of dissatisfaction include a perceived downgrade in the Windows 11 interface and the bloatware nature of recent Microsoft products.</li></ul></div>
+        </div>
+
+        <!-- 本文 -->
+        <div class="article-content" data-lang="ja">
+            TechPowerUpが実施した読者調査によると、MicrosoftのWindows 10サポート終了とWindows 11に対する不満の高まりを受け、Windows OSから別のOSへの移行を検討しているユーザーが過半数を超える結果となりました。調査では、34,000人以上の回答が集まり、そのうち55.4%（18,981人）がLinuxへの移行を検討していると回答しました。一方、macOSへの移行を検討しているユーザーはわずか4.5%（1,538人）に留まりました。また、1.9%のユーザーはPCをメインの計算機として使用することを諦め、Xbox Series S/XやPlayStation 5などのゲームコンソール、または職場や学校から提供されるデバイスに移行する意向を示しています。これらの回答を合計すると、Windowsへの不満を感じているユーザーが約61.8%に達します。残りの38.2%（13,105人）は、Windowsからの移行を検討しないと回答しています。コメントからは、Windows 11のインターフェースがWindows 10よりも劣っていると感じているユーザーや、Microsoft 365、Copilot、Teams、Bingなどの製品が侵入的またはBloatwareであると感じているユーザーが多く見られました。<h3>中の人の本音 (JP)</h3><p>これはすごいですね！Linuxへの移行意欲が過半数を超えるとは、Windowsの現状に対するユーザーの不満が非常に大きいことがわかります。Microsoftには、ユーザーの声に耳を傾け、Windows 11を改善していく必要があるでしょう。個人的には、Linuxのデスクトップ環境の進化には目を見張るものがあり、Windowsに匹敵する使いやすさになっていると感じています。</p>
+        </div>
+        <div class="article-content" data-lang="en">
+            A recent reader poll conducted by TechPowerUp indicates that over half of users are considering migrating away from the Windows OS, driven by the upcoming end of support for Windows 10 and growing dissatisfaction with Windows 11. The survey gathered over 34,000 responses, with 55.4% (18,981 respondents) stating they would consider switching to Linux. Conversely, only 4.5% (1,538 respondents) expressed willingness to move to macOS. Additionally, 1.9% indicated they would abandon the PC as their primary computing device, opting for game consoles like the Xbox Series S/X or PlayStation 5, or relying on devices provided by their work or school. This totals approximately 61.8% of respondents expressing disillusionment with Windows. The remaining 38.2% (13,105 respondents) stated they would not consider moving away from Windows. Comments suggest that dissatisfaction stems from a perceived downgrade in the Windows 11 interface, as well as concerns about the invasive or bloatware nature of recent Microsoft products such as 365, Copilot, Teams, and Bing.<h3>Review (EN)</h3><p>Wow! Over half considering Linux is a HUGE signal of user frustration with Windows. Microsoft *needs* to listen. Linux desktop environments are seriously impressive now – a viable alternative!</p>
+        </div>
+
+        <!-- ソースリンク -->
         
-    <div id="ssr-content" style="display:none;">
-      <h1>Windowsからの脱却志向!? TechPowerUp読者調査でLinuxへの移行意欲が過半数を突破！</h1>
-      <article>
-        <p>• TechPowerUpの読者調査で、Windows 10サポート終了とWindows 11への不満から、Windows OSからの移行を検討するユーザーが61.8%に達しました。 • Linuxへの移行を検討するユーザーが55.4%と最も多く、macOSへの移行は4.5%に留まりました。 • W...</p>
-        <time datetime="2026/01/16">2026/01/16</time>
-      </article>
-    </div>
-    <div id="loading" class="loading-container">
-            <div class="loading-spinner"></div>
-            <div class="loading-text">Decrypting intel...</div>
+        <div class="source-section">
+            <span class="source-label" data-lang="ja">📎 元記事を確認する</span>
+            <span class="source-label" data-lang="en">📎 View original source</span>
+            <a href="https://www.techpowerup.com/345267/techpowerup-readers-willing-to-move-away-from-windows-after-windows-10-eol-frontpage-poll" target="_blank" rel="noopener noreferrer" class="source-link">
+                <span data-lang="ja">元記事を見る ↗</span>
+                <span data-lang="en">View Source ↗</span>
+            </a>
         </div>
 
-        <div id="news-container" class="news-grid" style="display: none;"></div>
-
-        <div id="no-results" class="no-results" style="display: none;">
-            <div class="no-results-icon">🔍</div>
-            <div class="no-results-text">No leaks found matching your criteria</div>
-        </div>
-
-        <div id="error-container" class="error-container" style="display: none;">
-            <div class="error-icon">⚠</div>
-            <div class="error-text">Failed to retrieve classified information. Connection compromised.</div>
-            <button class="retry-btn" onclick="loadNews()">Retry Connection</button>
+        <!-- コメント（Utterances） -->
+        <div class="comments-section">
+            <h2 data-lang="ja">💬 コメント</h2>
+            <h2 data-lang="en">💬 Comments</h2>
+            <div id="utterances-container"></div>
         </div>
     </main>
 
+    <!-- フッター -->
     <footer class="footer">
-        <p>© 2026 GADGET HUNTER - All leaks are confidential • Powered by underground intelligence</p>
+        <span data-lang="ja">Gadget Hunter - すべてのリークは公開情報に基づいています</span>
+        <span data-lang="en">Gadget Hunter - All leaks are based on publicly available information</span>
     </footer>
 
-    <!-- 記事リーダーモーダル -->
-    <div id="article-modal" class="modal-overlay">
-        <div class="modal-container">
-            <div class="modal-header">
-                <div class="modal-header-content">
-                    <h2 id="modal-title" class="modal-title"></h2>
-                    <div class="modal-meta">
-                        <span id="modal-date" class="modal-date"></span>
-                        <div class="modal-score">
-                            <span>Credibility:</span>
-                            <div class="modal-score-bar">
-                                <div id="modal-score-fill" class="modal-score-fill"></div>
-                            </div>
-                            <span id="modal-score-value"></span>
-                        </div>
-                    </div>
-                </div>
-                <button class="modal-close-btn" onclick="closeModal()" aria-label="記事を閉じる">×</button>
-            </div>
-            <div class="modal-body">
-                <div id="modal-content" class="modal-content"></div>
-                
-                <!-- Utterances コメント欄 -->
-                <div id="comments-section" style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid rgba(0, 255, 65, 0.2);">
-                    <h3 style="font-family: 'Orbitron', sans-serif; color: var(--neon-green); margin-bottom: 1rem;">💬 COMMENTS</h3>
-                    <div id="utterances-container"></div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <div class="modal-source">
-                    Source: <a id="modal-source-link" href="/# target="_blank" rel="noopener noreferrer">View Original Article ↗</a>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <script>
-        // ローカルJSONファイルを直接読み込み（403エラー対策）
-        const API_URL = '/data/news.json';
-        const CACHE_KEY = 'gadget_hunter_cache';
-        const CACHE_TIMESTAMP_KEY = 'gadget_hunter_cache_timestamp';
-        const CACHE_DURATION = 5 * 60 * 1000; // 5分間キャッシュ（API制限対策）
-        const DEBUG = true; // デバッグモード（本番ではfalseに）
-        const ALLOWED_ORIGINS = ['https://gadget-hunter-xi.vercel.app', 'http://localhost:3000']; // CORS許可リスト
-
-        // ✅ XSS対策：HTMLエスケープ関数
-        function escapeHtml(unsafe) {
-            if (!unsafe) return '';
-            const div = document.createElement('div');
-            div.textContent = unsafe;
-            return div.innerHTML;
-        }
-
-        // ✅ XSS対策：安全なHTML挿入（DOMPurify代替）
-        function sanitizeHTML(html) {
-            if (!html) return '';
-            // 許可するタグのホワイトリスト
-            const allowedTags = ['p', 'br', 'strong', 'em', 'h1', 'h2', 'h3', 'ul', 'ol', 'li', 'a', 'span'];
-            const div = document.createElement('div');
-            div.innerHTML = html;
-            
-            // 許可されていないタグを削除
-            const allElements = div.querySelectorAll('*');
-            allElements.forEach(el => {
-                if (!allowedTags.includes(el.tagName.toLowerCase())) {
-                    el.remove();
-                }
-                // すべての属性を削除（href以外）
-                Array.from(el.attributes).forEach(attr => {
-                    if (attr.name !== 'href' || el.tagName.toLowerCase() !== 'a') {
-                        el.removeAttribute(attr.name);
-                    }
-                });
-                // リンクはhttps://のみ許可
-                if (el.tagName.toLowerCase() === 'a') {
-                    const href = el.getAttribute('href');
-                    if (!href || (!href.startsWith('https://') && !href.startsWith('http://'))) {
-                        el.removeAttribute('href');
-                    }
-                }
-            });
-            
-            return div.innerHTML;
-        }
-
-        // ✅ URL検証
-        function isValidUrl(url) {
-            try {
-                const urlObj = new URL(url);
-                return urlObj.protocol === 'https:' || urlObj.protocol === 'http:';
-            } catch (e) {
-                return false;
-            }
-        }
-
-        // ✅ キャッシュ整合性検証（改ざん検出）
-        function getCacheChecksum(data) {
-            // 簡易的なチェックサム（実運用ではHMACを推奨）
-            const str = JSON.stringify(data);
-            let hash = 0;
-            for (let i = 0; i < str.length; i++) {
-                const char = str.charCodeAt(i);
-                hash = ((hash << 5) - hash) + char;
-                hash = hash & hash;
-            }
-            return hash.toString();
-        }
-
-        // デバッグログ用ヘルパー関数
-        function debugLog(...args) {
-            if (DEBUG) console.log(...args);
-        }
-
-        let allNews = [];
-        let currentCategory = 'all';
-        let searchQuery = '';
+        // 言語設定
         let currentLang = localStorage.getItem('lang') || 'ja';
         
-        // 遅延読み込み用変数
-        let displayedCount = 0;
-        const ITEMS_PER_LOAD = 20;
-        let isLoading = false;
-        let filteredNewsCache = [];
-
-        // localStorageキャッシュ機能（改ざん検出機能付き）
-        function getCachedData() {
-            try {
-                const cachedData = localStorage.getItem(CACHE_KEY);
-                const cachedTimestamp = localStorage.getItem(CACHE_TIMESTAMP_KEY);
-                const cachedChecksum = localStorage.getItem(CACHE_KEY + '_checksum');
-                
-                if (cachedData && cachedTimestamp && cachedChecksum) {
-                    const now = Date.now();
-                    const timestamp = parseInt(cachedTimestamp, 10);
-                    
-                    // キャッシュが有効期限内か確認
-                    if (now - timestamp < CACHE_DURATION) {
-                        const data = JSON.parse(cachedData);
-                        
-                        // ✅ 整合性検証（改ざん検出）
-                        const checksum = getCacheChecksum(data);
-                        if (checksum !== cachedChecksum) {
-                            console.warn('⚠️ Cache integrity check failed! Possible tampering detected.');
-                            localStorage.removeItem(CACHE_KEY);
-                            localStorage.removeItem(CACHE_TIMESTAMP_KEY);
-                            localStorage.removeItem(CACHE_KEY + '_checksum');
-                            return null;
-                        }
-                        
-                        debugLog('📦 Using cached data (valid for', Math.round((CACHE_DURATION - (now - timestamp)) / 1000), 'more seconds)');
-                        return data;
-                    } else {
-                        debugLog('⏰ Cache expired, fetching new data');
-                    }
-                }
-            } catch (error) {
-                console.warn('Cache read error:', error);
-            }
-            return null;
-        }
-
-        function setCachedData(data) {
-            try {
-                const checksum = getCacheChecksum(data);
-                localStorage.setItem(CACHE_KEY, JSON.stringify(data));
-                localStorage.setItem(CACHE_TIMESTAMP_KEY, Date.now().toString());
-                localStorage.setItem(CACHE_KEY + '_checksum', checksum);
-                debugLog('💾 Data cached successfully with integrity check');
-            } catch (error) {
-                console.warn('Cache write error:', error);
-            }
-        }
-
-        // カテゴリー自動判定関数（正規表現版で誤検出防止）
-        function detectCategory(title, summary = '') {
-            const text = `${title} ${summary}`.toLowerCase();
-
-            const matchesAny = (patterns) => patterns.some((pattern) => pattern.test(text));
-
-            // GPU関連のキーワード（正規表現で単語境界を使用）
-            const gpuPatterns = [
-                // NVIDIA
-                /\brtx\s*\d{4}\b/i, /\bgtx\s*\d{4}\b/i, /\bgeforce\b/i, /\bnvidia\b/i, 
-                /\btitan\b/i, /\bquadro\b/i, /\bcuda\b/i, /\bdlss\b/i, /\btensor\s+core\b/i,
-                // AMD
-                /\bradeon\b/i, /\brx\s+\d{4}\b/i, /\brdna\b/i, /\bfsr\b/i, /\binfinity\s+cache\b/i,
-                // Intel
-                /\bintel\s+arc\b/i, /\barc\s+[ab]\d+\b/i, /\bxe\s+graphics\b/i,
-                // 一般
-                /\bgpu\b/i, /\bgraphics\s+card\b/i, /\bvram\b/i, /\bgddr\d/i,
-                /\bray\s+tracing\b/i, /\brasterization\b/i, /\bvideo\s+card\b/i
-            ];
-
-            // CPU関連のキーワード
-            const cpuPatterns = [
-                // AMD デスクトップ・サーバー
-                /\bryzen\s+[3579]\b/i, /\bthreadripper\b/i, /\bepyc\b/i, /\bamd\b/i,
-                // Intel デスクトップ・サーバー
-                /\bcore\s+i[3579]\b/i, /\bcore\s+ultra\b/i, /\bxeon\b/i, /\bintel\s+\d+th\s+gen\b/i,
-                /\braptor\s+lake\b/i, /\bmeteor\s+lake\b/i, /\barrow\s+lake\b/i,
-                // モバイル
-                /\bsnapdragon\b/i, /\bdimensity\b/i, /\bexynos\b/i, /\btensor\s+g\d\b/i,
-                /\bbionic\b/i, /\bapple\s+[am]\d+\b/i, /\bmediatek\b/i, /\bqualcomm\b/i,
-                // 一般
-                /\bcpu\b/i, /\bprocessor\b/i, /\bcores?\b/i, /\bthreads?\b/i, /\bghz\b/i,
-                /\bcache\b/i, /\btdp\b/i, /\boverclocking\b/i
-            ];
-
-            // PC Parts（マザボ、メモリ、SSD、電源など）
-            const pcPartsPatterns = [
-                // マザーボード・チップセット
-                /\bmotherboard\b/i, /\bchipset\b/i, /\b[zxb]\d{3}\b/i, /\basus\s+rog\s+strix\b/i,
-                /\bmsi\s+(mag|mpg|meg)\b/i, /\bgigabyte\s+aorus\b/i, /\basrock\b/i,
-                // メモリ
-                /\bddr[345]\b/i, /\bram\b/i, /\bmemory\b/i, /\bdimm\b/i, /\bg\.skill\b/i,
-                /\bcorsair\s+vengeance\b/i, /\bcrucial\b/i, /\bkingston\b/i, /\btrident\b/i,
-                // ストレージ
-                /\bssd\b/i, /\bnvme\b/i, /\bhdd\b/i, /\bstorage\b/i, /\bpcie\s+[345]\.\d\b/i,
-                /\bsamsung\s+\d+\b/i, /\bwd\s+black\b/i, /\bwestern\s+digital\b/i, /\bseagate\b/i,
-                // 電源
-                /\bpsu\b/i, /\bpower\s+supply\b/i, /\b\d{3,4}w\b/i, /\b80\s+plus\b/i,
-                /\bseasonic\b/i, /\bcorsair\s+(rm|hx|ax)\b/i, /\bevga\s+supernova\b/i,
-                /\bbe\s+quiet\b/i, /\bthermaltake\b/i,
-                // 冷却・ファン
-                /\bcooling\b/i, /\bcooler\b/i, /\baio\b/i, /\bwater\s+cooling\b/i,
-                /\bnoctua\b/i, /\bnf-[af]\d+\b/i, /\bnh-[du]\d+\b/i, /\bpulsar\b/i,
-                /\bcooler\s+master\b/i, /\bnzxt\s+kraken\b/i, /\barctic\b/i,
-                /\bthermal\s+paste\b/i, /\bfan\b/i, /\brgb\s+fan\b/i,
-                // ケース
-                /\bpc\s+case\b/i, /\bchassis\b/i, /\bfractal\s+design\b/i, /\blian\s+li\b/i,
-                /\bnzxt\s+h\d+\b/i, /\bcorsair\s+\d+d\b/i, /\bantec\s+flux\b/i,
-                // その他
-                /\brgb\s+lighting\b/i, /\bargb\b/i, /\bpc\s+build\b/i
-            ];
-
-            // Laptop（ノートPC）
-            const laptopPatterns = [
-                // Apple
-                /\bmacbook\s+(air|pro)\b/i, /\bmacbook\b/i,
-                // ビジネス・プレミアム
-                /\bthinkpad\b/i, /\bzenbook\b/i, /\bspectre\b/i, /\benvy\b/i,
-                /\bxps\b/i, /\blatitude\b/i, /\bprecision\b/i, /\bprobook\b/i, /\belitebook\b/i,
-                // ゲーミング
-                /\brog\s+(zephyrus|strix|flow)\b/i, /\blegion\b/i, /\bomnibook\b/i,
-                /\bg\d+\b/i, /\bgaming\s+laptop\b/i, /\balienware\b/i, /\brazer\s+blade\b/i,
-                // 汎用・クリエイター
-                /\bvivobook\b/i, /\bideapad\b/i, /\baspire\b/i, /\bswift\b/i,
-                /\bprestige\b/i, /\bcreator\b/i, /\bconceptd\b/i,
-                // その他
-                /\bultrabook\b/i, /\bchromebook\b/i, /\bsurface\s+laptop\b/i,
-                /\blaptop\b/i, /\bnotebook\b/i, /\b2-in-1\b/i, /\bconvertible\b/i
-            ];
-
-            // Peripherals（周辺機器）
-            const peripheralPatterns = [
-                // マウス・キーボード
-                /\bmouse\b/i, /\bgaming\s+mouse\b/i, /\bwireless\s+mouse\b/i,
-                /\bkeyboard\b/i, /\bmechanical\s+keyboard\b/i, /\bcherry\s+mx\b/i,
-                /\blogitech\b/i, /\brazer\b/i, /\bsteelseries\b/i, /\bcorsair\b/i,
-                // モニター
-                /\bmonitor\b/i, /\bdisplay\b/i, /\bscreen\b/i, /\b\d+hz\b/i,
-                /\b[248]k\s+(monitor|display)\b/i, /\bultrawide\b/i, /\bcurved\s+monitor\b/i,
-                /\boled\s+display\b/i, /\bmini\s+led\b/i, /\bips\s+panel\b/i, /\bva\s+panel\b/i,
-                /\bhdr\d+\b/i, /\bfreesync\b/i, /\bg-sync\b/i, /\bvariable\s+refresh\b/i,
-                // オーディオ
-                /\bheadset\b/i, /\bheadphones\b/i, /\bearphones\b/i, /\bspeakers\b/i,
-                /\bmicrophone\b/i, /\bdac\b/i, /\bamp\b/i, /\baudio\s+interface\b/i,
-                // その他
-                /\bwebcam\b/i, /\bcamera\b/i, /\bprinter\b/i, /\bscanner\b/i,
-                /\bdock\b/i, /\bhub\b/i, /\badapter\b/i,
-                // 日本語（周辺機器）
-                /キーボード/i, /マウス/i, /ヘッドセット/i, /ヘッドホン/i,
-                /ゲーミングマウス/i, /テンキー/i
-            ];
-
-            // Smartphone関連のキーワード
-            const smartphonePatterns = [
-                // Apple
-                /\biphone\s+\d+\b/i, /\biphone\s+(pro|plus|mini|se)\b/i, /\bios\s+\d+\b/i,
-                // Samsung
-                /\bgalaxy\s+[szaf]\d+\b/i, /\bgalaxy\s+(ultra|plus|fold|flip)\b/i, /\bone\s+ui\b/i,
-                // Google
-                /\bpixel\s+\d+\b/i, /\bpixel\s+(pro|xl|fold)\b/i, /\btensor\s+g\d\b/i,
-                // 中華メーカー
-                /\bxiaomi\b/i, /\bredmi\b/i, /\bpoco\b/i, /\boppo\b/i, /\breno\b/i,
-                /\bvivo\b/i, /\boneplus\b/i, /\brealme\b/i, /\bhuawei\b/i, /\bhonor\b/i,
-                // その他
-                /\basus\s+rog\s+phone\b/i, /\bsony\s+xperia\b/i, /\bmotorola\b/i, /\bnothing\s+phone\b/i,
-                /\bredmagic\b/i, /\blenovo\b/i, /\bzte\b/i,
-                // 一般
-                /\bsmartphone\b/i, /\bandroid\s+\d+\b/i, /\bfoldable\b/i, /\bflip\s+phone\b/i,
-                /\b5g\s+phone\b/i, /\bmobile\s+phone\b/i, /\brefresh\s+rate\b/i
-            ];
-
-            // Gaming関連のキーワード
-            const gamingPatterns = [
-                // コンソール
-                /\bps[456]\b/i, /\bplaystation\s*[456]?\b/i, /\bxbox\s+(series\s+[xs]|one)?\b/i,
-                /\bnintendo\s+switch\b/i, /\bsteam\s+deck\b/i, /\bgaming\s+console\b/i,
-                // ゲームタイトル・ジャンル
-                /\bgta\s*\d*\b/i, /\bgrand\s+theft\s+auto\b/i, /\bcall\s+of\s+duty\b/i,
-                /\bfortnite\b/i, /\bminecraft\b/i, /\bvalorant\b/i, /\bleague\s+of\s+legends\b/i,
-                /\bapex\s+legends\b/i, /\bcounter[-\s]strike\b/i, /\boverwatch\b/i,
-                // ジャンル・用語
-                /\bvideo\s+game\b/i, /\bgameplay\b/i, /\besports\b/i, /\be-sports\b/i,
-                /\bfps\b/i, /\bmmorpg\b/i, /\bbattle\s+royale\b/i, /\brpg\s+game\b/i,
-                /\bgame\s+(trailer|release|launch)\b/i, /\bgaming\b/i,
-                // その他
-                /\brockstar\s+games\b/i, /\bactivision\b/i, /\bubisoft\b/i, /\bea\s+sports\b/i,
-                // 日本語（ゲーム）
-                /モンハン/i, /モンスターハンター/i, /ワイルズ/i, /ワイルド/i,
-                /ゲーム/i, /DLC/i, /パフォーマンス/i
-            ];
-
-            // AI関連のキーワード（正規表現で単語境界を使用）
-            const aiPatterns = [
-                // AIモデル・サービス
-                /\bchatgpt\b/i, /\bgpt-[34o]\b/i, /\bclaude\b/i, /\bgemini\b/i, /\bcopilot\b/i,
-                /\bllama\b/i, /\bmistral\b/i, /\balpaca\b/i, /\bvicuna\b/i,
-                // 画像生成
-                /\bstable\s+diffusion\b/i, /\bmidjourney\b/i, /\bdall[-\s]e\b/i, /\bimage\s+generation\b/i,
-                // 技術・用語
-                /\bartificial\s+intelligence\b/i, /\bmachine\s+learning\b/i, /\bdeep\s+learning\b/i,
-                /\bneural\s+network\b/i, /\bllm\b/i, /\blarge\s+language\s+model\b/i,
-                /\bgenerative\s+ai\b/i, /\btransformer\b/i, /\bnlp\b/i, /\bcomputer\s+vision\b/i,
-                // 企業・プラットフォーム
-                /\bopenai\b/i, /\banthropic\b/i, /\bhugging\s+face\b/i,
-                // 一般
-                /\b\sai\b/i, /\bai\s+(model|chip|processor)\b/i, /\bai-powered\b/i,
-                // 日本語（AI/創薬）
-                /人工知能/i, /生成ai/i, /ai創薬/i, /創薬/i, /医薬品/i, /製薬/i,
-                /ドラッグ/i, /医療/i
-            ];
-
-            // パターンマッチング（優先順位順）
-            if (matchesAny(aiPatterns)) return 'AI';
-            if (matchesAny(gamingPatterns)) return 'Gaming';
-            if (matchesAny(peripheralPatterns)) return 'Peripherals';
-            if (matchesAny(smartphonePatterns)) return 'Smartphone';
-            if (matchesAny(laptopPatterns)) return 'Laptop';
-            if (matchesAny(pcPartsPatterns)) return 'PC Parts';
-            if (matchesAny(cpuPatterns)) return 'CPU';
-            if (matchesAny(gpuPatterns)) return 'GPU';
-
-            return 'General';
-        }
-
-        async function loadNews() {
-            const loadingElement = document.getElementById('loading');
-            const newsContainer = document.getElementById('news-container');
-            const errorContainer = document.getElementById('error-container');
-            const noResultsElement = document.getElementById('no-results');
-
-            // リセット表示
-            loadingElement.style.display = 'flex';
-            newsContainer.style.display = 'none';
-            errorContainer.style.display = 'none';
-            noResultsElement.style.display = 'none';
-
-            // まずキャッシュをチェック
-            const cachedData = getCachedData();
-            if (cachedData) {
-                allNews = cachedData;
-                loadingElement.style.display = 'none';
-                displayNews();
-                return;
-            }
-
-            try {
-                // APIからデータ取得を試みる
-                debugLog('🔄 APIからデータ取得中...', API_URL);
-                
-                // ✅ リクエストタイムアウト設定（DoS対策）
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 10000); // 10秒タイムアウト
-                
-                const response = await fetch(API_URL, {
-                    method: 'GET',
-                    redirect: 'follow',
-                    headers: {
-                        'Accept': 'application/json'
-                    },
-                    signal: controller.signal
-                });
-                
-                clearTimeout(timeoutId);
-
-                debugLog('📡 レスポンス受信:', response.status, response.statusText);
-
-                if (response.ok) {
-                    const text = await response.text();
-                    debugLog('📄 取得データ（最初の100文字）:', text.substring(0, 100));
-                    
-                    const data = JSON.parse(text);
-                    debugLog('✅ JSONパース成功！データ件数:', data.length);
-                    
-                    if (Array.isArray(data) && data.length > 0) {
-                        // APIデータにcategoryとleakScoreを自動判定して追加
-                        allNews = data.map(item => {
-                            // ✅ XSS対策：必須フィールドのサニタイズ
-                            return {
-                                date: escapeHtml(item.date || ''),
-                                title: escapeHtml(item.title || ''),
-                                title_en: escapeHtml(item.title_en || item.title || ''),
-                                url: isValidUrl(item.url) ? item.url : '#',
-                                summary: escapeHtml(item.summary || ''),
-                                summary_en: escapeHtml(item.summary_en || item.summary || ''),
-                                content: sanitizeHTML(item.content || ''),
-                                content_en: sanitizeHTML(item.content_en || item.content || ''),
-                                category: item.category || detectCategory(item.title || '', item.summary || ''),
-                                leakScore: Math.min(100, Math.max(0, parseInt(item.score || item.leakScore || 75))),
-                                isMultiSource: Boolean(item.isMultiSource),
-                                review_en: escapeHtml(item.review_en || '')
-                            };
-                        });
-                        
-                        debugLog('🎉 データ処理完了！記事数:', allNews.length);
-                        
-                        // キャッシュに保存
-                        setCachedData(allNews);
-                        
-                        // 表示を更新
-                        loadingElement.style.display = 'none';
-                        displayNews();
-                    } else {
-                        console.error('⚠️ APIからデータが取得できませんでした（空配列）');
-                        // エラー表示
-                        loadingElement.style.display = 'none';
-                        errorContainer.style.display = 'flex';
-                    }
-                } else {
-                    console.error('❌ APIエラー:', response.status, response.statusText);
-                    // エラー表示
-                    loadingElement.style.display = 'none';
-                    errorContainer.style.display = 'flex';
-                }
-
-            } catch (error) {
-                console.error('❌ API取得失敗:', error);
-                console.error('エラー詳細:', error.message);
-                // エラー表示
-                loadingElement.style.display = 'none';
-                errorContainer.style.display = 'flex';
-            }
-        }
-
-        function displayNews() {
-            const newsContainer = document.getElementById('news-container');
-            const noResultsElement = document.getElementById('no-results');
-            newsContainer.innerHTML = '';
-
-            // フィルタリング
-            filteredNewsCache = allNews;
-
-            // カテゴリーフィルター
-            if (currentCategory !== 'all') {
-                filteredNewsCache = filteredNewsCache.filter(news => 
-                    news.category === currentCategory
-                );
-            }
-
-            // 検索フィルター（言語切り替え対応）
-            if (searchQuery) {
-                const query = searchQuery.toLowerCase();
-                filteredNewsCache = filteredNewsCache.filter(news => {
-                    const title = currentLang === 'en' ? (news.title_en || news.title) : news.title;
-                    const summary = currentLang === 'en' ? (news.summary_en || news.summary) : news.summary;
-                    return title.toLowerCase().includes(query) || summary.toLowerCase().includes(query);
-                });
-            }
-
-            // 結果表示
-            if (filteredNewsCache.length === 0) {
-                newsContainer.style.display = 'none';
-                noResultsElement.style.display = 'block';
-                return;
-            }
-
-            noResultsElement.style.display = 'none';
-            newsContainer.style.display = 'grid';
-
-            // 遅延読み込み：初期表示は20件のみ
-            displayedCount = 0;
-            loadMoreNews();
-        }
-
-        function loadMoreNews() {
-            if (isLoading || displayedCount >= filteredNewsCache.length) return;
-            
-            isLoading = true;
-            const newsContainer = document.getElementById('news-container');
-            const endIndex = Math.min(displayedCount + ITEMS_PER_LOAD, filteredNewsCache.length);
-            
-            for (let i = displayedCount; i < endIndex; i++) {
-                const card = createNewsCard(filteredNewsCache[i], i);
-                newsContainer.appendChild(card);
-            }
-            
-            displayedCount = endIndex;
-            isLoading = false;
-            
-            // すべて読み込み完了のログ
-            if (displayedCount >= filteredNewsCache.length) {
-                console.log('✅ すべての記事を読み込みました');
-            }
-        }
-
-        function createNewsCard(news, index) {
-            const card = document.createElement('div');
-            card.className = 'news-card';
-            card.style.animationDelay = `${index * 0.1}s`;
-            card.dataset.category = news.category || 'General';
-
-            // ヘッダー（日付とカテゴリー）
-            const header = document.createElement('div');
-            header.className = 'card-header';
-
-            const date = document.createElement('div');
-            date.className = 'news-date';
-            date.textContent = news.date || 'Unknown Date';
-
-            const category = document.createElement('div');
-            category.className = 'card-category';
-            category.textContent = news.category || 'General';
-
-            header.appendChild(date);
-            header.appendChild(category);
-
-            // タイトル（デスクトップではリンク無効、モバイルではアコーディオン）
-            const title = document.createElement('h2');
-            title.className = 'news-title';
-            
-            const titleText = document.createElement('span');
-            // ✅ XSS対策：既にエスケープ済みのデータを使用
-            const displayTitle = currentLang === 'en' ? (news.title_en || news.title) : news.title;
-            titleText.textContent = displayTitle || 'Untitled';
-            
-            title.appendChild(titleText);
-
-            // リーク信頼度メーター
-            const leakScore = news.leakScore || 75;
-            const scoreContainer = document.createElement('div');
-            scoreContainer.className = 'leak-score-container';
-
-            const scoreLabel = document.createElement('div');
-            scoreLabel.className = 'leak-score-label';
-            scoreLabel.innerHTML = `
-                <span>Leak Credibility</span>
-                <span class="leak-score-value">${leakScore}%</span>
-            `;
-
-            const scoreBar = document.createElement('div');
-            scoreBar.className = 'leak-score-bar';
-
-            const scoreFill = document.createElement('div');
-            scoreFill.className = 'leak-score-fill';
-            scoreFill.style.width = `${leakScore}%`;
-            
-            // スコアによって色を変更
-            if (leakScore >= 80) {
-                scoreFill.classList.add('score-high');
-            } else if (leakScore >= 60) {
-                scoreFill.classList.add('score-medium');
-            } else {
-                scoreFill.classList.add('score-low');
-            }
-
-            scoreBar.appendChild(scoreFill);
-            scoreContainer.appendChild(scoreLabel);
-            scoreContainer.appendChild(scoreBar);
-
-            // 複数ソース確認済みバッジ
-            if (news.isMultiSource) {
-                const multiSourceBadge = document.createElement('div');
-                multiSourceBadge.className = 'multi-source-badge';
-                multiSourceBadge.innerHTML = `
-                    <span class="badge-icon">✅</span>
-                    <span class="badge-text">Multiple Sources Confirmed</span>
-                `;
-                scoreContainer.appendChild(multiSourceBadge);
-            }
-
-            // アコーディオン展開部分（要約とボタン）
-            const expandable = document.createElement('div');
-            expandable.className = 'card-expandable';
-
-            // 要約（3行形式）
-            const summary = document.createElement('div');
-            summary.className = 'news-summary';
-            
-            // 言語切り替え対応
-            let summaryText = currentLang === 'en' ? (news.summary_en || news.summary) : news.summary;
-            summaryText = summaryText || '';
-            
-            // 配列やオブジェクトの場合は文字列に変換
-            if (typeof summaryText !== 'string') {
-                console.warn('Summary is not a string:', summaryText);
-                summaryText = String(summaryText);
-            }
-            
-            // ★ 要約が空の場合、フォールバック処理
-            if (!summaryText || summaryText.trim() === '') {
-                summaryText = currentLang === 'en' ? 'See article for details' : '※詳細情報は記事をご確認ください';
-            }
-            
-            // 箇条書き形式の場合
-            if (summaryText.includes('•') || summaryText.includes('\n')) {
-                const points = summaryText.split('\n').filter(line => line.trim());
-                const ul = document.createElement('ul');
-                ul.className = 'summary-points';
-                
-                points.forEach(point => {
-                    const li = document.createElement('li');
-                    li.textContent = point.replace('•', '').trim();
-                    ul.appendChild(li);
-                });
-                
-                summary.appendChild(ul);
-            } else {
-                summary.textContent = summaryText;
-            }
-
-            // Read Moreボタン（モーダルを開く）
-            const readMoreBtn = document.createElement('a');
-            readMoreBtn.href = '#';
-            readMoreBtn.className = 'read-more-btn';
-            readMoreBtn.textContent = 'Read Full Article ↗';
-            
-            // ボタンクリックでモーダルを開く
-            readMoreBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation(); // イベントバブリング防止（モバイルのアコーディオンと競合しないように）
-                openModal(news);
-            });
-
-            expandable.appendChild(summary);
-            expandable.appendChild(readMoreBtn);
-
-            // カードに要素を追加
-            card.appendChild(header);
-            card.appendChild(title);
-            card.appendChild(scoreContainer);
-            card.appendChild(expandable);
-
-            // モバイルでのアコーディオン動作
-            card.addEventListener('click', (e) => {
-                if (window.innerWidth <= 768) {
-                    // リンクやボタンのクリックは除外
-                    if (e.target.tagName !== 'A' && e.target.tagName !== 'BUTTON') {
-                        card.classList.toggle('expanded');
-                    }
-                }
-            });
-
-            return card;
-        }
-
-        // 検索機能
-        const searchInput = document.getElementById('search-input');
-        searchInput.addEventListener('input', (e) => {
-            searchQuery = e.target.value.trim();
-            displayNews();
-        });
-
-        // カテゴリーフィルター
-        const categoryTags = document.querySelectorAll('.category-tag');
-        categoryTags.forEach(tag => {
-            tag.addEventListener('click', () => {
-                // アクティブ状態を切り替え
-                categoryTags.forEach(t => t.classList.remove('active'));
-                tag.classList.add('active');
-
-                // カテゴリーを設定
-                currentCategory = tag.dataset.category;
-                displayNews();
-            });
-        });
-
-        // ページ読み込み時に実行（DOMContentLoadedを統合）
-        document.addEventListener('DOMContentLoaded', () => {
-            // ニュース読み込み
-            loadNews();
-            
-            // モーダル背景クリックで閉じる
-            const modal = document.getElementById('article-modal');
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    closeModal();
-                }
-            });
-        });
-
-        // ページを離れる前にスクロール位置を保存（UX向上）
-        window.addEventListener('beforeunload', () => {
-            sessionStorage.setItem('scrollPosition', window.scrollY);
-        });
-
-        // ページ読み込み後にスクロール位置を復元
-        window.addEventListener('load', () => {
-            const scrollPosition = sessionStorage.getItem('scrollPosition');
-            if (scrollPosition) {
-                window.scrollTo(0, parseInt(scrollPosition, 10));
-                sessionStorage.removeItem('scrollPosition');
-            }
-        });
-
-        // ===== 遅延読み込み：スクロールイベント =====
-        let scrollTimeout;
-        window.addEventListener('scroll', () => {
-            // スクロールのパフォーマンス最適化（デバウンス）
-            clearTimeout(scrollTimeout);
-            scrollTimeout = setTimeout(() => {
-                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-                const windowHeight = window.innerHeight;
-                const documentHeight = document.documentElement.scrollHeight;
-                
-                // 画面下部から200pxの位置で追加読み込み
-                if (scrollTop + windowHeight >= documentHeight - 200) {
-                    loadMoreNews();
-                }
-            }, 100);
-        });
-
-        // ===== モーダル機能 =====
-        function openModal(news) {
-            const modal = document.getElementById('article-modal');
-            
-            // 既に開いている場合はスキップ（多重表示防止）
-            if (modal.classList.contains('active')) {
-                return;
-            }
-            
-            const modalTitle = document.getElementById('modal-title');
-            const modalDate = document.getElementById('modal-date');
-            const modalScoreFill = document.getElementById('modal-score-fill');
-            const modalScoreValue = document.getElementById('modal-score-value');
-            const modalContent = document.getElementById('modal-content');
-            const modalSourceLink = document.getElementById('modal-source-link');
-
-            // タイトル設定（言語切り替え対応）
-            const displayTitle = currentLang === 'en' ? (news.title_en || news.title) : news.title;
-            modalTitle.textContent = displayTitle || 'Untitled';
-
-            // 日付設定
-            modalDate.textContent = news.date || 'Unknown Date';
-
-            // 信頼度スコア設定
-            const leakScore = news.leakScore || 75;
-            modalScoreValue.textContent = `${leakScore}%`;
-            modalScoreFill.style.width = `${leakScore}%`;
-            
-            // スコアの色設定
-            modalScoreFill.className = 'modal-score-fill';
-            if (leakScore >= 80) {
-                modalScoreFill.classList.add('score-high');
-            } else if (leakScore >= 60) {
-                modalScoreFill.classList.add('score-medium');
-            } else {
-                modalScoreFill.classList.add('score-low');
-            }
-
-            // ★ コンテンツ設定（言語切り替え対応）
-            let contentHTML = currentLang === 'en' ? (news.content_en || news.content) : news.content;
-            contentHTML = contentHTML || '';
-            
-            // 型チェック：文字列でない場合は変換
-            if (typeof contentHTML !== 'string') {
-                console.warn('Content is not a string:', contentHTML);
-                contentHTML = String(contentHTML);
-            }
-
-            if (contentHTML && contentHTML.trim() !== '') {
-                // ✅ XSS対策：既にサニタイズ済み（loadNews時に処理済み）
-                modalContent.innerHTML = contentHTML;
-            } else {
-                // contentがない場合はsummaryを表示
-                let summaryHTML = currentLang === 'en' ? (news.summary_en || news.summary) : news.summary;
-                summaryHTML = summaryHTML || '';
-                
-                if (typeof summaryHTML !== 'string') {
-                    summaryHTML = String(summaryHTML);
-                }
-                
-                if (summaryHTML && summaryHTML.trim() !== '') {
-                    modalContent.innerHTML = `<p>${summaryHTML.replace(/\n/g, '<br>')}</p>`;
-                } else {
-                    // どちらもない場合
-                    const fallbackText = currentLang === 'en' ? 'Please check the original article for details' : '※詳細情報は元記事をご確認ください';
-                    modalContent.innerHTML = `<p>${fallbackText}</p>`;
-                }
-            }
-
-            // ソースリンク設定
-            if (isValidUrl(news.url)) {
-                modalSourceLink.href = news.url;
-            } else {
-                modalSourceLink.href = '#';
-                modalSourceLink.style.pointerEvents = 'none';
-                modalSourceLink.style.opacity = '0.5';
-            }
-
-            // Utterances コメント欄を初期化（XSS対策：URL検証済み）
-            if (isValidUrl(news.url)) {
-                loadUtterances(news.url);
-            }
-
-            // モーダルを表示
-            modal.classList.add('active');
-            document.body.classList.add('modal-open');
-        }
-
-        // Utterances コメント欄を読み込む（XSS対策強化）
-        function loadUtterances(articleUrl) {
-            const container = document.getElementById('utterances-container');
-            
-            // ✅ URL検証（XSS対策）
-            if (!isValidUrl(articleUrl)) {
-                console.warn('⚠️ Invalid URL for Utterances:', articleUrl);
-                container.innerHTML = '<p style="color: var(--text-secondary);">コメント機能は利用できません</p>';
-                return;
-            }
-            
-            // 既存のUtterancesをクリア
-            container.innerHTML = '';
-            
-            // Utterancesスクリプトを生成
-            const script = document.createElement('script');
-            script.src = 'https://utteranc.es/client.js';
-            script.setAttribute('repo', 'chinodevcontact-ops/gadget-hunter');
-            script.setAttribute('issue-term', articleUrl); // 記事URLをIssue識別子に
-            script.setAttribute('theme', 'github-dark'); // ダークテーマ
-            script.setAttribute('crossorigin', 'anonymous');
-            script.async = true;
-            
-            container.appendChild(script);
-        }
-
-        function closeModal() {
-            const modal = document.getElementById('article-modal');
-            modal.classList.remove('active');
-            document.body.classList.remove('modal-open');
-        }
-
-        // ESCキーでモーダルを閉じる
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                closeModal();
-            }
-        });
-
-        // ==========================================
-        // 言語切り替え機能
-        // ==========================================
-        
-        // 多言語テキストマッピング
-        const i18n = {
-            ja: {
-                tagline: '[ Confidential Tech Leaks ]',
-                searchPlaceholder: 'キーワードで検索...',
-                categories: {
-                    all: 'すべて',
-                    GPU: 'GPU',
-                    CPU: 'CPU',
-                    'PC Parts': 'PCパーツ',
-                    Laptop: 'ノートPC',
-                    Peripherals: '周辺機器',
-                    Smartphone: 'スマホ',
-                    Gaming: 'ゲーミング',
-                    AI: 'AI'
-                },
-                loading: '復号化中...',
-                noResults: '条件に一致するリークが見つかりませんでした',
-                error: '機密情報の取得に失敗しました。接続が切断されています。',
-                retry: '再接続',
-                leakScore: '信頼度',
-                readMore: '全文を読む',
-                viewSource: '元記事を見る',
-                comments: 'コメント',
-                footer: 'Gadget Hunter - すべてのリークは公開情報に基づいています'
-            },
-            en: {
-                tagline: '[ Confidential Tech Leaks ]',
-                searchPlaceholder: 'Search leaks by keyword...',
-                categories: {
-                    all: 'All Leaks',
-                    GPU: 'GPU',
-                    CPU: 'CPU',
-                    'PC Parts': 'PC Parts',
-                    Laptop: 'Laptop',
-                    Peripherals: 'Peripherals',
-                    Smartphone: 'Smartphone',
-                    Gaming: 'Gaming',
-                    AI: 'AI'
-                },
-                loading: 'Decrypting intel...',
-                noResults: 'No leaks found matching your criteria',
-                error: 'Failed to retrieve classified information. Connection compromised.',
-                retry: 'Retry Connection',
-                leakScore: 'Confidence',
-                readMore: 'Read Full Article',
-                viewSource: 'View Source',
-                comments: 'Comments',
-                footer: 'Gadget Hunter - All leaks are based on publicly available information'
-            }
-        };
-
-        // 言語切り替え関数
         function switchLanguage(lang) {
             if (lang === currentLang) return;
-            
             currentLang = lang;
             localStorage.setItem('lang', lang);
             
+            if (lang === 'en') {
+                document.body.classList.add('lang-en');
+            } else {
+                document.body.classList.remove('lang-en');
+            }
+            
             // ボタンのアクティブ状態を更新
             document.querySelectorAll('.lang-btn').forEach(btn => {
-                if (btn.dataset.lang === lang) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
+                btn.classList.toggle('active', btn.dataset.lang === lang);
             });
-            
-            // UIテキストを更新
-            updateUILanguage();
-            
-            // 記事を再レンダリング
-            displayNews();
         }
-
-        // UIテキストを更新
-        function updateUILanguage() {
-            const t = i18n[currentLang];
-            
-            // タグライン
-            const tagline = document.querySelector('.tagline');
-            if (tagline) tagline.textContent = t.tagline;
-            
-            // 検索ボックス
-            const searchBox = document.getElementById('search-input');
-            if (searchBox) searchBox.placeholder = t.searchPlaceholder;
-            
-            // カテゴリータグ
-            document.querySelectorAll('.category-tag').forEach(tag => {
-                const category = tag.dataset.category;
-                if (t.categories[category]) {
-                    tag.textContent = t.categories[category];
-                }
-            });
-            
-            // ローディングテキスト
-            const loadingText = document.querySelector('.loading-text');
-            if (loadingText) loadingText.textContent = t.loading;
-            
-            // 検索結果なし
-            const noResultsText = document.querySelector('.no-results-text');
-            if (noResultsText) noResultsText.textContent = t.noResults;
-            
-            // エラーメッセージ
-            const errorText = document.querySelector('.error-text');
-            if (errorText) errorText.textContent = t.error;
-            
-            // リトライボタン
-            const retryBtn = document.querySelector('.retry-btn');
-            if (retryBtn) retryBtn.textContent = t.retry;
-        }
-
-        // 言語切り替えボタンのイベントリスナー
-        document.querySelectorAll('.lang-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                switchLanguage(btn.dataset.lang);
-            });
-        });
-
-        // 初期化：保存された言語設定を適用
+        
+        // 初期化
         document.addEventListener('DOMContentLoaded', () => {
-            // ボタンのアクティブ状態を初期化
+            // 保存された言語を適用
+            if (currentLang === 'en') {
+                document.body.classList.add('lang-en');
+            }
             document.querySelectorAll('.lang-btn').forEach(btn => {
-                if (btn.dataset.lang === currentLang) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
+                btn.classList.toggle('active', btn.dataset.lang === currentLang);
             });
             
-            // UIテキストを初期化
-            updateUILanguage();
+            // Utterances コメント欄を読み込む
+            const articleUrl = 'https://www.techpowerup.com/345267/techpowerup-readers-willing-to-move-away-from-windows-after-windows-10-eol-frontpage-poll';
+            if (articleUrl) {
+                const container = document.getElementById('utterances-container');
+                const script = document.createElement('script');
+                script.src = 'https://utteranc.es/client.js';
+                script.setAttribute('repo', 'chinodevcontact-ops/gadget-hunter');
+                script.setAttribute('issue-term', articleUrl);
+                script.setAttribute('theme', 'github-dark');
+                script.setAttribute('crossorigin', 'anonymous');
+                script.async = true;
+                container.appendChild(script);
+            }
         });
     </script>
 </body>

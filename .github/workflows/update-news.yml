@@ -41,17 +41,29 @@ jobs:
             exit 1
           fi
       
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      
+      - name: 📦 Install dependencies & build article pages
+        run: |
+          npm install
+          npm run build
+          echo "✅ Article pages generated successfully"
+          echo "📊 Article pages count: $(find frontend/articles -name 'index.html' | wc -l)"
+      
       - name: 🔍 Check for changes
         id: check_changes
         run: |
-          git diff --exit-code frontend/data/news.json || echo "changed=true" >> $GITHUB_OUTPUT
+          git diff --exit-code frontend/data/news.json frontend/articles/ || echo "changed=true" >> $GITHUB_OUTPUT
       
       - name: 💾 Commit and push if changed
         if: steps.check_changes.outputs.changed == 'true'
         run: |
           git config user.name "GADGET HUNTER Bot"
           git config user.email "actions@github.com"
-          git add frontend/data/news.json
+          git add frontend/data/news.json frontend/articles/
           
           ARTICLE_COUNT=$(grep -o '"title"' frontend/data/news.json | wc -l)
           CURRENT_DATE=$(date +'%Y-%m-%d %H:%M JST')

@@ -1,111 +1,751 @@
 const fs = require('fs-extra');
 const path = require('path');
 
-// 設定（GADGET HUNTERの構造に合わせて調整）
+// 設定
 const SOURCE_JSON = path.join(__dirname, '../frontend/data/news.json');
-const TEMPLATE_HTML = path.join(__dirname, '../frontend/index.html');
 const OUTPUT_DIR = path.join(__dirname, '../frontend/articles');
 const BASE_URL = 'https://gadget-hunter-xi.vercel.app';
 
 async function main() {
-  console.log('🚀 Starting Static Generation for OGP...');
+  console.log('🚀 Starting Article Page Generation...');
 
   // 1. データの読み込み
   if (!fs.existsSync(SOURCE_JSON)) {
     console.error(`❌ JSON file not found at: ${SOURCE_JSON}`);
     process.exit(1);
   }
-  
+
   const newsData = await fs.readJson(SOURCE_JSON);
   console.log(`📊 Found ${newsData.length} articles`);
-  
-  let template = await fs.readFile(TEMPLATE_HTML, 'utf-8');
 
   // 2. 出力ディレクトリの初期化
   await fs.ensureDir(OUTPUT_DIR);
   console.log(`📁 Output directory: ${OUTPUT_DIR}`);
 
-  // 3. テンプレートのパス修正（相対パス対策）
-  // 階層が一つ深くなるため、CSS/JSの読み込みパスをルート相対パスに修正
-  template = template.replace(/(href|src)="\.\//g, '$1="/'); // "./" → "/"
-  template = template.replace(/(href|src)="(?!\/|http)([^"]+)"/g, '$1="/$2'); // 相対パス → ルート相対
-
   let count = 0;
 
-  // 4. 各記事のHTML生成
+  // 3. 各記事のHTML生成
   for (const article of newsData) {
-    // URL用スラッグの生成（title_enまたはtitleから生成）
     const slug = generateSlug(article.title_en || article.title);
-    
+
     // メタデータの準備
     const title = escapeHtml(article.title || 'Untitled');
+    const titleEn = escapeHtml(article.title_en || article.title || 'Untitled');
     const description = escapeHtml(
       (article.summary || article.content || '')
         .replace(/\n/g, ' ')
-        .replace(/<[^>]+>/g, '') // HTMLタグ除去
+        .replace(/<[^>]+>/g, '')
         .substring(0, 150)
     ) + '...';
-    
-    // 画像URLの決定（将来的に記事ごとの画像を追加する場合に備えて）
     const image = article.imageUrl || `${BASE_URL}/ogp-default.svg`;
     const url = `${BASE_URL}/articles/${slug}`;
 
-    // HTMLの置換処理
-    let html = template;
+    // カテゴリ検出
+    const category = detectCategory(article.title || '', article.summary || '');
 
-    // <title>の置換
-    html = html.replace(
-      /<title>.*?<\/title>/,
-      `<title>${title} | GADGET HUNTER</title>`
-    );
+    // リークスコア
+    const leakScore = article.leakScore || 75;
 
-    // OGPタグの注入（</head>の直前に追加）
-    const ogpTags = `
-    <!-- Article-specific OGP tags (Generated at build time) -->
-    <meta property="og:type" content="article">
-    <meta property="og:title" content="${title}">
-    <meta property="og:description" content="${description}">
-    <meta property="og:url" content="${url}">
-    <meta property="og:image" content="${image}">
-    <meta property="og:site_name" content="GADGET HUNTER">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="${title}">
-    <meta name="twitter:description" content="${description}">
-    <meta name="twitter:image" content="${image}">
-    <link rel="canonical" href="${url}">
-    <meta name="description" content="${description}">
-    `;
+    // 要約の処理
+    const summaryJa = article.summary || '';
+    const summaryEn = article.summary_en || article.summary || '';
 
-    html = html.replace('</head>', `${ogpTags}\n</head>`);
+    // 本文の処理
+    const contentJa = article.content || '';
+    const contentEn = article.content_en || article.content || '';
 
-    // SEO用：ボディにもコンテンツを埋め込む（非表示だがクローラーには見える）
-    const seoContent = `
-    <div id="ssr-content" style="display:none;">
-      <h1>${title}</h1>
-      <article>
-        <p>${description}</p>
-        <time datetime="${article.date || ''}">${article.date || ''}</time>
-      </article>
-    </div>
-    `;
-    
-    html = html.replace(
-      '<div id="loading" class="loading-container">',
-      `${seoContent}<div id="loading" class="loading-container">`
-    );
+    // レビュー（英語）
+    const reviewEn = article.review_en || '';
+
+    // HTML生成
+    const html = generateArticleHTML({
+      title,
+      titleEn,
+      description,
+      image,
+      url,
+      slug,
+      date: article.date || '',
+      category,
+      leakScore,
+      summaryJa,
+      summaryEn,
+      contentJa,
+      contentEn,
+      reviewEn,
+      sourceUrl: article.url || '',
+      isMultiSource: article.isMultiSource || false,
+    });
 
     // ファイル書き出し
-    // public/articles/slug/index.html の構造で生成
     const articleDir = path.join(OUTPUT_DIR, slug);
     await fs.ensureDir(articleDir);
     await fs.writeFile(path.join(articleDir, 'index.html'), html);
 
-    console.log(`✅ Generated: articles/${slug}/index.html`);
     count++;
   }
 
-  console.log(`\n🎉 Complete! Generated ${count} article pages with OGP tags.`);
-  console.log(`📝 These pages will display rich cards on X (Twitter) and Facebook.`);
+  console.log(`\n🎉 Complete! Generated ${count} article pages.`);
+}
+
+/**
+ * カテゴリ検出（フロントエンドと同じロジック）
+ */
+function detectCategory(title, summary) {
+  const text = (title + ' ' + summary).toLowerCase();
+  if (/gpu|radeon|geforce|rtx|rx\s?\d|rdna|nvidia|グラボ|グラフィック/i.test(text)) return 'GPU';
+  if (/cpu|ryzen|core\s?i|threadripper|zen\s?\d|プロセッサ/i.test(text)) return 'CPU';
+  if (/laptop|ノート|macbook|thinkpad|surface|ラップトップ/i.test(text)) return 'Laptop';
+  if (/smartphone|スマホ|pixel|iphone|galaxy|xperia|snapdragon|dimensity/i.test(text)) return 'Smartphone';
+  if (/gaming|ゲーム|ps5|xbox|switch|steam\s?deck/i.test(text)) return 'Gaming';
+  if (/\bai\b|人工知能|machine learning|llm|chatgpt|gemini/i.test(text)) return 'AI';
+  if (/keyboard|mouse|monitor|キーボード|マウス|モニター|headset|ヘッドセット/i.test(text)) return 'Peripherals';
+  if (/ssd|ram|motherboard|マザーボード|メモリ|電源|psu|ケース|cooler/i.test(text)) return 'PC Parts';
+  return 'General';
+}
+
+/**
+ * 記事詳細ページのHTMLを生成
+ */
+function generateArticleHTML(data) {
+  const scoreClass = data.leakScore >= 80 ? 'score-high' : data.leakScore >= 60 ? 'score-medium' : 'score-low';
+
+  // 要約の処理（箇条書きor通常テキスト）
+  const formatSummary = (text) => {
+    if (!text) return '<p>※詳細情報は記事をご確認ください</p>';
+    if (text.includes('•') || text.includes('\n')) {
+      const points = text.split('\n').filter(line => line.trim());
+      return '<ul class="summary-points">' + points.map(p => `<li>${escapeHtml(p.replace('•', '').trim())}</li>`).join('') + '</ul>';
+    }
+    return `<p>${escapeHtml(text)}</p>`;
+  };
+
+  const summaryJaHTML = formatSummary(data.summaryJa);
+  const summaryEnHTML = formatSummary(data.summaryEn);
+
+  // 本文はすでにHTMLなのでそのまま使う（GASでサニタイズ済み）
+  const contentJaHTML = data.contentJa || summaryJaHTML;
+  const contentEnHTML = data.contentEn || summaryEnHTML;
+
+  return `<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    
+    <!-- CSP -->
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self';
+        script-src 'self' 'unsafe-inline' https://utteranc.es https://cdn.jsdelivr.net;
+        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+        font-src 'self' https://fonts.gstatic.com;
+        img-src 'self' data: https:;
+        connect-src 'self' https://api.exchangerate-api.com;
+        frame-src https://utteranc.es;
+        base-uri 'self';
+        form-action 'none';
+    ">
+    
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+    
+    <title>${data.title} | GADGET HUNTER</title>
+    
+    <!-- OGP -->
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="${data.title}">
+    <meta property="og:description" content="${data.description}">
+    <meta property="og:url" content="${data.url}">
+    <meta property="og:image" content="${data.image}">
+    <meta property="og:site_name" content="GADGET HUNTER">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="${data.title}">
+    <meta name="twitter:description" content="${data.description}">
+    <meta name="twitter:image" content="${data.image}">
+    <link rel="canonical" href="${data.url}">
+    <meta name="description" content="${data.description}">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --bg-primary: #000000;
+            --bg-secondary: #0a0a0a;
+            --bg-card: #111111;
+            --neon-green: #00ff41;
+            --cyber-green: #00ff41;
+            --dark-green: #00aa2b;
+            --text-primary: #e8e8f0;
+            --text-secondary: #a0a0b8;
+            --green-glow: rgba(0, 255, 65, 0.4);
+            --green-glow-strong: rgba(0, 255, 65, 0.6);
+        }
+
+        body {
+            font-family: 'Roboto Mono', monospace;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(circle at 20% 50%, rgba(0, 255, 65, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(0, 255, 65, 0.03) 0%, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        /* ===== ヘッダー ===== */
+        .header {
+            background: rgba(10, 10, 10, 0.95);
+            border-bottom: 2px solid var(--neon-green);
+            box-shadow: 0 0 20px var(--green-glow);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            backdrop-filter: blur(15px) saturate(180%);
+            -webkit-backdrop-filter: blur(15px) saturate(180%);
+        }
+
+        .header-content {
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 255, 65, 0.1);
+            border: 1px solid rgba(0, 255, 65, 0.3);
+            border-radius: 6px;
+            color: var(--neon-green);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            min-height: 40px;
+        }
+
+        .back-btn:hover {
+            background: var(--neon-green);
+            color: #000;
+            box-shadow: 0 0 15px var(--green-glow);
+        }
+
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: var(--neon-green);
+            text-shadow: 0 0 30px var(--green-glow);
+            letter-spacing: 2px;
+            text-decoration: none;
+        }
+
+        .lang-switcher {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: 2px solid rgba(0, 255, 65, 0.3);
+            color: var(--text-secondary);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            min-height: 36px;
+        }
+
+        .lang-btn:hover {
+            border-color: var(--neon-green);
+            color: var(--neon-green);
+        }
+
+        .lang-btn.active {
+            background: var(--neon-green);
+            color: #000;
+            border-color: var(--neon-green);
+            box-shadow: 0 0 15px var(--green-glow-strong);
+        }
+
+        .lang-divider {
+            color: rgba(0, 255, 65, 0.5);
+            font-size: 1rem;
+        }
+
+        /* ===== 記事コンテナ ===== */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+
+        /* ===== 記事メタ情報 ===== */
+        .article-meta {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .article-date {
+            color: var(--neon-green);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 0.3rem 0.8rem;
+            background: rgba(0, 255, 65, 0.1);
+            border-radius: 4px;
+            border: 1px solid rgba(0, 255, 65, 0.3);
+        }
+
+        .article-category {
+            padding: 0.3rem 0.8rem;
+            background: rgba(0, 255, 65, 0.15);
+            border: 1px solid rgba(0, 255, 65, 0.4);
+            border-radius: 4px;
+            color: var(--neon-green);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+
+        /* ===== タイトル ===== */
+        .article-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: var(--neon-green);
+            line-height: 1.3;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 0 20px var(--green-glow);
+        }
+
+        /* ===== リーク信頼度 ===== */
+        .leak-score-container {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: var(--bg-card);
+            border: 1px solid rgba(0, 255, 65, 0.2);
+            border-radius: 8px;
+        }
+
+        .leak-score-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .leak-score-value {
+            color: var(--neon-green);
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .leak-score-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(0, 255, 65, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .leak-score-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.8s ease;
+            box-shadow: 0 0 15px currentColor;
+        }
+
+        .score-low { background: #ff3333; color: #ff3333; }
+        .score-medium { background: #ffaa00; color: #ffaa00; }
+        .score-high { background: var(--neon-green); color: var(--neon-green); }
+
+        .multi-source-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            margin-top: 0.8rem;
+            padding: 0.4rem 0.8rem;
+            background: linear-gradient(135deg, rgba(0, 255, 65, 0.2), rgba(0, 200, 255, 0.2));
+            border: 1.5px solid var(--neon-green);
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--neon-green);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 0 15px rgba(0, 255, 65, 0.3);
+            animation: pulse-badge 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-badge {
+            0%, 100% { box-shadow: 0 0 15px rgba(0, 255, 65, 0.3); }
+            50% { box-shadow: 0 0 25px rgba(0, 255, 65, 0.6); }
+        }
+
+        /* ===== 要約セクション ===== */
+        .summary-section {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid rgba(0, 255, 65, 0.2);
+            border-radius: 8px;
+            border-left: 4px solid var(--neon-green);
+        }
+
+        .summary-section h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--neon-green);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .summary-points {
+            list-style: none;
+            padding: 0;
+        }
+
+        .summary-points li {
+            position: relative;
+            padding-left: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .summary-points li::before {
+            content: '▸';
+            position: absolute;
+            left: 0;
+            color: var(--neon-green);
+            font-weight: 700;
+        }
+
+        .summary-section p {
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* ===== 本文 ===== */
+        .article-content {
+            margin-bottom: 2rem;
+        }
+
+        .article-content p {
+            margin-bottom: 1.5rem;
+            line-height: 1.8;
+            font-size: 1.05rem;
+        }
+
+        .article-content h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--neon-green);
+            margin: 2rem 0 1rem;
+            padding-left: 1rem;
+            border-left: 4px solid var(--neon-green);
+            box-shadow: -5px 0 15px var(--green-glow);
+        }
+
+        .article-content strong {
+            color: var(--neon-green);
+            font-weight: 700;
+        }
+
+        .article-content ul {
+            margin-left: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .article-content li {
+            margin-bottom: 0.5rem;
+            line-height: 1.7;
+        }
+
+        /* ===== ソースリンク ===== */
+        .source-section {
+            margin-bottom: 2rem;
+            padding: 1rem 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid rgba(0, 255, 65, 0.2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .source-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .source-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            background: var(--neon-green);
+            color: #000;
+            border-radius: 6px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px var(--green-glow);
+        }
+
+        .source-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px var(--green-glow-strong);
+        }
+
+        /* ===== コメント ===== */
+        .comments-section {
+            margin-bottom: 2rem;
+        }
+
+        .comments-section h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--neon-green);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* ===== フッター ===== */
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            border-top: 1px solid rgba(0, 255, 65, 0.2);
+            margin-top: 2rem;
+        }
+
+        /* ===== 言語切替用の非表示 ===== */
+        [data-lang="en"] { display: none; }
+        body.lang-en [data-lang="ja"] { display: none; }
+        body.lang-en [data-lang="en"] { display: block; }
+
+        /* 一部inline要素の場合 */
+        span[data-lang="en"] { display: none; }
+        body.lang-en span[data-lang="ja"] { display: none; }
+        body.lang-en span[data-lang="en"] { display: inline; }
+
+        /* ===== レスポンシブ ===== */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 0.8rem;
+                align-items: flex-start;
+            }
+
+            .article-title {
+                font-size: 1.3rem;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+
+            .source-section {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .container {
+            animation: fadeIn 0.6s ease-in;
+        }
+    </style>
+</head>
+<body>
+    <!-- ヘッダー -->
+    <header class="header">
+        <div class="header-content">
+            <div class="header-left">
+                <a href="/" class="back-btn">← <span data-lang="ja">ホームに戻る</span><span data-lang="en">Back to Home</span></a>
+                <a href="/" class="logo">GADGET HUNTER</a>
+            </div>
+            <div class="lang-switcher">
+                <button class="lang-btn active" data-lang="ja" onclick="switchLanguage('ja')">JA</button>
+                <span class="lang-divider">|</span>
+                <button class="lang-btn" data-lang="en" onclick="switchLanguage('en')">EN</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 記事本体 -->
+    <main class="container">
+        <!-- メタ情報 -->
+        <div class="article-meta">
+            <span class="article-date">${escapeHtml(data.date)}</span>
+            <span class="article-category">${escapeHtml(data.category)}</span>
+        </div>
+
+        <!-- タイトル -->
+        <h1 class="article-title" data-lang="ja">${data.title}</h1>
+        <h1 class="article-title" data-lang="en">${data.titleEn}</h1>
+
+        <!-- リーク信頼度 -->
+        <div class="leak-score-container">
+            <div class="leak-score-label">
+                <span data-lang="ja">リーク信頼度</span>
+                <span data-lang="en">Leak Credibility</span>
+                <span class="leak-score-value">${data.leakScore}%</span>
+            </div>
+            <div class="leak-score-bar">
+                <div class="leak-score-fill ${scoreClass}" style="width: ${data.leakScore}%"></div>
+            </div>
+            ${data.isMultiSource ? `
+            <div class="multi-source-badge">
+                <span>✅</span>
+                <span data-lang="ja">複数ソース確認済み</span>
+                <span data-lang="en">Multiple Sources Confirmed</span>
+            </div>` : ''}
+        </div>
+
+        <!-- 要約 -->
+        <div class="summary-section">
+            <h2 data-lang="ja">📋 要約</h2>
+            <h2 data-lang="en">📋 Summary</h2>
+            <div data-lang="ja">${summaryJaHTML}</div>
+            <div data-lang="en">${summaryEnHTML}</div>
+        </div>
+
+        <!-- 本文 -->
+        <div class="article-content" data-lang="ja">
+            ${contentJaHTML}
+        </div>
+        <div class="article-content" data-lang="en">
+            ${contentEnHTML}
+        </div>
+
+        <!-- ソースリンク -->
+        ${data.sourceUrl ? `
+        <div class="source-section">
+            <span class="source-label" data-lang="ja">📎 元記事を確認する</span>
+            <span class="source-label" data-lang="en">📎 View original source</span>
+            <a href="${escapeHtml(data.sourceUrl)}" target="_blank" rel="noopener noreferrer" class="source-link">
+                <span data-lang="ja">元記事を見る ↗</span>
+                <span data-lang="en">View Source ↗</span>
+            </a>
+        </div>` : ''}
+
+        <!-- コメント（Utterances） -->
+        <div class="comments-section">
+            <h2 data-lang="ja">💬 コメント</h2>
+            <h2 data-lang="en">💬 Comments</h2>
+            <div id="utterances-container"></div>
+        </div>
+    </main>
+
+    <!-- フッター -->
+    <footer class="footer">
+        <span data-lang="ja">Gadget Hunter - すべてのリークは公開情報に基づいています</span>
+        <span data-lang="en">Gadget Hunter - All leaks are based on publicly available information</span>
+    </footer>
+
+    <script>
+        // 言語設定
+        let currentLang = localStorage.getItem('lang') || 'ja';
+        
+        function switchLanguage(lang) {
+            if (lang === currentLang) return;
+            currentLang = lang;
+            localStorage.setItem('lang', lang);
+            
+            if (lang === 'en') {
+                document.body.classList.add('lang-en');
+            } else {
+                document.body.classList.remove('lang-en');
+            }
+            
+            // ボタンのアクティブ状態を更新
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.lang === lang);
+            });
+        }
+        
+        // 初期化
+        document.addEventListener('DOMContentLoaded', () => {
+            // 保存された言語を適用
+            if (currentLang === 'en') {
+                document.body.classList.add('lang-en');
+            }
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.lang === currentLang);
+            });
+            
+            // Utterances コメント欄を読み込む
+            const articleUrl = '${escapeHtml(data.sourceUrl || data.url)}';
+            if (articleUrl) {
+                const container = document.getElementById('utterances-container');
+                const script = document.createElement('script');
+                script.src = 'https://utteranc.es/client.js';
+                script.setAttribute('repo', 'chinodevcontact-ops/gadget-hunter');
+                script.setAttribute('issue-term', articleUrl);
+                script.setAttribute('theme', 'github-dark');
+                script.setAttribute('crossorigin', 'anonymous');
+                script.async = true;
+                container.appendChild(script);
+            }
+        });
+    </script>
+</body>
+</html>`;
 }
 
 /**
@@ -117,14 +757,15 @@ function generateSlug(text) {
     .toString()
     .toLowerCase()
     .trim()
-    .replace(/[\s\W-]+/g, '-') // 英数字以外をハイフンに
-    .replace(/^-+|-+$/g, ''); // 前後のハイフン削除
+    .replace(/[\s\W-]+/g, '-')
+    .replace(/^-+|-+$/g, '');
 }
 
 /**
  * HTMLエスケープ（XSS対策）
  */
 function escapeHtml(text) {
+  if (!text) return '';
   const map = {
     '&': '&amp;',
     '<': '&lt;',
@@ -132,10 +773,10 @@ function escapeHtml(text) {
     '"': '&quot;',
     "'": '&#039;'
   };
-  return text.replace(/[&<>"']/g, m => map[m]);
+  return String(text).replace(/[&<>"']/g, m => map[m]);
 }
 
-// エラーハンドリング付きで実行
+// 実行
 main().catch(err => {
   console.error('❌ Build failed:', err);
   process.exit(1);

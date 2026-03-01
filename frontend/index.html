@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    
+
     <!-- ✅ CSP (Content Security Policy) - XSS対策 -->
     <meta http-equiv="Content-Security-Policy" content="
         default-src 'self';
@@ -16,16 +17,18 @@
         base-uri 'self';
         form-action 'none';
     ">
-    
+
     <!-- ✅ セキュリティヘッダー追加 -->
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
     <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
-    
+
     <title>GADGET HUNTER - Tech Leak Intelligence</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto+Mono:wght@300;400;500;700&display=swap"
+        rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -53,7 +56,7 @@
             color: var(--text-primary);
             line-height: 1.6;
             min-height: 100vh;
-            background-image: 
+            background-image:
                 radial-gradient(circle at 20% 50%, rgba(0, 255, 65, 0.03) 0%, transparent 50%),
                 radial-gradient(circle at 80% 80%, rgba(0, 255, 65, 0.03) 0%, transparent 50%);
             background-attachment: fixed;
@@ -250,8 +253,13 @@
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         .loading-text {
@@ -263,8 +271,15 @@
         }
 
         @keyframes pulse {
-            0%, 100% { opacity: 0.5; }
-            50% { opacity: 1; }
+
+            0%,
+            100% {
+                opacity: 0.5;
+            }
+
+            50% {
+                opacity: 1;
+            }
         }
 
         /* デスクトップ：1列リスト（スマホ風） */
@@ -278,8 +293,15 @@
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         /* カード共通スタイル（コンパクト版） */
@@ -359,8 +381,10 @@
             text-decoration: none;
             transition: all 0.3s ease;
             position: relative;
-            cursor: default; /* デスクトップではクリック不可 */
-            pointer-events: none; /* デスクトップではクリック無効 */
+            cursor: default;
+            /* デスクトップではクリック不可 */
+            pointer-events: none;
+            /* デスクトップではクリック無効 */
         }
 
         .news-title a:hover {
@@ -417,13 +441,29 @@
         }
 
         @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
+            0% {
+                transform: translateX(-100%);
+            }
+
+            100% {
+                transform: translateX(100%);
+            }
         }
 
-        .score-low { background: #ff3333; color: #ff3333; }
-        .score-medium { background: #ffaa00; color: #ffaa00; }
-        .score-high { background: var(--neon-green); color: var(--neon-green); }
+        .score-low {
+            background: #ff3333;
+            color: #ff3333;
+        }
+
+        .score-medium {
+            background: #ffaa00;
+            color: #ffaa00;
+        }
+
+        .score-high {
+            background: var(--neon-green);
+            color: var(--neon-green);
+        }
 
         /* 複数ソース確認済みバッジ */
         .multi-source-badge {
@@ -454,11 +494,14 @@
         }
 
         @keyframes pulse-badge {
-            0%, 100% { 
+
+            0%,
+            100% {
                 box-shadow: 0 0 15px rgba(0, 255, 65, 0.3), inset 0 0 10px rgba(0, 255, 65, 0.1);
                 border-color: var(--neon-green);
             }
-            50% { 
+
+            50% {
                 box-shadow: 0 0 25px rgba(0, 255, 65, 0.6), inset 0 0 15px rgba(0, 255, 65, 0.2);
                 border-color: rgba(0, 255, 65, 0.8);
             }
@@ -843,6 +886,7 @@
 
         /* ===== モバイル専用スタイル (768px以下) ===== */
         @media (max-width: 768px) {
+
             /* モバイルではアコーディオン動作（超軽量版） */
             .card-expandable {
                 display: none;
@@ -862,6 +906,7 @@
                     opacity: 0;
                     transform: translateY(-5px);
                 }
+
                 100% {
                     opacity: 1;
                     transform: translateY(0);
@@ -890,7 +935,8 @@
             }
 
             .search-box {
-                font-size: 16px; /* iOS zoom 防止 */
+                font-size: 16px;
+                /* iOS zoom 防止 */
                 padding: 0.7rem 0.9rem;
             }
 
@@ -923,7 +969,8 @@
             }
 
             .news-card:hover {
-                transform: none; /* モバイルではホバーなし */
+                transform: none;
+                /* モバイルではホバーなし */
             }
 
             /* アコーディオンスタイル */
@@ -1057,6 +1104,7 @@
         }
     </style>
 </head>
+
 <body>
     <header class="header">
         <div class="header-content">
@@ -1065,7 +1113,7 @@
                     <h1 class="logo">GADGET HUNTER</h1>
                     <div class="tagline">[ Confidential Tech Leaks ]</div>
                 </div>
-                
+
                 <!-- 言語切り替え -->
                 <div class="lang-switcher">
                     <button class="lang-btn" data-lang="en">EN</button>
@@ -1073,16 +1121,11 @@
                     <button class="lang-btn active" data-lang="ja">JP</button>
                 </div>
             </div>
-            
+
             <!-- 検索バー -->
             <div class="search-container">
-                <input 
-                    type="text" 
-                    id="search-input" 
-                    class="search-box" 
-                    placeholder="Search leaks by keyword..."
-                    autocomplete="off"
-                >
+                <input type="text" id="search-input" class="search-box" placeholder="Search leaks by keyword..."
+                    autocomplete="off">
                 <span class="search-icon">🔍</span>
             </div>
 
@@ -1146,24 +1189,35 @@
             </div>
             <div class="modal-body">
                 <div id="modal-content" class="modal-content"></div>
-                
+
                 <!-- Utterances コメント欄 -->
-                <div id="comments-section" style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid rgba(0, 255, 65, 0.2);">
-                    <h3 style="font-family: 'Orbitron', sans-serif; color: var(--neon-green); margin-bottom: 1rem;">💬 COMMENTS</h3>
+                <div id="comments-section"
+                    style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid rgba(0, 255, 65, 0.2);">
+                    <h3 style="font-family: 'Orbitron', sans-serif; color: var(--neon-green); margin-bottom: 1rem;">💬
+                        COMMENTS</h3>
                     <div id="utterances-container"></div>
                 </div>
             </div>
             <div class="modal-footer">
                 <div class="modal-source">
-                    Source: <a id="modal-source-link" href="#" target="_blank" rel="noopener noreferrer">View Original Article ↗</a>
+                    Source: <a id="modal-source-link" href="#" target="_blank" rel="noopener noreferrer">View Original
+                        Article ↗</a>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // ローカルJSONファイルを直接読み込み（403エラー対策）
+        // API URL
         const API_URL = '/data/news.json';
+
+        // スラッグ生成（generate-articles.jsと同じロジック）
+        function generateSlug(text) {
+            if (!text) return 'unknown';
+            return text.toString().toLowerCase().trim()
+                .replace(/[\s\W-]+/g, '-')
+                .replace(/^-+|-+$/g, '');
+        }
         const CACHE_KEY = 'gadget_hunter_cache';
         const CACHE_TIMESTAMP_KEY = 'gadget_hunter_cache_timestamp';
         const CACHE_DURATION = 5 * 60 * 1000; // 5分間キャッシュ（API制限対策）
@@ -1185,7 +1239,7 @@
             const allowedTags = ['p', 'br', 'strong', 'em', 'h1', 'h2', 'h3', 'ul', 'ol', 'li', 'a', 'span'];
             const div = document.createElement('div');
             div.innerHTML = html;
-            
+
             // 許可されていないタグを削除
             const allElements = div.querySelectorAll('*');
             allElements.forEach(el => {
@@ -1206,7 +1260,7 @@
                     }
                 }
             });
-            
+
             return div.innerHTML;
         }
 
@@ -1242,7 +1296,7 @@
         let currentCategory = 'all';
         let searchQuery = '';
         let currentLang = localStorage.getItem('lang') || 'ja';
-        
+
         // 遅延読み込み用変数
         let displayedCount = 0;
         const ITEMS_PER_LOAD = 20;
@@ -1255,15 +1309,15 @@
                 const cachedData = localStorage.getItem(CACHE_KEY);
                 const cachedTimestamp = localStorage.getItem(CACHE_TIMESTAMP_KEY);
                 const cachedChecksum = localStorage.getItem(CACHE_KEY + '_checksum');
-                
+
                 if (cachedData && cachedTimestamp && cachedChecksum) {
                     const now = Date.now();
                     const timestamp = parseInt(cachedTimestamp, 10);
-                    
+
                     // キャッシュが有効期限内か確認
                     if (now - timestamp < CACHE_DURATION) {
                         const data = JSON.parse(cachedData);
-                        
+
                         // ✅ 整合性検証（改ざん検出）
                         const checksum = getCacheChecksum(data);
                         if (checksum !== cachedChecksum) {
@@ -1273,7 +1327,7 @@
                             localStorage.removeItem(CACHE_KEY + '_checksum');
                             return null;
                         }
-                        
+
                         debugLog('📦 Using cached data (valid for', Math.round((CACHE_DURATION - (now - timestamp)) / 1000), 'more seconds)');
                         return data;
                     } else {
@@ -1307,7 +1361,7 @@
             // GPU関連のキーワード（正規表現で単語境界を使用）
             const gpuPatterns = [
                 // NVIDIA
-                /\brtx\s*\d{4}\b/i, /\bgtx\s*\d{4}\b/i, /\bgeforce\b/i, /\bnvidia\b/i, 
+                /\brtx\s*\d{4}\b/i, /\bgtx\s*\d{4}\b/i, /\bgeforce\b/i, /\bnvidia\b/i,
                 /\btitan\b/i, /\bquadro\b/i, /\bcuda\b/i, /\bdlss\b/i, /\btensor\s+core\b/i,
                 // AMD
                 /\bradeon\b/i, /\brx\s+\d{4}\b/i, /\brdna\b/i, /\bfsr\b/i, /\binfinity\s+cache\b/i,
@@ -1496,11 +1550,11 @@
             try {
                 // APIからデータ取得を試みる
                 debugLog('🔄 APIからデータ取得中...', API_URL);
-                
+
                 // ✅ リクエストタイムアウト設定（DoS対策）
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 10000); // 10秒タイムアウト
-                
+
                 const response = await fetch(API_URL, {
                     method: 'GET',
                     redirect: 'follow',
@@ -1509,7 +1563,7 @@
                     },
                     signal: controller.signal
                 });
-                
+
                 clearTimeout(timeoutId);
 
                 debugLog('📡 レスポンス受信:', response.status, response.statusText);
@@ -1517,10 +1571,10 @@
                 if (response.ok) {
                     const text = await response.text();
                     debugLog('📄 取得データ（最初の100文字）:', text.substring(0, 100));
-                    
+
                     const data = JSON.parse(text);
                     debugLog('✅ JSONパース成功！データ件数:', data.length);
-                    
+
                     if (Array.isArray(data) && data.length > 0) {
                         // APIデータにcategoryとleakScoreを自動判定して追加
                         allNews = data.map(item => {
@@ -1540,12 +1594,12 @@
                                 review_en: escapeHtml(item.review_en || '')
                             };
                         });
-                        
+
                         debugLog('🎉 データ処理完了！記事数:', allNews.length);
-                        
+
                         // キャッシュに保存
                         setCachedData(allNews);
-                        
+
                         // 表示を更新
                         loadingElement.style.display = 'none';
                         displayNews();
@@ -1581,7 +1635,7 @@
 
             // カテゴリーフィルター
             if (currentCategory !== 'all') {
-                filteredNewsCache = filteredNewsCache.filter(news => 
+                filteredNewsCache = filteredNewsCache.filter(news =>
                     news.category === currentCategory
                 );
             }
@@ -1613,19 +1667,19 @@
 
         function loadMoreNews() {
             if (isLoading || displayedCount >= filteredNewsCache.length) return;
-            
+
             isLoading = true;
             const newsContainer = document.getElementById('news-container');
             const endIndex = Math.min(displayedCount + ITEMS_PER_LOAD, filteredNewsCache.length);
-            
+
             for (let i = displayedCount; i < endIndex; i++) {
                 const card = createNewsCard(filteredNewsCache[i], i);
                 newsContainer.appendChild(card);
             }
-            
+
             displayedCount = endIndex;
             isLoading = false;
-            
+
             // すべて読み込み完了のログ
             if (displayedCount >= filteredNewsCache.length) {
                 console.log('✅ すべての記事を読み込みました');
@@ -1656,12 +1710,12 @@
             // タイトル（デスクトップではリンク無効、モバイルではアコーディオン）
             const title = document.createElement('h2');
             title.className = 'news-title';
-            
+
             const titleText = document.createElement('span');
             // ✅ XSS対策：既にエスケープ済みのデータを使用
             const displayTitle = currentLang === 'en' ? (news.title_en || news.title) : news.title;
             titleText.textContent = displayTitle || 'Untitled';
-            
+
             title.appendChild(titleText);
 
             // リーク信頼度メーター
@@ -1682,7 +1736,7 @@
             const scoreFill = document.createElement('div');
             scoreFill.className = 'leak-score-fill';
             scoreFill.style.width = `${leakScore}%`;
-            
+
             // スコアによって色を変更
             if (leakScore >= 80) {
                 scoreFill.classList.add('score-high');
@@ -1714,50 +1768,49 @@
             // 要約（3行形式）
             const summary = document.createElement('div');
             summary.className = 'news-summary';
-            
+
             // 言語切り替え対応
             let summaryText = currentLang === 'en' ? (news.summary_en || news.summary) : news.summary;
             summaryText = summaryText || '';
-            
+
             // 配列やオブジェクトの場合は文字列に変換
             if (typeof summaryText !== 'string') {
                 console.warn('Summary is not a string:', summaryText);
                 summaryText = String(summaryText);
             }
-            
+
             // ★ 要約が空の場合、フォールバック処理
             if (!summaryText || summaryText.trim() === '') {
                 summaryText = currentLang === 'en' ? 'See article for details' : '※詳細情報は記事をご確認ください';
             }
-            
+
             // 箇条書き形式の場合
             if (summaryText.includes('•') || summaryText.includes('\n')) {
                 const points = summaryText.split('\n').filter(line => line.trim());
                 const ul = document.createElement('ul');
                 ul.className = 'summary-points';
-                
+
                 points.forEach(point => {
                     const li = document.createElement('li');
                     li.textContent = point.replace('•', '').trim();
                     ul.appendChild(li);
                 });
-                
+
                 summary.appendChild(ul);
             } else {
                 summary.textContent = summaryText;
             }
 
-            // Read Moreボタン（モーダルを開く）
+            // Read Moreボタン（個別記事ページへ遷移）
+            const slug = generateSlug(news.title_en || news.title);
             const readMoreBtn = document.createElement('a');
-            readMoreBtn.href = '#';
+            readMoreBtn.href = `/articles/${slug}`;
             readMoreBtn.className = 'read-more-btn';
             readMoreBtn.textContent = 'Read Full Article ↗';
-            
-            // ボタンクリックでモーダルを開く
+
+            // モバイルではバブリング防止
             readMoreBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation(); // イベントバブリング防止（モバイルのアコーディオンと競合しないように）
-                openModal(news);
+                e.stopPropagation();
             });
 
             expandable.appendChild(summary);
@@ -1769,13 +1822,13 @@
             card.appendChild(scoreContainer);
             card.appendChild(expandable);
 
-            // モバイルでのアコーディオン動作
+            // クリックで記事ページへ遷移（モバイルはアコーディオン）
             card.addEventListener('click', (e) => {
+                if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON') return;
                 if (window.innerWidth <= 768) {
-                    // リンクやボタンのクリックは除外
-                    if (e.target.tagName !== 'A' && e.target.tagName !== 'BUTTON') {
-                        card.classList.toggle('expanded');
-                    }
+                    card.classList.toggle('expanded');
+                } else {
+                    window.location.href = `/articles/${slug}`;
                 }
             });
 
@@ -1807,7 +1860,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             // ニュース読み込み
             loadNews();
-            
+
             // モーダル背景クリックで閉じる
             const modal = document.getElementById('article-modal');
             modal.addEventListener('click', (e) => {
@@ -1840,7 +1893,7 @@
                 const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
                 const windowHeight = window.innerHeight;
                 const documentHeight = document.documentElement.scrollHeight;
-                
+
                 // 画面下部から200pxの位置で追加読み込み
                 if (scrollTop + windowHeight >= documentHeight - 200) {
                     loadMoreNews();
@@ -1851,12 +1904,12 @@
         // ===== モーダル機能 =====
         function openModal(news) {
             const modal = document.getElementById('article-modal');
-            
+
             // 既に開いている場合はスキップ（多重表示防止）
             if (modal.classList.contains('active')) {
                 return;
             }
-            
+
             const modalTitle = document.getElementById('modal-title');
             const modalDate = document.getElementById('modal-date');
             const modalScoreFill = document.getElementById('modal-score-fill');
@@ -1875,7 +1928,7 @@
             const leakScore = news.leakScore || 75;
             modalScoreValue.textContent = `${leakScore}%`;
             modalScoreFill.style.width = `${leakScore}%`;
-            
+
             // スコアの色設定
             modalScoreFill.className = 'modal-score-fill';
             if (leakScore >= 80) {
@@ -1889,7 +1942,7 @@
             // ★ コンテンツ設定（言語切り替え対応）
             let contentHTML = currentLang === 'en' ? (news.content_en || news.content) : news.content;
             contentHTML = contentHTML || '';
-            
+
             // 型チェック：文字列でない場合は変換
             if (typeof contentHTML !== 'string') {
                 console.warn('Content is not a string:', contentHTML);
@@ -1903,11 +1956,11 @@
                 // contentがない場合はsummaryを表示
                 let summaryHTML = currentLang === 'en' ? (news.summary_en || news.summary) : news.summary;
                 summaryHTML = summaryHTML || '';
-                
+
                 if (typeof summaryHTML !== 'string') {
                     summaryHTML = String(summaryHTML);
                 }
-                
+
                 if (summaryHTML && summaryHTML.trim() !== '') {
                     modalContent.innerHTML = `<p>${summaryHTML.replace(/\n/g, '<br>')}</p>`;
                 } else {
@@ -1939,17 +1992,17 @@
         // Utterances コメント欄を読み込む（XSS対策強化）
         function loadUtterances(articleUrl) {
             const container = document.getElementById('utterances-container');
-            
+
             // ✅ URL検証（XSS対策）
             if (!isValidUrl(articleUrl)) {
                 console.warn('⚠️ Invalid URL for Utterances:', articleUrl);
                 container.innerHTML = '<p style="color: var(--text-secondary);">コメント機能は利用できません</p>';
                 return;
             }
-            
+
             // 既存のUtterancesをクリア
             container.innerHTML = '';
-            
+
             // Utterancesスクリプトを生成
             const script = document.createElement('script');
             script.src = 'https://utteranc.es/client.js';
@@ -1958,7 +2011,7 @@
             script.setAttribute('theme', 'github-dark'); // ダークテーマ
             script.setAttribute('crossorigin', 'anonymous');
             script.async = true;
-            
+
             container.appendChild(script);
         }
 
@@ -1978,7 +2031,7 @@
         // ==========================================
         // 言語切り替え機能
         // ==========================================
-        
+
         // 多言語テキストマッピング
         const i18n = {
             ja: {
@@ -2034,10 +2087,10 @@
         // 言語切り替え関数
         function switchLanguage(lang) {
             if (lang === currentLang) return;
-            
+
             currentLang = lang;
             localStorage.setItem('lang', lang);
-            
+
             // ボタンのアクティブ状態を更新
             document.querySelectorAll('.lang-btn').forEach(btn => {
                 if (btn.dataset.lang === lang) {
@@ -2046,10 +2099,10 @@
                     btn.classList.remove('active');
                 }
             });
-            
+
             // UIテキストを更新
             updateUILanguage();
-            
+
             // 記事を再レンダリング
             displayNews();
         }
@@ -2057,15 +2110,15 @@
         // UIテキストを更新
         function updateUILanguage() {
             const t = i18n[currentLang];
-            
+
             // タグライン
             const tagline = document.querySelector('.tagline');
             if (tagline) tagline.textContent = t.tagline;
-            
+
             // 検索ボックス
             const searchBox = document.getElementById('search-input');
             if (searchBox) searchBox.placeholder = t.searchPlaceholder;
-            
+
             // カテゴリータグ
             document.querySelectorAll('.category-tag').forEach(tag => {
                 const category = tag.dataset.category;
@@ -2073,19 +2126,19 @@
                     tag.textContent = t.categories[category];
                 }
             });
-            
+
             // ローディングテキスト
             const loadingText = document.querySelector('.loading-text');
             if (loadingText) loadingText.textContent = t.loading;
-            
+
             // 検索結果なし
             const noResultsText = document.querySelector('.no-results-text');
             if (noResultsText) noResultsText.textContent = t.noResults;
-            
+
             // エラーメッセージ
             const errorText = document.querySelector('.error-text');
             if (errorText) errorText.textContent = t.error;
-            
+
             // リトライボタン
             const retryBtn = document.querySelector('.retry-btn');
             if (retryBtn) retryBtn.textContent = t.retry;
@@ -2108,10 +2161,11 @@
                     btn.classList.remove('active');
                 }
             });
-            
+
             // UIテキストを初期化
             updateUILanguage();
         });
     </script>
 </body>
+
 </html>
