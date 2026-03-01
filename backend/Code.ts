@@ -28,7 +28,7 @@
 // ▼ 設定定数
 const JSON_FILE_NAME = 'news.json';
 const MY_WEBSITE_URL = 'https://gadget-hunter-xi.vercel.app/';
-const MODEL_NAME = 'gemma-3-27b-it';
+const MODEL_NAME = 'gemini-3-flash-preview';
 
 // ▼ データクリーンアップ設定
 const CLEANUP_DAYS_TO_KEEP = 30; // 30日以上古い記事を削除
