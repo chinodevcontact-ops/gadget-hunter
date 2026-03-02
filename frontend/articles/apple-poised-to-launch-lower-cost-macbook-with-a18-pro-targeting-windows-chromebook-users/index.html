@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    
+    <!-- CSP -->
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self';
+        script-src 'self' 'unsafe-inline' https://utteranc.es https://cdn.jsdelivr.net;
+        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+        font-src 'self' https://fonts.gstatic.com;
+        img-src 'self' data: https:;
+        connect-src 'self' https://api.exchangerate-api.com;
+        frame-src https://utteranc.es;
+        base-uri 'self';
+        form-action 'none';
+    ">
+    
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+    
+    <title>Apple、低価格MacBook投入か？A18 Pro搭載でWindows/Chromebookからの乗り換え狙い | GADGET HUNTER</title>
+    
+    <!-- OGP -->
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Apple、低価格MacBook投入か？A18 Pro搭載でWindows/Chromebookからの乗り換え狙い">
+    <meta property="og:description" content="• Appleは今週、新製品発表により顧客の「殺到」を予想しており、その目玉は低価格MacBookと報じられている。 • 低価格MacBookはiPhone 16 ProのA18 Proチップを搭載し、価格は$599〜$799（約9.3万円〜12.4万円）と見込まれる。 • 12.9インチディスプレ...">
+    <meta property="og:url" content="https://gadget-hunter-xi.vercel.app/articles/apple-poised-to-launch-lower-cost-macbook-with-a18-pro-targeting-windows-chromebook-users">
+    <meta property="og:image" content="https://gadget-hunter-xi.vercel.app/ogp-default.svg">
+    <meta property="og:site_name" content="GADGET HUNTER">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Apple、低価格MacBook投入か？A18 Pro搭載でWindows/Chromebookからの乗り換え狙い">
+    <meta name="twitter:description" content="• Appleは今週、新製品発表により顧客の「殺到」を予想しており、その目玉は低価格MacBookと報じられている。 • 低価格MacBookはiPhone 16 ProのA18 Proチップを搭載し、価格は$599〜$799（約9.3万円〜12.4万円）と見込まれる。 • 12.9インチディスプレ...">
+    <meta name="twitter:image" content="https://gadget-hunter-xi.vercel.app/ogp-default.svg">
+    <link rel="canonical" href="https://gadget-hunter-xi.vercel.app/articles/apple-poised-to-launch-lower-cost-macbook-with-a18-pro-targeting-windows-chromebook-users">
+    <meta name="description" content="• Appleは今週、新製品発表により顧客の「殺到」を予想しており、その目玉は低価格MacBookと報じられている。 • 低価格MacBookはiPhone 16 ProのA18 Proチップを搭載し、価格は$599〜$799（約9.3万円〜12.4万円）と見込まれる。 • 12.9インチディスプレ...">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --bg-primary: #000000;
+            --bg-secondary: #0a0a0a;
+            --bg-card: #111111;
+            --neon-green: #00ff41;
+            --cyber-green: #00ff41;
+            --dark-green: #00aa2b;
+            --text-primary: #e8e8f0;
+            --text-secondary: #a0a0b8;
+            --green-glow: rgba(0, 255, 65, 0.4);
+            --green-glow-strong: rgba(0, 255, 65, 0.6);
+        }
+
+        body {
+            font-family: 'Roboto Mono', monospace;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(circle at 20% 50%, rgba(0, 255, 65, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(0, 255, 65, 0.03) 0%, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        /* ===== ヘッダー ===== */
+        .header {
+            background: rgba(10, 10, 10, 0.95);
+            border-bottom: 2px solid var(--neon-green);
+            box-shadow: 0 0 20px var(--green-glow);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            backdrop-filter: blur(15px) saturate(180%);
+            -webkit-backdrop-filter: blur(15px) saturate(180%);
+        }
+
+        .header-content {
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 255, 65, 0.1);
+            border: 1px solid rgba(0, 255, 65, 0.3);
+            border-radius: 6px;
+            color: var(--neon-green);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            min-height: 40px;
+        }
+
+        .back-btn:hover {
+            background: var(--neon-green);
+            color: #000;
+            box-shadow: 0 0 15px var(--green-glow);
+        }
+
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: var(--neon-green);
+            text-shadow: 0 0 30px var(--green-glow);
+            letter-spacing: 2px;
+            text-decoration: none;
+        }
+
+        .lang-switcher {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: 2px solid rgba(0, 255, 65, 0.3);
+            color: var(--text-secondary);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            min-height: 36px;
+        }
+
+        .lang-btn:hover {
+            border-color: var(--neon-green);
+            color: var(--neon-green);
+        }
+
+        .lang-btn.active {
+            background: var(--neon-green);
+            color: #000;
+            border-color: var(--neon-green);
+            box-shadow: 0 0 15px var(--green-glow-strong);
+        }
+
+        .lang-divider {
+            color: rgba(0, 255, 65, 0.5);
+            font-size: 1rem;
+        }
+
+        /* ===== 記事コンテナ ===== */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+
+        /* ===== 記事メタ情報 ===== */
+        .article-meta {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .article-date {
+            color: var(--neon-green);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 0.3rem 0.8rem;
+            background: rgba(0, 255, 65, 0.1);
+            border-radius: 4px;
+            border: 1px solid rgba(0, 255, 65, 0.3);
+        }
+
+        .article-category {
+            padding: 0.3rem 0.8rem;
+            background: rgba(0, 255, 65, 0.15);
+            border: 1px solid rgba(0, 255, 65, 0.4);
+            border-radius: 4px;
+            color: var(--neon-green);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+
+        /* ===== タイトル ===== */
+        .article-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: var(--neon-green);
+            line-height: 1.3;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 0 20px var(--green-glow);
+        }
+
+        /* ===== リーク信頼度 ===== */
+        .leak-score-container {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: var(--bg-card);
+            border: 1px solid rgba(0, 255, 65, 0.2);
+            border-radius: 8px;
+        }
+
+        .leak-score-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .leak-score-value {
+            color: var(--neon-green);
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .leak-score-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(0, 255, 65, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .leak-score-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.8s ease;
+            box-shadow: 0 0 15px currentColor;
+        }
+
+        .score-low { background: #ff3333; color: #ff3333; }
+        .score-medium { background: #ffaa00; color: #ffaa00; }
+        .score-high { background: var(--neon-green); color: var(--neon-green); }
+
+        .multi-source-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            margin-top: 0.8rem;
+            padding: 0.4rem 0.8rem;
+            background: linear-gradient(135deg, rgba(0, 255, 65, 0.2), rgba(0, 200, 255, 0.2));
+            border: 1.5px solid var(--neon-green);
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--neon-green);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 0 15px rgba(0, 255, 65, 0.3);
+            animation: pulse-badge 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-badge {
+            0%, 100% { box-shadow: 0 0 15px rgba(0, 255, 65, 0.3); }
+            50% { box-shadow: 0 0 25px rgba(0, 255, 65, 0.6); }
+        }
+
+        /* ===== 要約セクション ===== */
+        .summary-section {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid rgba(0, 255, 65, 0.2);
+            border-radius: 8px;
+            border-left: 4px solid var(--neon-green);
+        }
+
+        .summary-section h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--neon-green);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .summary-points {
+            list-style: none;
+            padding: 0;
+        }
+
+        .summary-points li {
+            position: relative;
+            padding-left: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .summary-points li::before {
+            content: '▸';
+            position: absolute;
+            left: 0;
+            color: var(--neon-green);
+            font-weight: 700;
+        }
+
+        .summary-section p {
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* ===== 本文 ===== */
+        .article-content {
+            margin-bottom: 2rem;
+        }
+
+        .article-content p {
+            margin-bottom: 1.5rem;
+            line-height: 1.8;
+            font-size: 1.05rem;
+        }
+
+        .article-content h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--neon-green);
+            margin: 2rem 0 1rem;
+            padding-left: 1rem;
+            border-left: 4px solid var(--neon-green);
+            box-shadow: -5px 0 15px var(--green-glow);
+        }
+
+        .article-content strong {
+            color: var(--neon-green);
+            font-weight: 700;
+        }
+
+        .article-content ul {
+            margin-left: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .article-content li {
+            margin-bottom: 0.5rem;
+            line-height: 1.7;
+        }
+
+        /* ===== ソースリンク ===== */
+        .source-section {
+            margin-bottom: 2rem;
+            padding: 1rem 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid rgba(0, 255, 65, 0.2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .source-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .source-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            background: var(--neon-green);
+            color: #000;
+            border-radius: 6px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px var(--green-glow);
+        }
+
+        .source-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px var(--green-glow-strong);
+        }
+
+        /* ===== コメント ===== */
+        .comments-section {
+            margin-bottom: 2rem;
+        }
+
+        .comments-section h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--neon-green);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* ===== フッター ===== */
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            border-top: 1px solid rgba(0, 255, 65, 0.2);
+            margin-top: 2rem;
+        }
+
+        /* ===== 言語切替用の非表示 ===== */
+        [data-lang="en"] { display: none; }
+        body.lang-en [data-lang="ja"] { display: none; }
+        body.lang-en [data-lang="en"] { display: block; }
+
+        /* 一部inline要素の場合 */
+        span[data-lang="en"] { display: none; }
+        body.lang-en span[data-lang="ja"] { display: none; }
+        body.lang-en span[data-lang="en"] { display: inline; }
+
+        /* ===== レスポンシブ ===== */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 0.8rem;
+                align-items: flex-start;
+            }
+
+            .article-title {
+                font-size: 1.3rem;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+
+            .source-section {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .container {
+            animation: fadeIn 0.6s ease-in;
+        }
+    </style>
+</head>
+<body>
+    <!-- ヘッダー -->
+    <header class="header">
+        <div class="header-content">
+            <div class="header-left">
+                <a href="/" class="back-btn">← <span data-lang="ja">ホームに戻る</span><span data-lang="en">Back to Home</span></a>
+                <a href="/" class="logo">GADGET HUNTER</a>
+            </div>
+            <div class="lang-switcher">
+                <button class="lang-btn active" data-lang="ja" onclick="switchLanguage('ja')">JA</button>
+                <span class="lang-divider">|</span>
+                <button class="lang-btn" data-lang="en" onclick="switchLanguage('en')">EN</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 記事本体 -->
+    <main class="container">
+        <!-- メタ情報 -->
+        <div class="article-meta">
+            <span class="article-date">2026/03/02</span>
+            <span class="article-category">Laptop</span>
+        </div>
+
+        <!-- タイトル -->
+        <h1 class="article-title" data-lang="ja">Apple、低価格MacBook投入か？A18 Pro搭載でWindows/Chromebookからの乗り換え狙い</h1>
+        <h1 class="article-title" data-lang="en">Apple Poised to Launch Lower-Cost MacBook with A18 Pro, Targeting Windows/Chromebook Users</h1>
+
+        <!-- リーク信頼度 -->
+        <div class="leak-score-container">
+            <div class="leak-score-label">
+                <span data-lang="ja">リーク信頼度</span>
+                <span data-lang="en">Leak Credibility</span>
+                <span class="leak-score-value">99%</span>
+            </div>
+            <div class="leak-score-bar">
+                <div class="leak-score-fill score-high" style="width: 99%"></div>
+            </div>
+            
+        </div>
+
+        <!-- 要約 -->
+        <div class="summary-section">
+            <h2 data-lang="ja">📋 要約</h2>
+            <h2 data-lang="en">📋 Summary</h2>
+            <div data-lang="ja"><ul class="summary-points"><li>Appleは今週、新製品発表により顧客の「殺到」を予想しており、その目玉は低価格MacBookと報じられている。</li><li>低価格MacBookはiPhone 16 ProのA18 Proチップを搭載し、価格は$599〜$799（約9.3万円〜12.4万円）と見込まれる。</li><li>12.9インチディスプレイ、8GB RAM、通常のUSB-Cポートを採用し、Windows/Chromebookユーザーの獲得を目指す。</li></ul></div>
+            <div data-lang="en"><ul class="summary-points"><li>Apple expects a &#039;major rush&#039; of customers this week, with a rumored lower-cost MacBook as a key announcement.</li><li>The affordable MacBook is projected to feature the A18 Pro chip from iPhone 16 Pro, priced at $599-$799.</li><li>It will reportedly have a 12.9-inch display, 8GB RAM, and standard USB-C ports, aiming to attract Windows/Chromebook users.</li></ul></div>
+        </div>
+
+        <!-- 本文 -->
+        <div class="article-content" data-lang="ja">
+            <p>BloombergのMark Gurman氏の報道によると、Appleは今週、小売店従業員に対し顧客の「殺到」に備えるよう指示している。これは「iPhoneの新作発表前と同等」の準備規模であるとされ、発表される新製品の少なくとも一つが「主要な一般層にアピールする」可能性を示唆している。</p><p>最も注目される製品は、噂される低価格MacBookと見られており、Apple社内では「信じられないほどの価値」と評価されている。この製品は、Windows PCやChromebookからの「乗り換え層を大幅に牽引する」ことが期待されているという。</p><p>低価格MacBookの具体的な価格は未定だが、米国では<strong>$599から$799</strong>（約9.3万円から12.4万円 ※1ドル=156円換算）の範囲と推測されており、学生および教育関係者には$100の割引が提供される見込みだ。</p><p>本モデルはMシリーズチップではなく、iPhone 16 Proに搭載されている<strong>A18 Proチップ</strong>を採用し、<strong>12.9インチディスプレイ</strong>、<strong>8GB RAM</strong>、そしてThunderboltではなく通常のUSB-Cポートを搭載すると報じられている。</p><h3>中の人の本音 (JP)</h3><p>うーん、Appleが低価格路線に手を出すのは正直意外ですね。個人的にはAndroidゲーマーなのでApple製品はあまり興味ないんですけど、MacBookが10万円前後で買えるってなると、学生さんには選択肢としてアリなのかなって思っちゃいますね。僕の許容範囲が10万円前後なので、値段だけ見るとちょっと惹かれるものがあるのは認めます（笑）。
+
+でも、A18 Proチップ採用で8GB RAMはちょっと…。情報工学専攻の僕からすると、今どき8GBはさすがに少ないですよ。Chromeタブいくつ開いたら詰むんだろって心配になります。メインPCのRyzen 7 7800X3Dも9070 XTも、今のゲーム環境だと最低32GBは積んでますし、スマホのRedMagic Astraですら16GB RAMとか平気で積んでる時代に、MacBookで8GBは正直地雷案件な気がします。いくらMacBookが高効率なOSでも、クリエイティブ作業とか開発とかやろうとしたら、絶対メモリ不足でボトルネックになりますよね。普通のWebブラウジングとOfficeくらいならいいのかもしれないですけど…。
+
+せっかくWindows/Chromebookからの乗り換えを狙うなら、もう少し攻めたスペックで「Performance per Yen」を感じさせてほしかったですね。Apple信仰が薄い僕には、8GB RAMはコスパが良いとは言えない判断材料かな、と。様子見安定ですね。</p>
+        </div>
+        <div class="article-content" data-lang="en">
+            <p>According to Bloomberg's Mark Gurman, Apple has instructed retail store employees to anticipate a "major rush" of customers this week. This level of preparation is reportedly "on par with what happens before the debut of new iPhones," suggesting that at least one new product unveiled will have "major mainstream appeal."</p><p>The highly anticipated product is the rumored lower-cost MacBook, described internally by Apple as an "incredible value." This device is expected to "drive a serious number of switchers from Windows machines and Chromebooks."</p><p>While no concrete pricing has been revealed, estimates for the lower-cost MacBook range from <strong>$599 to $799</strong> in the United States, with a $100 discount for qualifying college students and educators.</p><p>This model is reportedly powered by the <strong>A18 Pro chip</strong> from the iPhone 16 Pro, rather than an M-series chip, and will feature a <strong>12.9-inch display</strong>, <strong>8GB of RAM</strong>, and regular USB-C ports instead of faster Thunderbolt ports.</p><h3>Review (EN)</h3><p>A lower-cost MacBook at $599? The price is tempting, but 8GB RAM on a 2026 MacBook is a big nope for an engineering student. C'mon Apple! 💀</p>
+        </div>
+
+        <!-- ソースリンク -->
+        
+        <div class="source-section">
+            <span class="source-label" data-lang="ja">📎 元記事を確認する</span>
+            <span class="source-label" data-lang="en">📎 View original source</span>
+            <a href="https://www.macrumors.com/2026/03/01/apple-expects-major-rush-of-customers/" target="_blank" rel="noopener noreferrer" class="source-link">
+                <span data-lang="ja">元記事を見る ↗</span>
+                <span data-lang="en">View Source ↗</span>
+            </a>
+        </div>
+
+        <!-- コメント（Utterances） -->
+        <div class="comments-section">
+            <h2 data-lang="ja">💬 コメント</h2>
+            <h2 data-lang="en">💬 Comments</h2>
+            <div id="utterances-container"></div>
+        </div>
+    </main>
+
+    <!-- フッター -->
+    <footer class="footer">
+        <span data-lang="ja">Gadget Hunter - すべてのリークは公開情報に基づいています</span>
+        <span data-lang="en">Gadget Hunter - All leaks are based on publicly available information</span>
+    </footer>
+
+    <script>
+        // 言語設定
+        let currentLang = localStorage.getItem('lang') || 'ja';
+        
+        function switchLanguage(lang) {
+            if (lang === currentLang) return;
+            currentLang = lang;
+            localStorage.setItem('lang', lang);
+            
+            if (lang === 'en') {
+                document.body.classList.add('lang-en');
+            } else {
+                document.body.classList.remove('lang-en');
+            }
+            
+            // ボタンのアクティブ状態を更新
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.lang === lang);
+            });
+        }
+        
+        // 初期化
+        document.addEventListener('DOMContentLoaded', () => {
+            // 保存された言語を適用
+            if (currentLang === 'en') {
+                document.body.classList.add('lang-en');
+            }
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.lang === currentLang);
+            });
+            
+            // Utterances コメント欄を読み込む
+            const articleUrl = 'https://www.macrumors.com/2026/03/01/apple-expects-major-rush-of-customers/';
+            if (articleUrl) {
+                const container = document.getElementById('utterances-container');
+                const script = document.createElement('script');
+                script.src = 'https://utteranc.es/client.js';
+                script.setAttribute('repo', 'chinodevcontact-ops/gadget-hunter');
+                script.setAttribute('issue-term', articleUrl);
+                script.setAttribute('theme', 'github-dark');
+                script.setAttribute('crossorigin', 'anonymous');
+                script.async = true;
+                container.appendChild(script);
+            }
+        });
+    </script>
+</body>
+</html>
