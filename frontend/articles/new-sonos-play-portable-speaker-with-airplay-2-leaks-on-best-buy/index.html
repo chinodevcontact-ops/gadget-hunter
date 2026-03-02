@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    
+    <!-- CSP -->
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self';
+        script-src 'self' 'unsafe-inline' https://utteranc.es https://cdn.jsdelivr.net;
+        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+        font-src 'self' https://fonts.gstatic.com;
+        img-src 'self' data: https:;
+        connect-src 'self' https://api.exchangerate-api.com;
+        frame-src https://utteranc.es;
+        base-uri 'self';
+        form-action 'none';
+    ">
+    
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+    
+    <title>Sonos新型ポータブルスピーカー「Play」リーク、AirPlay 2対応 | GADGET HUNTER</title>
+    
+    <!-- OGP -->
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Sonos新型ポータブルスピーカー「Play」リーク、AirPlay 2対応">
+    <meta property="og:description" content="• Sonosの未発表ポータブルスピーカー「Play」がカナダのBest Buyで一時的に掲載された。 • 価格はCAD 399.99ドル（約45,500円）で、AirPlay 2、Bluetooth 5.3、Wi-Fiに対応する。 • 24時間駆動バッテリーと自動Trueplayチューニングを特徴...">
+    <meta property="og:url" content="https://gadget-hunter-xi.vercel.app/articles/new-sonos-play-portable-speaker-with-airplay-2-leaks-on-best-buy">
+    <meta property="og:image" content="https://gadget-hunter-xi.vercel.app/ogp-default.svg">
+    <meta property="og:site_name" content="GADGET HUNTER">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Sonos新型ポータブルスピーカー「Play」リーク、AirPlay 2対応">
+    <meta name="twitter:description" content="• Sonosの未発表ポータブルスピーカー「Play」がカナダのBest Buyで一時的に掲載された。 • 価格はCAD 399.99ドル（約45,500円）で、AirPlay 2、Bluetooth 5.3、Wi-Fiに対応する。 • 24時間駆動バッテリーと自動Trueplayチューニングを特徴...">
+    <meta name="twitter:image" content="https://gadget-hunter-xi.vercel.app/ogp-default.svg">
+    <link rel="canonical" href="https://gadget-hunter-xi.vercel.app/articles/new-sonos-play-portable-speaker-with-airplay-2-leaks-on-best-buy">
+    <meta name="description" content="• Sonosの未発表ポータブルスピーカー「Play」がカナダのBest Buyで一時的に掲載された。 • 価格はCAD 399.99ドル（約45,500円）で、AirPlay 2、Bluetooth 5.3、Wi-Fiに対応する。 • 24時間駆動バッテリーと自動Trueplayチューニングを特徴...">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --bg-primary: #000000;
+            --bg-secondary: #0a0a0a;
+            --bg-card: #111111;
+            --neon-green: #00ff41;
+            --cyber-green: #00ff41;
+            --dark-green: #00aa2b;
+            --text-primary: #e8e8f0;
+            --text-secondary: #a0a0b8;
+            --green-glow: rgba(0, 255, 65, 0.4);
+            --green-glow-strong: rgba(0, 255, 65, 0.6);
+        }
+
+        body {
+            font-family: 'Roboto Mono', monospace;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(circle at 20% 50%, rgba(0, 255, 65, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(0, 255, 65, 0.03) 0%, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        /* ===== ヘッダー ===== */
+        .header {
+            background: rgba(10, 10, 10, 0.95);
+            border-bottom: 2px solid var(--neon-green);
+            box-shadow: 0 0 20px var(--green-glow);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            backdrop-filter: blur(15px) saturate(180%);
+            -webkit-backdrop-filter: blur(15px) saturate(180%);
+        }
+
+        .header-content {
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 255, 65, 0.1);
+            border: 1px solid rgba(0, 255, 65, 0.3);
+            border-radius: 6px;
+            color: var(--neon-green);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            min-height: 40px;
+        }
+
+        .back-btn:hover {
+            background: var(--neon-green);
+            color: #000;
+            box-shadow: 0 0 15px var(--green-glow);
+        }
+
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: var(--neon-green);
+            text-shadow: 0 0 30px var(--green-glow);
+            letter-spacing: 2px;
+            text-decoration: none;
+        }
+
+        .lang-switcher {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: 2px solid rgba(0, 255, 65, 0.3);
+            color: var(--text-secondary);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            min-height: 36px;
+        }
+
+        .lang-btn:hover {
+            border-color: var(--neon-green);
+            color: var(--neon-green);
+        }
+
+        .lang-btn.active {
+            background: var(--neon-green);
+            color: #000;
+            border-color: var(--neon-green);
+            box-shadow: 0 0 15px var(--green-glow-strong);
+        }
+
+        .lang-divider {
+            color: rgba(0, 255, 65, 0.5);
+            font-size: 1rem;
+        }
+
+        /* ===== 記事コンテナ ===== */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+
+        /* ===== 記事メタ情報 ===== */
+        .article-meta {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .article-date {
+            color: var(--neon-green);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 0.3rem 0.8rem;
+            background: rgba(0, 255, 65, 0.1);
+            border-radius: 4px;
+            border: 1px solid rgba(0, 255, 65, 0.3);
+        }
+
+        .article-category {
+            padding: 0.3rem 0.8rem;
+            background: rgba(0, 255, 65, 0.15);
+            border: 1px solid rgba(0, 255, 65, 0.4);
+            border-radius: 4px;
+            color: var(--neon-green);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+
+        /* ===== タイトル ===== */
+        .article-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: var(--neon-green);
+            line-height: 1.3;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 0 20px var(--green-glow);
+        }
+
+        /* ===== リーク信頼度 ===== */
+        .leak-score-container {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: var(--bg-card);
+            border: 1px solid rgba(0, 255, 65, 0.2);
+            border-radius: 8px;
+        }
+
+        .leak-score-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .leak-score-value {
+            color: var(--neon-green);
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .leak-score-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(0, 255, 65, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .leak-score-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.8s ease;
+            box-shadow: 0 0 15px currentColor;
+        }
+
+        .score-low { background: #ff3333; color: #ff3333; }
+        .score-medium { background: #ffaa00; color: #ffaa00; }
+        .score-high { background: var(--neon-green); color: var(--neon-green); }
+
+        .multi-source-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            margin-top: 0.8rem;
+            padding: 0.4rem 0.8rem;
+            background: linear-gradient(135deg, rgba(0, 255, 65, 0.2), rgba(0, 200, 255, 0.2));
+            border: 1.5px solid var(--neon-green);
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--neon-green);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 0 15px rgba(0, 255, 65, 0.3);
+            animation: pulse-badge 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-badge {
+            0%, 100% { box-shadow: 0 0 15px rgba(0, 255, 65, 0.3); }
+            50% { box-shadow: 0 0 25px rgba(0, 255, 65, 0.6); }
+        }
+
+        /* ===== 要約セクション ===== */
+        .summary-section {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid rgba(0, 255, 65, 0.2);
+            border-radius: 8px;
+            border-left: 4px solid var(--neon-green);
+        }
+
+        .summary-section h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--neon-green);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .summary-points {
+            list-style: none;
+            padding: 0;
+        }
+
+        .summary-points li {
+            position: relative;
+            padding-left: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .summary-points li::before {
+            content: '▸';
+            position: absolute;
+            left: 0;
+            color: var(--neon-green);
+            font-weight: 700;
+        }
+
+        .summary-section p {
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* ===== 本文 ===== */
+        .article-content {
+            margin-bottom: 2rem;
+        }
+
+        .article-content p {
+            margin-bottom: 1.5rem;
+            line-height: 1.8;
+            font-size: 1.05rem;
+        }
+
+        .article-content h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--neon-green);
+            margin: 2rem 0 1rem;
+            padding-left: 1rem;
+            border-left: 4px solid var(--neon-green);
+            box-shadow: -5px 0 15px var(--green-glow);
+        }
+
+        .article-content strong {
+            color: var(--neon-green);
+            font-weight: 700;
+        }
+
+        .article-content ul {
+            margin-left: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .article-content li {
+            margin-bottom: 0.5rem;
+            line-height: 1.7;
+        }
+
+        /* ===== ソースリンク ===== */
+        .source-section {
+            margin-bottom: 2rem;
+            padding: 1rem 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid rgba(0, 255, 65, 0.2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .source-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .source-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            background: var(--neon-green);
+            color: #000;
+            border-radius: 6px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px var(--green-glow);
+        }
+
+        .source-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px var(--green-glow-strong);
+        }
+
+        /* ===== コメント ===== */
+        .comments-section {
+            margin-bottom: 2rem;
+        }
+
+        .comments-section h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--neon-green);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* ===== フッター ===== */
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            border-top: 1px solid rgba(0, 255, 65, 0.2);
+            margin-top: 2rem;
+        }
+
+        /* ===== 言語切替用の非表示 ===== */
+        [data-lang="en"] { display: none; }
+        body.lang-en [data-lang="ja"] { display: none; }
+        body.lang-en [data-lang="en"] { display: block; }
+
+        /* 一部inline要素の場合 */
+        span[data-lang="en"] { display: none; }
+        body.lang-en span[data-lang="ja"] { display: none; }
+        body.lang-en span[data-lang="en"] { display: inline; }
+
+        /* ===== レスポンシブ ===== */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 0.8rem;
+                align-items: flex-start;
+            }
+
+            .article-title {
+                font-size: 1.3rem;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+
+            .source-section {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .container {
+            animation: fadeIn 0.6s ease-in;
+        }
+    </style>
+</head>
+<body>
+    <!-- ヘッダー -->
+    <header class="header">
+        <div class="header-content">
+            <div class="header-left">
+                <a href="/" class="back-btn">← <span data-lang="ja">ホームに戻る</span><span data-lang="en">Back to Home</span></a>
+                <a href="/" class="logo">GADGET HUNTER</a>
+            </div>
+            <div class="lang-switcher">
+                <button class="lang-btn active" data-lang="ja" onclick="switchLanguage('ja')">JA</button>
+                <span class="lang-divider">|</span>
+                <button class="lang-btn" data-lang="en" onclick="switchLanguage('en')">EN</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 記事本体 -->
+    <main class="container">
+        <!-- メタ情報 -->
+        <div class="article-meta">
+            <span class="article-date">2026/03/02</span>
+            <span class="article-category">General</span>
+        </div>
+
+        <!-- タイトル -->
+        <h1 class="article-title" data-lang="ja">Sonos新型ポータブルスピーカー「Play」リーク、AirPlay 2対応</h1>
+        <h1 class="article-title" data-lang="en">New Sonos Play Portable Speaker With AirPlay 2 Leaks on Best Buy</h1>
+
+        <!-- リーク信頼度 -->
+        <div class="leak-score-container">
+            <div class="leak-score-label">
+                <span data-lang="ja">リーク信頼度</span>
+                <span data-lang="en">Leak Credibility</span>
+                <span class="leak-score-value">80%</span>
+            </div>
+            <div class="leak-score-bar">
+                <div class="leak-score-fill score-high" style="width: 80%"></div>
+            </div>
+            
+        </div>
+
+        <!-- 要約 -->
+        <div class="summary-section">
+            <h2 data-lang="ja">📋 要約</h2>
+            <h2 data-lang="en">📋 Summary</h2>
+            <div data-lang="ja"><ul class="summary-points"><li>Sonosの未発表ポータブルスピーカー「Play」がカナダのBest Buyで一時的に掲載された。</li><li>価格はCAD 399.99ドル（約45,500円）で、AirPlay 2、Bluetooth 5.3、Wi-Fiに対応する。</li><li>24時間駆動バッテリーと自動Trueplayチューニングを特徴とし、2026年3月31日発売が予測される。</li></ul></div>
+            <div data-lang="en"><ul class="summary-points"><li>Unannounced Sonos Play portable speaker briefly appeared on Best Buy Canada&#039;s website.</li><li>Priced at CAD $399.99, it features AirPlay 2, Bluetooth 5.3, and Wi-Fi connectivity.</li><li>Boasts up to 24 hours of battery life and automatic Trueplay tuning, with a speculated March 31, 2026 release.</li></ul></div>
+        </div>
+
+        <!-- 本文 -->
+        <div class="article-content" data-lang="ja">
+            <p>Sonosの新型ポータブルスピーカー「Sonos Play」が、カナダのBest Buyウェブサイトに一時的に掲載され、詳細が明らかになった。未発表製品の誤掲載と見られ、Redditユーザーにより発見後、現在は削除されている。</p><p>リーク情報によると、「Sonos Play」はCAD 399.99ドル（1CAD=0.73USD、1USD=156JPY換算で約45,500円）で販売予定。既存の「Sonos Move 2」小型版のようなデザインが特徴で、Wi-Fiによるマルチルームオーディオ（最大32台）、Appleの「AirPlay 2」、Bluetooth 5.3に対応。AUX入力も搭載する。バッテリーは最大24時間持続し、自動音響最適化機能「Trueplayチューニング」を内蔵。2026年3月31日の発売が予測される。</p><h3>中の人の本音 (JP)</h3><p>正直、Sonosのスピーカーがリークって聞いても、僕のゲーミングPC構成（Ryzen 7 7800X3DとRX 9070 XT）とは直接関係ない話題なので、「へえ」くらいなんですけど、テック好きとしてはこういうリーク情報には注目しちゃいますね。
+価格がCAD 399.99ドルで、日本円だと約45,500円くらいですか。スピーカーとしては正直ちょっと高めに感じるかもしれませんけど、Sonosのブランド力と音質を考えれば、これは「許容範囲」かなって思います。僕の「Performance per Yen」哲学でいくと、高音質で24時間バッテリーは優秀ですし、Wi-Fiでマルチルーム対応ってのも面白いですね。
+AirPlay 2対応はAppleユーザーには嬉しいでしょうけど、個人的にはAndroid派なので、Bluetooth 5.3とAux-inがあれば十分ですね。レコードプレーヤーも繋げられるってのは、ゲーマーとは違う層へのアピールポイントでしょうけど、拡張性があるのは良いことだと思います。デザインもSonos Move 2譲りで「かっけえ」感じしますし、決して「沼案件」ではないですけど、こういう生活を彩るガジェットも嫌いじゃないですね（笑）。発売日が3月31日ってことなので、もう少し様子見安定でしょうか。</p>
+        </div>
+        <div class="article-content" data-lang="en">
+            <p>Details regarding the unannounced Sonos Play portable speaker have emerged following its brief appearance on Best Buy Canada's website. The listing, which has since been pulled, was spotted by a Reddit user and is believed to be an accidental leak of an upcoming product.</p><p>According to the leaked information, the Sonos Play will be priced at CAD $399.99. The speaker reportedly resembles a smaller version of the existing Sonos Move 2, offering Wi-Fi for multi-room setups of up to 32 speakers, Apple's AirPlay 2 streaming technology, and Bluetooth 5.3 support. It also includes an aux-in port for connecting external devices like record players. Key features highlighted include up to 24 hours of battery life and automatic Trueplay tuning, which optimizes audio for any environment. A release date of March 31, 2026, was indicated in the listing.</p><h3>Review (EN)</h3><p>Sonos leak? Cool for audiophiles, but I'm an Android gamer. Price is okay though! 💰</p>
+        </div>
+
+        <!-- ソースリンク -->
+        
+        <div class="source-section">
+            <span class="source-label" data-lang="ja">📎 元記事を確認する</span>
+            <span class="source-label" data-lang="en">📎 View original source</span>
+            <a href="https://www.macrumors.com/2026/03/02/new-sonos-play-bluetooth-speaker-leaked/" target="_blank" rel="noopener noreferrer" class="source-link">
+                <span data-lang="ja">元記事を見る ↗</span>
+                <span data-lang="en">View Source ↗</span>
+            </a>
+        </div>
+
+        <!-- コメント（Utterances） -->
+        <div class="comments-section">
+            <h2 data-lang="ja">💬 コメント</h2>
+            <h2 data-lang="en">💬 Comments</h2>
+            <div id="utterances-container"></div>
+        </div>
+    </main>
+
+    <!-- フッター -->
+    <footer class="footer">
+        <span data-lang="ja">Gadget Hunter - すべてのリークは公開情報に基づいています</span>
+        <span data-lang="en">Gadget Hunter - All leaks are based on publicly available information</span>
+    </footer>
+
+    <script>
+        // 言語設定
+        let currentLang = localStorage.getItem('lang') || 'ja';
+        
+        function switchLanguage(lang) {
+            if (lang === currentLang) return;
+            currentLang = lang;
+            localStorage.setItem('lang', lang);
+            
+            if (lang === 'en') {
+                document.body.classList.add('lang-en');
+            } else {
+                document.body.classList.remove('lang-en');
+            }
+            
+            // ボタンのアクティブ状態を更新
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.lang === lang);
+            });
+        }
+        
+        // 初期化
+        document.addEventListener('DOMContentLoaded', () => {
+            // 保存された言語を適用
+            if (currentLang === 'en') {
+                document.body.classList.add('lang-en');
+            }
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.lang === currentLang);
+            });
+            
+            // Utterances コメント欄を読み込む
+            const articleUrl = 'https://www.macrumors.com/2026/03/02/new-sonos-play-bluetooth-speaker-leaked/';
+            if (articleUrl) {
+                const container = document.getElementById('utterances-container');
+                const script = document.createElement('script');
+                script.src = 'https://utteranc.es/client.js';
+                script.setAttribute('repo', 'chinodevcontact-ops/gadget-hunter');
+                script.setAttribute('issue-term', articleUrl);
+                script.setAttribute('theme', 'github-dark');
+                script.setAttribute('crossorigin', 'anonymous');
+                script.async = true;
+                container.appendChild(script);
+            }
+        });
+    </script>
+</body>
+</html>
