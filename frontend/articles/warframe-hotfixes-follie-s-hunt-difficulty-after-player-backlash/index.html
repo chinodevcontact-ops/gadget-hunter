@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    
+    <!-- CSP -->
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self';
+        script-src 'self' 'unsafe-inline' https://utteranc.es https://cdn.jsdelivr.net;
+        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+        font-src 'self' https://fonts.gstatic.com;
+        img-src 'self' data: https:;
+        connect-src 'self' https://api.exchangerate-api.com;
+        frame-src https://utteranc.es;
+        base-uri 'self';
+        form-action 'none';
+    ">
+    
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+    
+    <title>Warframe、「Follie&#039;s Hunt」難易度調整のホットフィックスを配信 - プレイヤーのフィードバックに対応 | GADGET HUNTER</title>
+    
+    <!-- OGP -->
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Warframe、「Follie&#039;s Hunt」難易度調整のホットフィックスを配信 - プレイヤーのフィードバックに対応">
+    <meta property="og:description" content="• Digital ExtremesがWarframeの「The Shadowgrapher」アップデートを配信し、新ゲームモード「Follie&#039;s Hunt」を導入。 • プレイヤーから「Follie&#039;s Hunt」の難易度、特に敵の無敵性に対する不満が噴出。 • 開発元はフィードバックを受け、F...">
+    <meta property="og:url" content="https://gadget-hunter-xi.vercel.app/articles/warframe-hotfixes-follie-s-hunt-difficulty-after-player-backlash">
+    <meta property="og:image" content="https://gadget-hunter-xi.vercel.app/ogp-default.svg">
+    <meta property="og:site_name" content="GADGET HUNTER">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Warframe、「Follie&#039;s Hunt」難易度調整のホットフィックスを配信 - プレイヤーのフィードバックに対応">
+    <meta name="twitter:description" content="• Digital ExtremesがWarframeの「The Shadowgrapher」アップデートを配信し、新ゲームモード「Follie&#039;s Hunt」を導入。 • プレイヤーから「Follie&#039;s Hunt」の難易度、特に敵の無敵性に対する不満が噴出。 • 開発元はフィードバックを受け、F...">
+    <meta name="twitter:image" content="https://gadget-hunter-xi.vercel.app/ogp-default.svg">
+    <link rel="canonical" href="https://gadget-hunter-xi.vercel.app/articles/warframe-hotfixes-follie-s-hunt-difficulty-after-player-backlash">
+    <meta name="description" content="• Digital ExtremesがWarframeの「The Shadowgrapher」アップデートを配信し、新ゲームモード「Follie&#039;s Hunt」を導入。 • プレイヤーから「Follie&#039;s Hunt」の難易度、特に敵の無敵性に対する不満が噴出。 • 開発元はフィードバックを受け、F...">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --bg-primary: #000000;
+            --bg-secondary: #0a0a0a;
+            --bg-card: #111111;
+            --neon-green: #00ff41;
+            --cyber-green: #00ff41;
+            --dark-green: #00aa2b;
+            --text-primary: #e8e8f0;
+            --text-secondary: #a0a0b8;
+            --green-glow: rgba(0, 255, 65, 0.4);
+            --green-glow-strong: rgba(0, 255, 65, 0.6);
+        }
+
+        body {
+            font-family: 'Roboto Mono', monospace;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(circle at 20% 50%, rgba(0, 255, 65, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(0, 255, 65, 0.03) 0%, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        /* ===== ヘッダー ===== */
+        .header {
+            background: rgba(10, 10, 10, 0.95);
+            border-bottom: 2px solid var(--neon-green);
+            box-shadow: 0 0 20px var(--green-glow);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            backdrop-filter: blur(15px) saturate(180%);
+            -webkit-backdrop-filter: blur(15px) saturate(180%);
+        }
+
+        .header-content {
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 255, 65, 0.1);
+            border: 1px solid rgba(0, 255, 65, 0.3);
+            border-radius: 6px;
+            color: var(--neon-green);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            min-height: 40px;
+        }
+
+        .back-btn:hover {
+            background: var(--neon-green);
+            color: #000;
+            box-shadow: 0 0 15px var(--green-glow);
+        }
+
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: var(--neon-green);
+            text-shadow: 0 0 30px var(--green-glow);
+            letter-spacing: 2px;
+            text-decoration: none;
+        }
+
+        .lang-switcher {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: 2px solid rgba(0, 255, 65, 0.3);
+            color: var(--text-secondary);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            min-height: 36px;
+        }
+
+        .lang-btn:hover {
+            border-color: var(--neon-green);
+            color: var(--neon-green);
+        }
+
+        .lang-btn.active {
+            background: var(--neon-green);
+            color: #000;
+            border-color: var(--neon-green);
+            box-shadow: 0 0 15px var(--green-glow-strong);
+        }
+
+        .lang-divider {
+            color: rgba(0, 255, 65, 0.5);
+            font-size: 1rem;
+        }
+
+        /* ===== 記事コンテナ ===== */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+
+        /* ===== 記事メタ情報 ===== */
+        .article-meta {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .article-date {
+            color: var(--neon-green);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 0.3rem 0.8rem;
+            background: rgba(0, 255, 65, 0.1);
+            border-radius: 4px;
+            border: 1px solid rgba(0, 255, 65, 0.3);
+        }
+
+        .article-category {
+            padding: 0.3rem 0.8rem;
+            background: rgba(0, 255, 65, 0.15);
+            border: 1px solid rgba(0, 255, 65, 0.4);
+            border-radius: 4px;
+            color: var(--neon-green);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+
+        /* ===== タイトル ===== */
+        .article-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: var(--neon-green);
+            line-height: 1.3;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 0 20px var(--green-glow);
+        }
+
+        /* ===== リーク信頼度 ===== */
+        .leak-score-container {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: var(--bg-card);
+            border: 1px solid rgba(0, 255, 65, 0.2);
+            border-radius: 8px;
+        }
+
+        .leak-score-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .leak-score-value {
+            color: var(--neon-green);
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .leak-score-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(0, 255, 65, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .leak-score-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.8s ease;
+            box-shadow: 0 0 15px currentColor;
+        }
+
+        .score-low { background: #ff3333; color: #ff3333; }
+        .score-medium { background: #ffaa00; color: #ffaa00; }
+        .score-high { background: var(--neon-green); color: var(--neon-green); }
+
+        .multi-source-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            margin-top: 0.8rem;
+            padding: 0.4rem 0.8rem;
+            background: linear-gradient(135deg, rgba(0, 255, 65, 0.2), rgba(0, 200, 255, 0.2));
+            border: 1.5px solid var(--neon-green);
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--neon-green);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 0 15px rgba(0, 255, 65, 0.3);
+            animation: pulse-badge 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-badge {
+            0%, 100% { box-shadow: 0 0 15px rgba(0, 255, 65, 0.3); }
+            50% { box-shadow: 0 0 25px rgba(0, 255, 65, 0.6); }
+        }
+
+        /* ===== 要約セクション ===== */
+        .summary-section {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid rgba(0, 255, 65, 0.2);
+            border-radius: 8px;
+            border-left: 4px solid var(--neon-green);
+        }
+
+        .summary-section h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--neon-green);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .summary-points {
+            list-style: none;
+            padding: 0;
+        }
+
+        .summary-points li {
+            position: relative;
+            padding-left: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .summary-points li::before {
+            content: '▸';
+            position: absolute;
+            left: 0;
+            color: var(--neon-green);
+            font-weight: 700;
+        }
+
+        .summary-section p {
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* ===== 本文 ===== */
+        .article-content {
+            margin-bottom: 2rem;
+        }
+
+        .article-content p {
+            margin-bottom: 1.5rem;
+            line-height: 1.8;
+            font-size: 1.05rem;
+        }
+
+        .article-content h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--neon-green);
+            margin: 2rem 0 1rem;
+            padding-left: 1rem;
+            border-left: 4px solid var(--neon-green);
+            box-shadow: -5px 0 15px var(--green-glow);
+        }
+
+        .article-content strong {
+            color: var(--neon-green);
+            font-weight: 700;
+        }
+
+        .article-content ul {
+            margin-left: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .article-content li {
+            margin-bottom: 0.5rem;
+            line-height: 1.7;
+        }
+
+        /* ===== ソースリンク ===== */
+        .source-section {
+            margin-bottom: 2rem;
+            padding: 1rem 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid rgba(0, 255, 65, 0.2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .source-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .source-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            background: var(--neon-green);
+            color: #000;
+            border-radius: 6px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px var(--green-glow);
+        }
+
+        .source-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px var(--green-glow-strong);
+        }
+
+        /* ===== コメント ===== */
+        .comments-section {
+            margin-bottom: 2rem;
+        }
+
+        .comments-section h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--neon-green);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* ===== フッター ===== */
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            border-top: 1px solid rgba(0, 255, 65, 0.2);
+            margin-top: 2rem;
+        }
+
+        /* ===== 言語切替用の非表示 ===== */
+        [data-lang="en"] { display: none; }
+        body.lang-en [data-lang="ja"] { display: none; }
+        body.lang-en [data-lang="en"] { display: block; }
+
+        /* 一部inline要素の場合 */
+        span[data-lang="en"] { display: none; }
+        body.lang-en span[data-lang="ja"] { display: none; }
+        body.lang-en span[data-lang="en"] { display: inline; }
+
+        /* ===== レスポンシブ ===== */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 0.8rem;
+                align-items: flex-start;
+            }
+
+            .article-title {
+                font-size: 1.3rem;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+
+            .source-section {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .container {
+            animation: fadeIn 0.6s ease-in;
+        }
+    </style>
+</head>
+<body>
+    <!-- ヘッダー -->
+    <header class="header">
+        <div class="header-content">
+            <div class="header-left">
+                <a href="/" class="back-btn">← <span data-lang="ja">ホームに戻る</span><span data-lang="en">Back to Home</span></a>
+                <a href="/" class="logo">GADGET HUNTER</a>
+            </div>
+            <div class="lang-switcher">
+                <button class="lang-btn active" data-lang="ja" onclick="switchLanguage('ja')">JA</button>
+                <span class="lang-divider">|</span>
+                <button class="lang-btn" data-lang="en" onclick="switchLanguage('en')">EN</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 記事本体 -->
+    <main class="container">
+        <!-- メタ情報 -->
+        <div class="article-meta">
+            <span class="article-date">2026/03/28</span>
+            <span class="article-category">Gaming</span>
+        </div>
+
+        <!-- タイトル -->
+        <h1 class="article-title" data-lang="ja">Warframe、「Follie&#039;s Hunt」難易度調整のホットフィックスを配信 - プレイヤーのフィードバックに対応</h1>
+        <h1 class="article-title" data-lang="en">Warframe Hotfixes &quot;Follie&#039;s Hunt&quot; Difficulty After Player Backlash</h1>
+
+        <!-- リーク信頼度 -->
+        <div class="leak-score-container">
+            <div class="leak-score-label">
+                <span data-lang="ja">リーク信頼度</span>
+                <span data-lang="en">Leak Credibility</span>
+                <span class="leak-score-value">65%</span>
+            </div>
+            <div class="leak-score-bar">
+                <div class="leak-score-fill score-medium" style="width: 65%"></div>
+            </div>
+            
+        </div>
+
+        <!-- 要約 -->
+        <div class="summary-section">
+            <h2 data-lang="ja">📋 要約</h2>
+            <h2 data-lang="en">📋 Summary</h2>
+            <div data-lang="ja"><ul class="summary-points"><li>Digital ExtremesがWarframeの「The Shadowgrapher」アップデートを配信し、新ゲームモード「Follie&#039;s Hunt」を導入。</li><li>プレイヤーから「Follie&#039;s Hunt」の難易度、特に敵の無敵性に対する不満が噴出。</li><li>開発元はフィードバックを受け、Folliesの無敵解除、ダメージ低下、資源視認性向上を含むホットフィックスを適用。</li></ul></div>
+            <div data-lang="en"><ul class="summary-points"><li>Digital Extremes launched Warframe&#039;s &quot;The Shadowgrapher&quot; update, introducing the new &quot;Follie&#039;s Hunt&quot; game mode.</li><li>Players voiced strong complaints regarding &quot;Follie&#039;s Hunt&quot; difficulty, specifically the invulnerable foes.</li><li>Developer issued a hotfix removing Follies&#039; invulnerability, reducing damage, and improving resource visibility.</li></ul></div>
+        </div>
+
+        <!-- 本文 -->
+        <div class="article-content" data-lang="ja">
+            <p>Digital Extremesは先日、人気SFアクションRPG「Warframe」の「The Shadowgrapher」アップデートを全プラットフォーム向けに配信し、新たなクエスト、Warframe、そして「Follie's Hunt」モードを導入しました。</p><p>しかし、アップデート直後から、プレイヤーコミュニティからは新モードの難易度、特に「倒せない敵」に対する不満が噴出し、一部からは「ほとんどのプレイヤーにとってクリア不可能」との声も上がっていました。</p><p>これを受け、Digital Extremesは迅速にホットフィックスを配信し、「Follie's Hunt」の調整を実施しました。開発元は、このフィードバックを「通常のWarframeゲームプレイからの逸脱」におけるデザインの不一致と説明。今回のホットフィックスにより、Folliesは一時的に無敵ではなくなり、十分なダメージを与えれば退却するようになります。また、Follieのオーラダメージが軽減され、Inky Wallsもプレイヤーにダメージやノックダウンを与えなくなり、生存性が向上。さらに、資源「Atramentum」の視認性が高まり、収集が容易になるなど、全般的な難易度緩和が図られています。</p><h3>中の人の本音 (JP)</h3><p>Warframeの「Follie's Hunt」モード、やっぱり難しすぎたみたいですね。正直、ゲームの難易度調整ってめちゃくちゃ難しいと思うんですよ。開発側としては挑戦的なデザインにしたかったのかもしれないですけど、プレイヤーがストレス感じちゃったら意味ないですしね。</p>
+        </div>
+        <div class="article-content" data-lang="en">
+            <p>Digital Extremes recently launched "The Shadowgrapher" update for the popular sci-fi action RPG Warframe across all platforms, introducing a new quest, Warframe, and the "Follie's Hunt" game mode.</p><p>However, immediately following the update, the player community raised significant concerns regarding the new mode's difficulty, particularly the "unkillable foe," with some even claiming it was "impossible for most players to complete."</p><p>In response, Digital Extremes swiftly deployed a hotfix to adjust "Follie's Hunt." The developer described the feedback as a "design mismatch" from regular Warframe gameplay. The hotfix removes the temporary invulnerability of Follies, allowing them to retreat if enough damage is dealt. Follie's Aura damage has been reduced, and Inky Walls no longer inflict damage or knockdown, enhancing player survivability. Additionally, resources like Atramentum balloons are now easier to spot and gather, aiming for a more approachable overall difficulty.</p><h3>Review (EN)</h3><p>Devs listened to player feedback for Warframe's 'Follie's Hunt' difficulty. Love to see quick fixes! 👍</p>
+        </div>
+
+        <!-- ソースリンク -->
+        
+        <div class="source-section">
+            <span class="source-label" data-lang="ja">📎 元記事を確認する</span>
+            <span class="source-label" data-lang="en">📎 View original source</span>
+            <a href="https://www.techpowerup.com/347810/digital-extremes-updates-warframes-follies-hunt-game-mode-after-backlash" target="_blank" rel="noopener noreferrer" class="source-link">
+                <span data-lang="ja">元記事を見る ↗</span>
+                <span data-lang="en">View Source ↗</span>
+            </a>
+        </div>
+
+        <!-- コメント（Utterances） -->
+        <div class="comments-section">
+            <h2 data-lang="ja">💬 コメント</h2>
+            <h2 data-lang="en">💬 Comments</h2>
+            <div id="utterances-container"></div>
+        </div>
+    </main>
+
+    <!-- フッター -->
+    <footer class="footer">
+        <span data-lang="ja">Gadget Hunter - すべてのリークは公開情報に基づいています</span>
+        <span data-lang="en">Gadget Hunter - All leaks are based on publicly available information</span>
+    </footer>
+
+    <script>
+        // 言語設定
+        let currentLang = localStorage.getItem('lang') || 'ja';
+        
+        function switchLanguage(lang) {
+            if (lang === currentLang) return;
+            currentLang = lang;
+            localStorage.setItem('lang', lang);
+            
+            if (lang === 'en') {
+                document.body.classList.add('lang-en');
+            } else {
+                document.body.classList.remove('lang-en');
+            }
+            
+            // ボタンのアクティブ状態を更新
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.lang === lang);
+            });
+        }
+        
+        // 初期化
+        document.addEventListener('DOMContentLoaded', () => {
+            // 保存された言語を適用
+            if (currentLang === 'en') {
+                document.body.classList.add('lang-en');
+            }
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.lang === currentLang);
+            });
+            
+            // Utterances コメント欄を読み込む
+            const articleUrl = 'https://www.techpowerup.com/347810/digital-extremes-updates-warframes-follies-hunt-game-mode-after-backlash';
+            if (articleUrl) {
+                const container = document.getElementById('utterances-container');
+                const script = document.createElement('script');
+                script.src = 'https://utteranc.es/client.js';
+                script.setAttribute('repo', 'chinodevcontact-ops/gadget-hunter');
+                script.setAttribute('issue-term', articleUrl);
+                script.setAttribute('theme', 'github-dark');
+                script.setAttribute('crossorigin', 'anonymous');
+                script.async = true;
+                container.appendChild(script);
+            }
+        });
+    </script>
+</body>
+</html>
