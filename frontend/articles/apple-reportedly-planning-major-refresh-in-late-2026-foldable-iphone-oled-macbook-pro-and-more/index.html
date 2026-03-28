@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    
+    <!-- CSP -->
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self';
+        script-src 'self' 'unsafe-inline' https://utteranc.es https://cdn.jsdelivr.net;
+        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+        font-src 'self' https://fonts.gstatic.com;
+        img-src 'self' data: https:;
+        connect-src 'self' https://api.exchangerate-api.com;
+        frame-src https://utteranc.es;
+        base-uri 'self';
+        form-action 'none';
+    ">
+    
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+    
+    <title>Apple、折りたたみiPhoneからOLED搭載MacBook Proまで、2026年後半の大型刷新を計画か | GADGET HUNTER</title>
+    
+    <!-- OGP -->
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Apple、折りたたみiPhoneからOLED搭載MacBook Proまで、2026年後半の大型刷新を計画か">
+    <meta property="og:description" content="• iPhone 18 ProシリーズはA20 Proチップ、小型Dynamic Island、折りたたみiPhoneは7.7インチOLED搭載と予測される。 • MacBook Proは2026年末にOLEDディスプレイ、タッチスクリーン、M6 Pro/Maxチップで大規模な再設計を控える。 • ...">
+    <meta property="og:url" content="https://gadget-hunter-xi.vercel.app/articles/apple-reportedly-planning-major-refresh-in-late-2026-foldable-iphone-oled-macbook-pro-and-more">
+    <meta property="og:image" content="https://gadget-hunter-xi.vercel.app/ogp-default.svg">
+    <meta property="og:site_name" content="GADGET HUNTER">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Apple、折りたたみiPhoneからOLED搭載MacBook Proまで、2026年後半の大型刷新を計画か">
+    <meta name="twitter:description" content="• iPhone 18 ProシリーズはA20 Proチップ、小型Dynamic Island、折りたたみiPhoneは7.7インチOLED搭載と予測される。 • MacBook Proは2026年末にOLEDディスプレイ、タッチスクリーン、M6 Pro/Maxチップで大規模な再設計を控える。 • ...">
+    <meta name="twitter:image" content="https://gadget-hunter-xi.vercel.app/ogp-default.svg">
+    <link rel="canonical" href="https://gadget-hunter-xi.vercel.app/articles/apple-reportedly-planning-major-refresh-in-late-2026-foldable-iphone-oled-macbook-pro-and-more">
+    <meta name="description" content="• iPhone 18 ProシリーズはA20 Proチップ、小型Dynamic Island、折りたたみiPhoneは7.7インチOLED搭載と予測される。 • MacBook Proは2026年末にOLEDディスプレイ、タッチスクリーン、M6 Pro/Maxチップで大規模な再設計を控える。 • ...">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --bg-primary: #000000;
+            --bg-secondary: #0a0a0a;
+            --bg-card: #111111;
+            --neon-green: #00ff41;
+            --cyber-green: #00ff41;
+            --dark-green: #00aa2b;
+            --text-primary: #e8e8f0;
+            --text-secondary: #a0a0b8;
+            --green-glow: rgba(0, 255, 65, 0.4);
+            --green-glow-strong: rgba(0, 255, 65, 0.6);
+        }
+
+        body {
+            font-family: 'Roboto Mono', monospace;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(circle at 20% 50%, rgba(0, 255, 65, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(0, 255, 65, 0.03) 0%, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        /* ===== ヘッダー ===== */
+        .header {
+            background: rgba(10, 10, 10, 0.95);
+            border-bottom: 2px solid var(--neon-green);
+            box-shadow: 0 0 20px var(--green-glow);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            backdrop-filter: blur(15px) saturate(180%);
+            -webkit-backdrop-filter: blur(15px) saturate(180%);
+        }
+
+        .header-content {
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 255, 65, 0.1);
+            border: 1px solid rgba(0, 255, 65, 0.3);
+            border-radius: 6px;
+            color: var(--neon-green);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            min-height: 40px;
+        }
+
+        .back-btn:hover {
+            background: var(--neon-green);
+            color: #000;
+            box-shadow: 0 0 15px var(--green-glow);
+        }
+
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: var(--neon-green);
+            text-shadow: 0 0 30px var(--green-glow);
+            letter-spacing: 2px;
+            text-decoration: none;
+        }
+
+        .lang-switcher {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: 2px solid rgba(0, 255, 65, 0.3);
+            color: var(--text-secondary);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            min-height: 36px;
+        }
+
+        .lang-btn:hover {
+            border-color: var(--neon-green);
+            color: var(--neon-green);
+        }
+
+        .lang-btn.active {
+            background: var(--neon-green);
+            color: #000;
+            border-color: var(--neon-green);
+            box-shadow: 0 0 15px var(--green-glow-strong);
+        }
+
+        .lang-divider {
+            color: rgba(0, 255, 65, 0.5);
+            font-size: 1rem;
+        }
+
+        /* ===== 記事コンテナ ===== */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+
+        /* ===== 記事メタ情報 ===== */
+        .article-meta {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .article-date {
+            color: var(--neon-green);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 0.3rem 0.8rem;
+            background: rgba(0, 255, 65, 0.1);
+            border-radius: 4px;
+            border: 1px solid rgba(0, 255, 65, 0.3);
+        }
+
+        .article-category {
+            padding: 0.3rem 0.8rem;
+            background: rgba(0, 255, 65, 0.15);
+            border: 1px solid rgba(0, 255, 65, 0.4);
+            border-radius: 4px;
+            color: var(--neon-green);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+
+        /* ===== タイトル ===== */
+        .article-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: var(--neon-green);
+            line-height: 1.3;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 0 20px var(--green-glow);
+        }
+
+        /* ===== リーク信頼度 ===== */
+        .leak-score-container {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: var(--bg-card);
+            border: 1px solid rgba(0, 255, 65, 0.2);
+            border-radius: 8px;
+        }
+
+        .leak-score-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .leak-score-value {
+            color: var(--neon-green);
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .leak-score-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(0, 255, 65, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .leak-score-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.8s ease;
+            box-shadow: 0 0 15px currentColor;
+        }
+
+        .score-low { background: #ff3333; color: #ff3333; }
+        .score-medium { background: #ffaa00; color: #ffaa00; }
+        .score-high { background: var(--neon-green); color: var(--neon-green); }
+
+        .multi-source-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            margin-top: 0.8rem;
+            padding: 0.4rem 0.8rem;
+            background: linear-gradient(135deg, rgba(0, 255, 65, 0.2), rgba(0, 200, 255, 0.2));
+            border: 1.5px solid var(--neon-green);
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--neon-green);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 0 15px rgba(0, 255, 65, 0.3);
+            animation: pulse-badge 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-badge {
+            0%, 100% { box-shadow: 0 0 15px rgba(0, 255, 65, 0.3); }
+            50% { box-shadow: 0 0 25px rgba(0, 255, 65, 0.6); }
+        }
+
+        /* ===== 要約セクション ===== */
+        .summary-section {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid rgba(0, 255, 65, 0.2);
+            border-radius: 8px;
+            border-left: 4px solid var(--neon-green);
+        }
+
+        .summary-section h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--neon-green);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .summary-points {
+            list-style: none;
+            padding: 0;
+        }
+
+        .summary-points li {
+            position: relative;
+            padding-left: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .summary-points li::before {
+            content: '▸';
+            position: absolute;
+            left: 0;
+            color: var(--neon-green);
+            font-weight: 700;
+        }
+
+        .summary-section p {
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* ===== 本文 ===== */
+        .article-content {
+            margin-bottom: 2rem;
+        }
+
+        .article-content p {
+            margin-bottom: 1.5rem;
+            line-height: 1.8;
+            font-size: 1.05rem;
+        }
+
+        .article-content h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--neon-green);
+            margin: 2rem 0 1rem;
+            padding-left: 1rem;
+            border-left: 4px solid var(--neon-green);
+            box-shadow: -5px 0 15px var(--green-glow);
+        }
+
+        .article-content strong {
+            color: var(--neon-green);
+            font-weight: 700;
+        }
+
+        .article-content ul {
+            margin-left: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .article-content li {
+            margin-bottom: 0.5rem;
+            line-height: 1.7;
+        }
+
+        /* ===== ソースリンク ===== */
+        .source-section {
+            margin-bottom: 2rem;
+            padding: 1rem 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid rgba(0, 255, 65, 0.2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .source-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .source-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            background: var(--neon-green);
+            color: #000;
+            border-radius: 6px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px var(--green-glow);
+        }
+
+        .source-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px var(--green-glow-strong);
+        }
+
+        /* ===== コメント ===== */
+        .comments-section {
+            margin-bottom: 2rem;
+        }
+
+        .comments-section h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--neon-green);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* ===== フッター ===== */
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            border-top: 1px solid rgba(0, 255, 65, 0.2);
+            margin-top: 2rem;
+        }
+
+        /* ===== 言語切替用の非表示 ===== */
+        [data-lang="en"] { display: none; }
+        body.lang-en [data-lang="ja"] { display: none; }
+        body.lang-en [data-lang="en"] { display: block; }
+
+        /* 一部inline要素の場合 */
+        span[data-lang="en"] { display: none; }
+        body.lang-en span[data-lang="ja"] { display: none; }
+        body.lang-en span[data-lang="en"] { display: inline; }
+
+        /* ===== レスポンシブ ===== */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 0.8rem;
+                align-items: flex-start;
+            }
+
+            .article-title {
+                font-size: 1.3rem;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+
+            .source-section {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .container {
+            animation: fadeIn 0.6s ease-in;
+        }
+    </style>
+</head>
+<body>
+    <!-- ヘッダー -->
+    <header class="header">
+        <div class="header-content">
+            <div class="header-left">
+                <a href="/" class="back-btn">← <span data-lang="ja">ホームに戻る</span><span data-lang="en">Back to Home</span></a>
+                <a href="/" class="logo">GADGET HUNTER</a>
+            </div>
+            <div class="lang-switcher">
+                <button class="lang-btn active" data-lang="ja" onclick="switchLanguage('ja')">JA</button>
+                <span class="lang-divider">|</span>
+                <button class="lang-btn" data-lang="en" onclick="switchLanguage('en')">EN</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 記事本体 -->
+    <main class="container">
+        <!-- メタ情報 -->
+        <div class="article-meta">
+            <span class="article-date">2026/03/28</span>
+            <span class="article-category">Laptop</span>
+        </div>
+
+        <!-- タイトル -->
+        <h1 class="article-title" data-lang="ja">Apple、折りたたみiPhoneからOLED搭載MacBook Proまで、2026年後半の大型刷新を計画か</h1>
+        <h1 class="article-title" data-lang="en">Apple Reportedly Planning Major Refresh in Late 2026: Foldable iPhone, OLED MacBook Pro, and More</h1>
+
+        <!-- リーク信頼度 -->
+        <div class="leak-score-container">
+            <div class="leak-score-label">
+                <span data-lang="ja">リーク信頼度</span>
+                <span data-lang="en">Leak Credibility</span>
+                <span class="leak-score-value">65%</span>
+            </div>
+            <div class="leak-score-bar">
+                <div class="leak-score-fill score-medium" style="width: 65%"></div>
+            </div>
+            
+        </div>
+
+        <!-- 要約 -->
+        <div class="summary-section">
+            <h2 data-lang="ja">📋 要約</h2>
+            <h2 data-lang="en">📋 Summary</h2>
+            <div data-lang="ja"><ul class="summary-points"><li>iPhone 18 ProシリーズはA20 Proチップ、小型Dynamic Island、折りたたみiPhoneは7.7インチOLED搭載と予測される。</li><li>MacBook Proは2026年末にOLEDディスプレイ、タッチスクリーン、M6 Pro/Maxチップで大規模な再設計を控える。</li><li>iPad miniはOLEDディスプレイとA19 Pro/A20 Proチップで刷新、Apple TVやHomePodも新Siri・Wi-Fi 7に対応予定。</li></ul></div>
+            <div data-lang="en"><ul class="summary-points"><li>iPhone 18 Pro series expected with A20 Pro chip, smaller Dynamic Island; Foldable iPhone with 7.7-inch OLED.</li><li>MacBook Pro to undergo major redesign in late 2026, featuring OLED display, touch screen, and M6 Pro/Max chips.</li><li>iPad mini to be refreshed with OLED and A19 Pro/A20 Pro chips; Apple TV, HomePods to support new Siri, Wi-Fi 7.</li></ul></div>
+        </div>
+
+        <!-- 本文 -->
+        <div class="article-content" data-lang="ja">
+            <p>Appleは今年後半にかけて、広範な製品ラインアップの刷新を計画していると報じられています。</p><p>主要なiPhoneシリーズでは、<strong>iPhone 18 Pro</strong>および<strong>Pro Max</strong>が<strong>A20 Proチップ</strong>と小型化されたDynamic Islandを搭載し、Apple設計の<strong>C2モデム</strong>による5G通信に対応する見込みです。注目される<strong>折りたたみiPhone</strong>は、7.7インチの内部ディスプレイと5.3インチの外部ディスプレイを備え、<strong>iOS 27</strong>でiPadのようなマルチタスク機能が最適化されると予測されています。</p><p>Mac製品群では、特に<strong>MacBook Pro</strong>が2026年末に大規模な再設計を受け、<strong>M6 Pro/Maxチップ</strong>と共に<strong>OLEDディスプレイ</strong>と<strong>タッチスクリーン</strong>を搭載する点が挙げられます。これにより、<strong>macOS 27</strong>がタッチ操作に最適化される可能性が高いです。iPad miniもOLEDディスプレイと強化されたAシリーズチップ（A19 ProまたはA20 Pro）で刷新される一方、Apple TVやHomePodシリーズは、よりパーソナライズされたSiriと<strong>Wi-Fi 7</strong>に対応し、スマートホーム製品の拡充が図られる見込みです。</p><h3>中の人の本音 (JP)</h3><p>正直、Androidゲーマーの僕としてはAppleのニュースはいつも遠い存在なんですが、情報工学を学んでる身としては、技術的なアプローチは興味深いですね。
+
+折りたたみiPhoneは、SamsungとかXiaomiとかが先行してる中で、Appleがどういう体験を提案してくるのかは注目です。iOS 27でマルチタスクに本気出すって言うなら、Androidにはない独自性を見せてほしいですね。
+
+MacBook ProのOLED化とタッチスクリーンは、Appleにしてはかなり大胆な動きだなと感じました。でも、M6 Pro/Maxチップ搭載で2026年末発表となると、価格は一体いくらになるんでしょうか（笑）。きっと僕の「10万円前後が許容範囲」なんて予算感は軽くオーバーして、20万円どころか30万円超えの「無理ゲー」価格帯になるんでしょうね。Macでゲームはタイトルも少ないですし、純粋なゲーミングPCの「円パフォーマンス」で考えたら、僕の7800X3DとRX 9070 XTの環境の方がよっぽどコスパ最強だと個人的には思います。
+
+Apple TVとかHomePod周りは、スマートホーム系の進化は正直あまり興味ないです。僕としては、快適なゲーム環境とプログラミングに集中できるPCがあれば十分なので。
+
+それでも、ASUSがスマホ事業を戦略的休眠に入れたりする中で、Appleがこれだけ大規模に製品ラインナップを刷新しようとするのは、ブランド信仰だけでは通用しない時代の流れを感じているのかもしれませんね。技術的にはすごいんだろうけど、やっぱり僕にとっては「ロマン枠」止まりかなぁという印象です。</p>
+        </div>
+        <div class="article-content" data-lang="en">
+            <p>Apple is reportedly planning an extensive refresh of its product lineup later this year.</p><p>For the flagship iPhone series, the <strong>iPhone 18 Pro</strong> and <strong>Pro Max</strong> are expected to feature the <strong>A20 Pro chip</strong>, a smaller Dynamic Island, and Apple's custom-designed <strong>C2 modem</strong> for 5G connectivity. The highly anticipated <strong>Foldable iPhone</strong> is rumored to include a 7.7-inch inner display and a 5.3-inch outer display, with <strong>iOS 27</strong> optimized for iPad-like multitasking functionality.</p><p>In the Mac category, the <strong>MacBook Pro</strong> is projected for a significant redesign towards the end of 2026, incorporating an <strong>OLED display</strong>, a <strong>touch screen</strong>, and <strong>M6 Pro/Max chips</strong>. This suggests that <strong>macOS 27</strong> will be tailored for touch interaction. The iPad mini is also slated for a refresh with an OLED display and enhanced A-series chips (A19 Pro or A20 Pro). Furthermore, Apple TV and HomePod series are expected to support a more personalized Siri and <strong>Wi-Fi 7</strong>, indicating an expansion in Apple's smart home offerings.</p><h3>Review (EN)</h3><p>Apple's folding iPhone & OLED MacBook Pro sound technically cool, but my wallet's not ready. 💸 As an AMD gamer, my 7800X3D + RX 9070 XT PC offers way better perf/yen. Apple's just too expensive for me. 😅</p>
+        </div>
+
+        <!-- ソースリンク -->
+        
+        <div class="source-section">
+            <span class="source-label" data-lang="ja">📎 元記事を確認する</span>
+            <span class="source-label" data-lang="en">📎 View original source</span>
+            <a href="https://www.macrumors.com/2026/03/27/apple-to-launch-15-products-later-this-year/" target="_blank" rel="noopener noreferrer" class="source-link">
+                <span data-lang="ja">元記事を見る ↗</span>
+                <span data-lang="en">View Source ↗</span>
+            </a>
+        </div>
+
+        <!-- コメント（Utterances） -->
+        <div class="comments-section">
+            <h2 data-lang="ja">💬 コメント</h2>
+            <h2 data-lang="en">💬 Comments</h2>
+            <div id="utterances-container"></div>
+        </div>
+    </main>
+
+    <!-- フッター -->
+    <footer class="footer">
+        <span data-lang="ja">Gadget Hunter - すべてのリークは公開情報に基づいています</span>
+        <span data-lang="en">Gadget Hunter - All leaks are based on publicly available information</span>
+    </footer>
+
+    <script>
+        // 言語設定
+        let currentLang = localStorage.getItem('lang') || 'ja';
+        
+        function switchLanguage(lang) {
+            if (lang === currentLang) return;
+            currentLang = lang;
+            localStorage.setItem('lang', lang);
+            
+            if (lang === 'en') {
+                document.body.classList.add('lang-en');
+            } else {
+                document.body.classList.remove('lang-en');
+            }
+            
+            // ボタンのアクティブ状態を更新
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.lang === lang);
+            });
+        }
+        
+        // 初期化
+        document.addEventListener('DOMContentLoaded', () => {
+            // 保存された言語を適用
+            if (currentLang === 'en') {
+                document.body.classList.add('lang-en');
+            }
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.lang === currentLang);
+            });
+            
+            // Utterances コメント欄を読み込む
+            const articleUrl = 'https://www.macrumors.com/2026/03/27/apple-to-launch-15-products-later-this-year/';
+            if (articleUrl) {
+                const container = document.getElementById('utterances-container');
+                const script = document.createElement('script');
+                script.src = 'https://utteranc.es/client.js';
+                script.setAttribute('repo', 'chinodevcontact-ops/gadget-hunter');
+                script.setAttribute('issue-term', articleUrl);
+                script.setAttribute('theme', 'github-dark');
+                script.setAttribute('crossorigin', 'anonymous');
+                script.async = true;
+                container.appendChild(script);
+            }
+        });
+    </script>
+</body>
+</html>
