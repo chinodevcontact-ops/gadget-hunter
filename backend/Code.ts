@@ -28,7 +28,7 @@
 // ▼ 設定定数
 const JSON_FILE_NAME = 'news.json';
 const MY_WEBSITE_URL = 'https://gadget-hunter-xi.vercel.app/';
-const MODEL_NAME = 'gemini-2.5-flash';
+const MODEL_NAME = 'gemma-3-27b-it';
 
 // ▼ データクリーンアップ設定
 const CLEANUP_DAYS_TO_KEEP = 30; // 30日以上古い記事を削除
@@ -312,7 +312,7 @@ function fetchAndSummarizeToSheet() {
   console.log(`🤖 System Online: ${MODEL_NAME} (v14.1-JSDoc)`);
 
   let apiCallCount = 0;
-  const MAX_API_CALLS = 20;  // gemini-2.5-flash: 10 RPM → 6分制限内で約20件処理可能
+  const MAX_API_CALLS = 20;  // gemma-3-27b-it: レート制限に合わせ 6分制限内で約20件まで
   let rateLimitHit = false;  // 429検知フラグ
 
   for (const site of TARGETS) {
@@ -450,7 +450,7 @@ function fetchAndSummarizeToSheet() {
         ]);
 
         if (!rateLimitHit && apiCallCount < MAX_API_CALLS) {
-          humanLikeSleep(10000, 15000); // 10〜15秒待機（gemini-2.5-flash: 10 RPM対応）
+          humanLikeSleep(10000, 15000); // 10〜15秒待機（レート制限対応）
         }
       }
     } catch (e) {
@@ -757,7 +757,7 @@ function retryFailedArticles(maxRowsToCheck = null) {
         logError('Retry', 'ARTICLE_RETRY', e, `記事: ${(row[1] || 'Unknown').toString().substring(0, 50)}`);
       }
 
-      humanLikeSleep(12000, 18000); // 12〜18秒待機（gemini-2.5-flash: 10 RPM対応）
+      humanLikeSleep(12000, 18000); // 12〜18秒待機（レート制限対応）
     }
   }
 
@@ -927,7 +927,8 @@ function checkAndTweetNewArticles() {
   const lastRow = sheet.getLastRow();
   if (lastRow < 2) return;
 
-  const range = sheet.getRange(2, 1, lastRow - 1, 10);
+  // 最終行まで含める（lastRow-1 だと新着が最下行のときスキャン外になり、キューに載らない）
+  const range = sheet.getRange(2, 1, lastRow, 10);
   const data = range.getValues();
 
   const PRIORITY_REGEX = /RTX|GTX|GeForce|NVIDIA|Radeon|AMD|Ryzen|Intel|Core|GPU|CPU|Motherboard|ASRock|ASUS|MSI|GIGABYTE|ZOTAC|Kopite7kimi|Leak|Spec/i;
@@ -1470,6 +1471,102 @@ function extractDomain(u) {
 
 function getRecentHistory(s) {
   return { text: "", count: 0 };
+}
+
+// ----------------------------------------------------
+// 🧪 X投稿テスト関数（GASエディタから直接実行可能）
+// ----------------------------------------------------
+/**
+ * X（Twitter）への投稿が正常に動作するかテストする関数
+ * GASエディタで testXPost() を実行すると、テストツイートを投稿して結果を確認できる
+ * ※ 投稿後に自動削除はしないので、手動で削除してください
+ */
+function testXPost() {
+  const testText = `🧪 GADGET HUNTER 動作テスト\nTimestamp: ${new Date().toISOString()}\n#GadgetHunter #test`;
+
+  console.log('🚀 X投稿テストを開始...');
+  console.log(`📝 テスト本文: ${testText}`);
+
+  try {
+    const TWITTER_API_KEY = getConfig('TWITTER_API_KEY');
+    const TWITTER_API_SECRET = getConfig('TWITTER_API_SECRET');
+    const TWITTER_ACCESS_TOKEN = getConfig('TWITTER_ACCESS_TOKEN');
+    const TWITTER_ACCESS_SECRET = getConfig('TWITTER_ACCESS_SECRET');
+
+    const url = "https://api.twitter.com/2/tweets";
+    const payload = { "text": testText };
+
+    const oauthParams = {
+      oauth_consumer_key: TWITTER_API_KEY,
+      oauth_token: TWITTER_ACCESS_TOKEN,
+      oauth_signature_method: "HMAC-SHA1",
+      oauth_timestamp: Math.floor(Date.now() / 1000).toString(),
+      oauth_nonce: generateSecureNonce(),
+      oauth_version: "1.0"
+    };
+
+    const signature = createSignature("POST", url, oauthParams, TWITTER_API_SECRET, TWITTER_ACCESS_SECRET);
+    oauthParams.oauth_signature = signature;
+
+    const authHeader = "OAuth " + Object.keys(oauthParams).map(k =>
+      encodeURIComponent(k) + '="' + encodeURIComponent(oauthParams[k]) + '"'
+    ).join(", ");
+
+    const response = UrlFetchApp.fetch(url, {
+      method: "post",
+      headers: { "Authorization": authHeader, "Content-Type": "application/json" },
+      payload: JSON.stringify(payload),
+      muteHttpExceptions: true
+    });
+
+    const statusCode = response.getResponseCode();
+    const responseBody = response.getContentText();
+
+    console.log(`📡 HTTP Status: ${statusCode}`);
+    console.log(`📄 Response Body: ${responseBody}`);
+
+    if (statusCode === 201 || statusCode === 200) {
+      const responseData = JSON.parse(responseBody);
+      if (responseData.data && responseData.data.id) {
+        console.log(`✅ 投稿成功！ Tweet ID: ${responseData.data.id}`);
+        console.log(`🔗 URL: https://x.com/i/status/${responseData.data.id}`);
+      }
+    } else {
+      console.log('❌ 投稿失敗。上記のレスポンスを確認してください。');
+      console.log('💡 よくあるエラー:');
+      console.log('   401 → APIキーまたはOAuth署名が無効');
+      console.log('   403 → アプリの権限不足（Read+Write必要）/ アカウント制限');
+      console.log('   429 → Rate Limit超過');
+    }
+  } catch (e) {
+    console.error(`❌ エラー: ${e.message}`);
+  }
+}
+
+/**
+ * X API認証のみを確認（投稿はしない）
+ * GAS スクリプトプロパティに必要なキーが設定されているかチェック
+ */
+function checkXApiConfig() {
+  const keys = ['TWITTER_API_KEY', 'TWITTER_API_SECRET', 'TWITTER_ACCESS_TOKEN', 'TWITTER_ACCESS_SECRET'];
+  let allOk = true;
+
+  console.log('🔑 X API 設定チェック...');
+  for (const key of keys) {
+    const value = getConfig(key);
+    if (value) {
+      console.log(`  ✅ ${key}: 設定済み (${value.substring(0, 4)}...)`);
+    } else {
+      console.log(`  ❌ ${key}: 未設定`);
+      allOk = false;
+    }
+  }
+
+  if (allOk) {
+    console.log('✅ 全てのAPIキーが設定されています。testXPost() で実際の投稿テストが可能です。');
+  } else {
+    console.log('❌ 未設定のキーがあります。GASエディタの「プロジェクトの設定」→「スクリプトプロパティ」で設定してください。');
+  }
 }
 
 // ----------------------------------------------------

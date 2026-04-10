@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GADGET HUNTER 投稿承認</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --card: #161b22;
+      --border: #30363d;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --accent: #58a6ff;
+      --success: #3fb950;
+      --danger: #f85149;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 16px;
+      min-height: 100vh;
+    }
+    h1 {
+      font-size: 1.5rem;
+      margin: 0 0 8px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .sub {
+      color: var(--muted);
+      font-size: 0.875rem;
+      margin-bottom: 20px;
+    }
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    button {
+      cursor: pointer;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 14px;
+      font-size: 0.875rem;
+      background: var(--card);
+      color: var(--text);
+    }
+    button:hover { background: #21262d; }
+    button.primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    button.primary:hover { filter: brightness(1.1); }
+    button.danger {
+      background: transparent;
+      color: var(--danger);
+      border-color: var(--danger);
+    }
+    button.danger:hover { background: rgba(248,81,73,0.15); }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+    }
+    .card h3 {
+      margin: 0 0 6px 0;
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+    .card .meta {
+      color: var(--muted);
+      font-size: 0.75rem;
+      margin-bottom: 10px;
+    }
+    .card .preview {
+      font-size: 0.8rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: rgba(0,0,0,0.2);
+      padding: 10px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      max-height: 120px;
+      overflow-y: auto;
+    }
+    .card .type-badge {
+      display: inline-block;
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-bottom: 8px;
+    }
+    .card .type-badge.two_stage { background: #238636; color: #fff; }
+    .card .type-badge.quote { background: #8957e5; color: #fff; }
+    .card .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .empty {
+      text-align: center;
+      color: var(--muted);
+      padding: 40px 20px;
+    }
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      z-index: 100;
+      animation: fadeIn 0.2s ease;
+    }
+    .toast.success { background: var(--success); color: #fff; }
+    .toast.error { background: var(--danger); color: #fff; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .loading { opacity: 0.7; pointer-events: none; }
+  </style>
+</head>
+<body>
+  <h1>🦈 GADGET HUNTER 投稿承認</h1>
+  <p class="sub">承認待ちのツイートを確認して投稿 or 破棄</p>
+
+  <div class="toolbar">
+    <button type="button" class="primary" id="btnRefresh">🔄 一覧を更新</button>
+  </div>
+
+  <div id="list"></div>
+
+  <script>
+    function showToast(message, isError) {
+      var el = document.createElement('div');
+      el.className = 'toast ' + (isError ? 'error' : 'success');
+      el.textContent = message;
+      document.body.appendChild(el);
+      setTimeout(function() { el.remove(); }, 3000);
+    }
+
+    function render(list) {
+      var container = document.getElementById('list');
+      if (!list || list.length === 0) {
+        container.innerHTML = '<div class="empty">承認待ちはありません。GAS の checkAndTweetNewArticles でキューに追加されたものがここに表示されます。</div>';
+        return;
+      }
+      container.innerHTML = list.map(function(item) {
+        var typeLabel = item.type === 'quote' ? 'Quote RT' : '2段階投稿';
+        var preview = item.mainText || '(本文なし)';
+        if (preview.length > 280) preview = preview.substring(0, 280) + '…';
+        return (
+          '<div class="card" data-id="' + item.id + '">' +
+            '<span class="type-badge ' + item.type + '">' + typeLabel + '</span>' +
+            '<h3>' + escapeHtml(item.title || '無題') + '</h3>' +
+            '<div class="meta">追加: ' + escapeHtml(item.createdAt) + '</div>' +
+            '<div class="preview">' + escapeHtml(preview) + '</div>' +
+            '<div class="actions">' +
+              '<button type="button" class="primary btn-approve" data-id="' + item.id + '">✅ 投稿する</button>' +
+              '<button type="button" class="danger btn-discard" data-id="' + item.id + '">🗑 破棄</button>' +
+            '</div>' +
+          '</div>'
+        );
+      }).join('');
+
+      container.querySelectorAll('.btn-approve').forEach(function(btn) {
+        btn.addEventListener('click', function() { onApprove(parseInt(this.getAttribute('data-id'), 10)); });
+      });
+      container.querySelectorAll('.btn-discard').forEach(function(btn) {
+        btn.addEventListener('click', function() { onDiscard(parseInt(this.getAttribute('data-id'), 10)); });
+      });
+    }
+
+    function escapeHtml(s) {
+      if (!s) return '';
+      var div = document.createElement('div');
+      div.textContent = s;
+      return div.innerHTML;
+    }
+
+    function setLoading(loading) {
+      document.body.classList.toggle('loading', loading);
+    }
+
+    function load() {
+      setLoading(true);
+      google.script.run
+        .withSuccessFunction(function(list) {
+          setLoading(false);
+          render(list);
+        })
+        .withFailureFunction(function(err) {
+          setLoading(false);
+          document.getElementById('list').innerHTML = '<div class="empty">読み込みに失敗しました: ' + escapeHtml(String(err)) + '</div>';
+        })
+        .getPendingTweets();
+    }
+
+    function onApprove(id) {
+      setLoading(true);
+      google.script.run
+        .withSuccessFunction(function(res) {
+          setLoading(false);
+          showToast(res.message, !res.ok);
+          if (res.ok) load();
+        })
+        .withFailureFunction(function(err) {
+          setLoading(false);
+          showToast('エラー: ' + String(err), true);
+        })
+        .approveAndPost(id);
+    }
+
+    function onDiscard(id) {
+      if (!confirm('このツイートを破棄しますか？')) return;
+      setLoading(true);
+      google.script.run
+        .withSuccessFunction(function() {
+          setLoading(false);
+          showToast('破棄しました');
+          load();
+        })
+        .withFailureFunction(function(err) {
+          setLoading(false);
+          showToast('エラー: ' + String(err), true);
+        })
+        .discardPending(id);
+    }
+
+    document.getElementById('btnRefresh').addEventListener('click', load);
+    load();
+  </script>
+</body>
+</html>
