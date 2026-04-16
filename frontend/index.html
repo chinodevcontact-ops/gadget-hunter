@@ -1138,7 +1138,6 @@
                 <div class="category-tag" data-category="Laptop">Laptop</div>
                 <div class="category-tag" data-category="Peripherals">Peripherals</div>
                 <div class="category-tag" data-category="Smartphone">Smartphone</div>
-                <div class="category-tag" data-category="Gaming">Gaming</div>
                 <div class="category-tag" data-category="AI">AI</div>
             </div>
         </div>
@@ -1473,26 +1472,6 @@
                 /\b5g\s+phone\b/i, /\bmobile\s+phone\b/i, /\brefresh\s+rate\b/i
             ];
 
-            // Gaming関連のキーワード
-            const gamingPatterns = [
-                // コンソール
-                /\bps[456]\b/i, /\bplaystation\s*[456]?\b/i, /\bxbox\s+(series\s+[xs]|one)?\b/i,
-                /\bnintendo\s+switch\b/i, /\bsteam\s+deck\b/i, /\bgaming\s+console\b/i,
-                // ゲームタイトル・ジャンル
-                /\bgta\s*\d*\b/i, /\bgrand\s+theft\s+auto\b/i, /\bcall\s+of\s+duty\b/i,
-                /\bfortnite\b/i, /\bminecraft\b/i, /\bvalorant\b/i, /\bleague\s+of\s+legends\b/i,
-                /\bapex\s+legends\b/i, /\bcounter[-\s]strike\b/i, /\boverwatch\b/i,
-                // ジャンル・用語
-                /\bvideo\s+game\b/i, /\bgameplay\b/i, /\besports\b/i, /\be-sports\b/i,
-                /\bfps\b/i, /\bmmorpg\b/i, /\bbattle\s+royale\b/i, /\brpg\s+game\b/i,
-                /\bgame\s+(trailer|release|launch)\b/i, /\bgaming\b/i,
-                // その他
-                /\brockstar\s+games\b/i, /\bactivision\b/i, /\bubisoft\b/i, /\bea\s+sports\b/i,
-                // 日本語（ゲーム）
-                /モンハン/i, /モンスターハンター/i, /ワイルズ/i, /ワイルド/i,
-                /ゲーム/i, /DLC/i, /パフォーマンス/i
-            ];
-
             // AI関連のキーワード（正規表現で単語境界を使用）
             const aiPatterns = [
                 // AIモデル・サービス
@@ -1515,7 +1494,6 @@
 
             // パターンマッチング（優先順位順）
             if (matchesAny(aiPatterns)) return 'AI';
-            if (matchesAny(gamingPatterns)) return 'Gaming';
             if (matchesAny(peripheralPatterns)) return 'Peripherals';
             if (matchesAny(smartphonePatterns)) return 'Smartphone';
             if (matchesAny(laptopPatterns)) return 'Laptop';
@@ -2045,7 +2023,6 @@
                     Laptop: 'ノートPC',
                     Peripherals: '周辺機器',
                     Smartphone: 'スマホ',
-                    Gaming: 'ゲーミング',
                     AI: 'AI'
                 },
                 loading: '復号化中...',
@@ -2069,7 +2046,6 @@
                     Laptop: 'Laptop',
                     Peripherals: 'Peripherals',
                     Smartphone: 'Smartphone',
-                    Gaming: 'Gaming',
                     AI: 'AI'
                 },
                 loading: 'Decrypting intel...',

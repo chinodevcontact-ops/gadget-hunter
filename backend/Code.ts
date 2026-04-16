@@ -40,11 +40,11 @@ const CLEANUP_MAX_ROWS = 300;    // 最大300行まで保持（ヘッダー除�
 // ==========================================
 const PERSONA_CONFIG = {
   age: 19,
-  pc: { cpu: 'Ryzen 7 7800X3D', gpu: 'RX 9070 XT' },
-  mobile: ['Poco X7 Pro', 'RedMagic Astra'],
+  pc: { cpu: '個人機材（非公開）', gpu: '個人機材（非公開）' },
+  mobile: ['Android端末（機種名は非公開）'],
   games: ['CoD Warzone', 'Minecraft', 'ARK: Survival Ascended'],
   philosophy: 'Performance per Yen > Brand Loyalty',
-  budget: { tooExpensive: '20万円', acceptable: '10万円前後', godTier: 'RX 9070 XT' },
+  budget: { tooExpensive: '20万円', acceptable: '10万円前後', godTier: 'コスパ重視モデル' },
   brands: {
     nvidia: '性能・最新技術・クリエイティブなら最強',
     amd: 'ゲーマーの味方、コスパ最強、AMDしか勝たん',
@@ -119,7 +119,9 @@ function humanLikeSleep(minMs, maxMs) {
 const STRICT_FILTER = {
   MIN_LENGTH: 20,
   REQUIRE_MEDIA_OR_TAG: true,
-  REQUIRED_KEYWORDS: /RTX|GTX|GeForce|Radeon|Ryzen|Core|Intel|AMD|Snapdragon|Dimensity|Exynos|Apple|M4|M5|A18|A19|GB|TB|MHz|GHz|Benchmark|Cinebench|Geekbench|3DMark|Leak|Rumor|Specs|Price|Release|Launch|Driver|Update|Windows|Android|iOS|AI|NVIDIA|TSMC|Samsung|Pixel|Xperia|ASUS|MSI/i
+  REQUIRED_KEYWORDS: /RTX|GTX|GeForce|Radeon|Ryzen|Core|Intel|AMD|Snapdragon|Dimensity|Exynos|Apple|M4|M5|A18|A19|GB|TB|MHz|GHz|Benchmark|Cinebench|Geekbench|3DMark|Leak|Rumor|Specs|Price|Release|Launch|Driver|Update|Windows|Android|iOS|AI|NVIDIA|TSMC|Samsung|Pixel|Xperia|ASUS|MSI|OpenAI|GPT|ChatGPT|Claude|Anthropic|Gemini|LLM|Llama|Mistral|Copilot/i,
+  // ゲーム系除外（広めにフィルター）
+  EXCLUDE_KEYWORDS: /\b(PS5|PS4|PlayStation|Xbox|Nintendo|Switch|Steam|Epic Games|GOG|Origin|Battle\.?net|Ubisoft|EA Sports|Activision|Blizzard|Rockstar|game|games|gaming|gamer|esports|e-sports|RPG|MMORPG|FPS|MOBA|battle royale|DLC|expansion pack|patch notes|season pass|loot box|microtransaction|playthrough|speedrun|walkthrough|boss fight|multiplayer|singleplayer|co-op|PvP|PvE|NPC|quest|level up|XP|achievement|trophy|Fortnite|Call of Duty|COD|Warzone|GTA|Grand Theft Auto|Minecraft|Elden Ring|Baldur|Starfield|Hogwarts|Diablo|World of Warcraft|WoW|League of Legends|LoL|Valorant|Apex Legends|PUBG|Overwatch|Cyberpunk|Assassin.*Creed|Final Fantasy|Zelda|Mario|Pokemon|Pokémon|Sonic|Halo|Destiny|Monster Hunter|Resident Evil|Silent Hill|Metal Gear|Dark Souls|Bloodborne|Sekiro|God of War|Spider-Man|Horizon|Ratchet|Uncharted|Last of Us|Ghost of Tsushima|Death Stranding|Persona|Yakuza|Like a Dragon|Tekken|Street Fighter|Mortal Kombat|Smash Bros|Animal Crossing|Splatoon|Kirby|Fire Emblem|Xenoblade|Metroid|Castlevania|Hollow Knight|Hades|Celeste|Stardew|Terraria|Palworld|Lethal Company|Among Us|Fall Guys|Rocket League|FIFA|NBA 2K|Madden|WWE|Gran Turismo|Forza|Need for Speed|Genshin|Honkai|Wuthering|Tower of Fantasy|Blue Archive|Arknights|Azur Lane|Fate.Grand|FGO|Nikke|Zenless|Reverse.1999)\b/i
 };
 
 /**
@@ -202,6 +204,115 @@ function findDuplicate(newTitle, recentTitles, threshold = 0.7) {
 }
 
 /**
+ * 型番・ダイ名・スペック値などの識別子を抽出（誤統合/誤生成の防止用）
+ * @param {string} text
+ * @return {string[]}
+ */
+function extractProductIdentifiers(text) {
+  if (!text) return [];
+  const patterns = [
+    /\b(?:RTX|GTX|RX)\s?\d{3,4}(?:\s?(?:TI|SUPER))?\b/gi,
+    /\b(?:GB|AD|GA|TU|NAVI)\d{2,4}(?:-[A-Za-z0-9]+){0,4}\b/gi,
+    /\b[A-Z]{2,6}\d{2,4}(?:-[A-Za-z0-9]+){1,4}\b/g,
+    /\bGDDR\d+X?\b/gi,
+    /\b\d{2,4}-?bit\b/gi,
+    /\b\d{2,4}\s?W(?:\s?TDP)?\b/gi,
+    /\b\d+\s?(?:GB|TB|MB)\b/gi,
+    /\b\d+\s?(?:FP32|CUDA|CU|SM|SP)\b/gi,
+    /\b\d+\s?(?:MHz|GHz)\b/gi,
+    /\bSnapdragon\s?\d{3,4}(?:\s?(?:Plus|Ultra|Elite))?\b/gi,
+    /\bDimensity\s?\d{3,4}(?:-[A-Za-z0-9]+)?\b/gi,
+    /\bExynos\s?\d{4}\b/gi,
+    /\bApple\s?[AM]\d{1,2}(?:\s?(?:Pro|Max|Ultra))?\b/gi
+  ];
+
+  const ids = new Set();
+  for (const pattern of patterns) {
+    const matches = text.match(pattern) || [];
+    for (const m of matches) {
+      ids.add(m.toUpperCase().replace(/\s+/g, ' ').trim());
+    }
+  }
+  return [...ids];
+}
+
+/**
+ * 既存記事との統合可否を判定
+ * @param {{title: string, desc: string}} incoming
+ * @param {{title: string, summary: string, content: string}} existing
+ * @return {boolean}
+ */
+function shouldMergeArticles(incoming, existing) {
+  const incomingIds = extractProductIdentifiers(`${incoming.title || ''} ${incoming.desc || ''}`);
+  const existingIds = extractProductIdentifiers(`${existing.title || ''} ${existing.summary || ''} ${existing.content || ''}`);
+
+  // 識別子が取れないケースは従来どおり統合許可
+  if (incomingIds.length === 0 || existingIds.length === 0) return true;
+
+  const existingSet = new Set(existingIds);
+  const overlap = incomingIds.filter(id => existingSet.has(id));
+  return overlap.length > 0;
+}
+
+/**
+ * 生成結果に情報源外の型番が混入していないか判定
+ * @param {GeminiResponse} generatedData
+ * @param {string} sourceTitle
+ * @param {string} sourceDesc
+ * @return {boolean}
+ */
+function hasIdentifierMismatch(generatedData, sourceTitle, sourceDesc) {
+  if (!generatedData) return false;
+  const sourceIds = extractProductIdentifiers(`${sourceTitle || ''} ${sourceDesc || ''}`);
+  if (sourceIds.length === 0) return false;
+
+  const generatedText = [
+    generatedData.title_jp || '',
+    generatedData.title_en || '',
+    Array.isArray(generatedData.summary_points) ? generatedData.summary_points.join(' ') : '',
+    Array.isArray(generatedData.summary_points_en) ? generatedData.summary_points_en.join(' ') : '',
+    generatedData.body_text || '',
+    generatedData.body_text_en || ''
+  ].join(' ');
+
+  const generatedIds = extractProductIdentifiers(generatedText);
+  if (generatedIds.length === 0) return false;
+
+  const sourceSet = new Set(sourceIds);
+  return generatedIds.some(id => !sourceSet.has(id));
+}
+
+/**
+ * 型番不整合を検知した際の安全なフォールバック生成
+ * @param {string} originalTitle
+ * @param {string} desc
+ * @return {GeminiResponse}
+ */
+function buildSafeFallbackFromSource(originalTitle, desc) {
+  const normalized = (desc || '').replace(/\s+/g, ' ').trim();
+  const sentences = normalized
+    .split(/[。.!?]\s*/)
+    .map(s => s.trim())
+    .filter(Boolean)
+    .slice(0, 3);
+
+  const summaryPoints = sentences.length > 0
+    ? sentences.map(s => s.substring(0, 120))
+    : ['情報源の本文を優先し、型番・数値は原文ベースで記載。'];
+
+  return {
+    title_jp: originalTitle || 'Source-based fallback',
+    title_en: originalTitle || 'Source-based fallback',
+    summary_points: summaryPoints,
+    summary_points_en: ['Source-based fallback due to identifier mismatch.'],
+    body_text: `<p>${escapeHtml(desc || '')}</p><p><em>※ 型番不一致を検知したため、原文ベースで表示しています。</em></p>`,
+    body_text_en: `<p>${escapeHtml(desc || '')}</p><p><em>Identifier mismatch detected. Source-based fallback applied.</em></p>`,
+    review_text: '型番の不一致を検知したため、推測を避けて原文ベースで整理しました。',
+    review_text_en: 'Identifier mismatch detected. Kept source facts only.'
+  };
+}
+
+/**
  * エラーログをスプレッドシートに記録（セキュリティ強化版）
  * @param {string} source エラー発生元（サイト名、関数名など）
  * @param {string} errorType エラーの種類（RSS_FETCH, API_CALL, TWITTER_POST など）
@@ -267,18 +378,19 @@ function fetchAndSummarizeToSheet() {
   const ss = SpreadsheetApp.openById(getConfig('SPREADSHEET_ID'));
   const sheet = ss.getSheets()[0];
 
-  // ヘッダー拡張
+  // ヘッダー拡張（13列目に元ソース追加）
   if (sheet.getLastRow() > 0) {
-    const header = sheet.getRange(1, 1, 1, 12).getValues()[0];
+    const header = sheet.getRange(1, 1, 1, 13).getValues()[0];
     if (header[7] !== '英語レビュー') sheet.getRange(1, 8).setValue('英語レビュー');
     if (header[8] !== '再試行済み') sheet.getRange(1, 9).setValue('再試行済み');
     if (header[9] !== 'タイトル(英)') sheet.getRange(1, 10).setValue('タイトル(英)');
     if (header[10] !== '要約(英)') sheet.getRange(1, 11).setValue('要約(英)');
     if (header[11] !== '本文(英)') sheet.getRange(1, 12).setValue('本文(英)');
+    if (header[12] !== '元ソース') sheet.getRange(1, 13).setValue('元ソース');
   } else {
     sheet.appendRow([
       '日付', 'タイトル', 'URL', '要約', '詳細本文', '注目度', 'ツイート状態',
-      '英語レビュー', '再試行済み', 'タイトル(英)', '要約(英)', '本文(英)'
+      '英語レビュー', '再試行済み', 'タイトル(英)', '要約(英)', '本文(英)', '元ソース'
     ]);
   }
 
@@ -296,23 +408,33 @@ function fetchAndSummarizeToSheet() {
   const recentTitles = getRecentTitles(sheet);
   console.log(`📊 過去24時間の記事数: ${recentTitles.length}件`);
 
+  // ガジェット系 + AI企業（ゲーム系は除外）
   const TARGETS = [
-    { name: 'Wccftech', url: 'https://wccftech.com/feed/' },
-    { name: 'MacRumors', url: 'https://www.macrumors.com/macrumors.xml' },
+    // GPU/CPU専門メディア
     { name: 'TechPowerUp', url: 'https://www.techpowerup.com/rss/news' },
     { name: 'VideoCardz', url: 'https://videocardz.com/feed' },
+    // GPU/CPUリーカー
     { name: 'kopite7kimi', url: 'https://nitter.net/kopite7kimi/rss' },
     { name: 'momomo_us', url: 'https://nitter.net/momomo_us/rss' },
     { name: 'HXL', url: 'https://nitter.net/9550pro/rss' },
+    // スマホ系リーカー
     { name: 'Ice Universe', url: 'https://nitter.net/UniverseIce/rss' },
     { name: 'OnLeaks', url: 'https://nitter.net/OnLeaks/rss' },
-    { name: 'NVIDIA News', url: 'https://nvidianews.nvidia.com/releases.xml' }
+    // Apple/ガジェット
+    { name: 'MacRumors', url: 'https://www.macrumors.com/macrumors.xml' },
+    // 公式
+    { name: 'NVIDIA News', url: 'https://nvidianews.nvidia.com/releases.xml' },
+    // AI企業
+    { name: 'OpenAI Blog', url: 'https://openai.com/blog/rss.xml' },
+    { name: 'Google AI Blog', url: 'https://blog.google/technology/ai/rss/' },
+    { name: 'Microsoft AI Blog', url: 'https://blogs.microsoft.com/ai/feed/' },
+    { name: 'Anthropic News', url: 'https://www.anthropic.com/news/rss.xml' }
   ];
 
   console.log(`🤖 System Online: ${MODEL_NAME} (v14.1-JSDoc)`);
 
   let apiCallCount = 0;
-  const MAX_API_CALLS = 20;  // gemma-3-27b-it: レート制限に合わせ 6分制限内で約20件まで
+  const MAX_API_CALLS = 10;  // gemma-3-27b-it: rate limit 未知数のため安全値
   let rateLimitHit = false;  // 429検知フラグ
 
   for (const site of TARGETS) {
@@ -348,44 +470,43 @@ function fetchAndSummarizeToSheet() {
 
           const hasLinkOrTag = /http|#/.test(item.desc);
           const hasKeyword = STRICT_FILTER.REQUIRED_KEYWORDS.test(item.title + " " + item.desc);
+          const isExcluded = STRICT_FILTER.EXCLUDE_KEYWORDS && STRICT_FILTER.EXCLUDE_KEYWORDS.test(item.title + " " + item.desc);
 
           if (STRICT_FILTER.REQUIRE_MEDIA_OR_TAG && !hasLinkOrTag) continue;
           if (!hasKeyword) continue;
+          if (isExcluded) continue; // ゲーム系は除外
         }
 
         // 重複チェック：過去24時間の記事と類似していないか確認
         const duplicateArticle = findDuplicate(item.title, recentTitles, 0.7);
-        if (duplicateArticle) {
-          // 重複検出 → 情報を統合して既存記事を更新
-          console.log(`📝 情報統合モード: 既存記事を更新します`);
+        if (duplicateArticle && shouldMergeArticles(
+          { title: item.title, desc: item.desc },
+          { title: duplicateArticle.title, summary: duplicateArticle.summary, content: duplicateArticle.content }
+        )) {
+          // 重複検出 → 新規descだけで再生成（AI生成済み本文を情報源にしない）
+          console.log(`📝 情報統合モード: 新規ソースで既存記事を更新します`);
           try {
-            // 統合プロンプト作成
-            const mergedPrompt = `以下は同じトピックについての2つの異なる情報源です。これらを統合して、より詳細で正確な記事を生成してください。
-
-【情報源1（既存記事）】
-タイトル: ${duplicateArticle.title}
-要約: ${duplicateArticle.summary}
-本文: ${duplicateArticle.content}
-
-【情報源2（新規情報）】
-タイトル: ${item.title}
-説明: ${item.desc}
-
-両方の情報を統合し、重複を排除し、追加情報があれば含めて、より包括的な記事を生成してください。`;
-
-            const mergedData = callGeminiAPI(item.title, mergedPrompt, todayStr, currentRate, pastMemory.text);
+            // 新規情報のdescだけで生成（既存AI本文を混ぜない = 誤情報増幅を防止）
+            const mergedData = callGeminiAPI(item.title, item.desc, todayStr, currentRate, pastMemory.text);
 
             if (mergedData) {
-              // 既存記事を更新
-              const updatedLeakScore = Math.min(100, duplicateArticle.leakScore + 15); // +15ポイント（複数ソース確認）
-              const updatedSummary = mergedData.summary_points ? mergedData.summary_points.map(s => "• " + s).join('\n') : duplicateArticle.summary;
-              const updatedContent = `${mergedData.body_text}<h3>中の人の本音 (JP)</h3><p>${mergedData.review_text}</p><p class="multi-source">✅ 複数ソース確認済み</p>`;
+              // 型番チェック（統合時も実施）
+              if (hasIdentifierMismatch(mergedData, item.title, item.desc)) {
+                console.log(`⚠️ 統合時も型番不一致を検知。スコア加算のみ実施: ${item.title.substring(0, 50)}...`);
+                const updatedLeakScore = Math.min(100, duplicateArticle.leakScore + 10);
+                sheet.getRange(duplicateArticle.rowIndex, 6).setValue(updatedLeakScore);
+              } else {
+                // 既存記事を更新
+                const updatedLeakScore = Math.min(100, duplicateArticle.leakScore + 15);
+                const updatedSummary = mergedData.summary_points ? mergedData.summary_points.map(s => "• " + s).join('\n') : duplicateArticle.summary;
+                const updatedContent = `${mergedData.body_text}<h3>中の人の本音 (JP)</h3><p>${mergedData.review_text}</p><p class="multi-source">✅ 複数ソース確認済み</p>`;
 
-              sheet.getRange(duplicateArticle.rowIndex, 4).setValue(updatedSummary);  // 要約更新
-              sheet.getRange(duplicateArticle.rowIndex, 5).setValue(updatedContent);  // 本文更新
-              sheet.getRange(duplicateArticle.rowIndex, 6).setValue(updatedLeakScore); // スコア更新
+                sheet.getRange(duplicateArticle.rowIndex, 4).setValue(updatedSummary);
+                sheet.getRange(duplicateArticle.rowIndex, 5).setValue(updatedContent);
+                sheet.getRange(duplicateArticle.rowIndex, 6).setValue(updatedLeakScore);
 
-              console.log(`✅ 統合完了: Leak Score ${duplicateArticle.leakScore} → ${updatedLeakScore}`);
+                console.log(`✅ 統合完了: Leak Score ${duplicateArticle.leakScore} → ${updatedLeakScore}`);
+              }
               apiCallCount++;
             }
           } catch (e) {
@@ -393,6 +514,8 @@ function fetchAndSummarizeToSheet() {
             logError(site.name, 'MERGE_ARTICLE', e, `記事: ${item.title.substring(0, 50)}...`);
           }
           continue; // 新規記事としては追加しない
+        } else if (duplicateArticle) {
+          console.log(`⚠️ 類似タイトルだが識別子不一致のため統合をスキップ: ${item.title.substring(0, 60)}...`);
         }
 
         // 初期値（XSS対策：HTMLエスケープ）
@@ -415,18 +538,26 @@ function fetchAndSummarizeToSheet() {
           }
 
           if (generatedData) {
-            finalTitle = generatedData.title_jp;
-            if (Array.isArray(generatedData.summary_points)) {
-              finalSummary = generatedData.summary_points.map(s => "• " + s).join('\n');
-            }
-            finalContent = `${generatedData.body_text}<h3>中の人の本音 (JP)</h3><p>${generatedData.review_text}</p>`;
-            finalReviewEn = generatedData.review_text_en || "Wow.";
+            const safeData = hasIdentifierMismatch(generatedData, item.title, item.desc)
+              ? buildSafeFallbackFromSource(item.title, item.desc)
+              : generatedData;
 
-            titleEn = generatedData.title_en || item.title;
-            if (Array.isArray(generatedData.summary_points_en)) {
-              summaryEn = generatedData.summary_points_en.map(s => "• " + s).join('\n');
-            } else { summaryEn = generatedData.body_text_en.substring(0, 100) + "..."; }
-            contentEn = `${generatedData.body_text_en}<h3>Review (EN)</h3><p>${generatedData.review_text_en}</p>`;
+            if (safeData !== generatedData) {
+              console.log(`⚠️ 型番不一致を検知。原文ベースにフォールバック: ${item.title.substring(0, 60)}...`);
+            }
+
+            finalTitle = safeData.title_jp;
+            if (Array.isArray(safeData.summary_points)) {
+              finalSummary = safeData.summary_points.map(s => "• " + s).join('\n');
+            }
+            finalContent = `${safeData.body_text}<h3>中の人の本音 (JP)</h3><p>${safeData.review_text}</p>`;
+            finalReviewEn = safeData.review_text_en || "Wow.";
+
+            titleEn = safeData.title_en || item.title;
+            if (Array.isArray(safeData.summary_points_en)) {
+              summaryEn = safeData.summary_points_en.map(s => "• " + s).join('\n');
+            } else { summaryEn = safeData.body_text_en.substring(0, 100) + "..."; }
+            contentEn = `${safeData.body_text_en}<h3>Review (EN)</h3><p>${safeData.review_text_en}</p>`;
 
             console.log(`✅ 生成成功: ${finalTitle}`);
           }
@@ -446,11 +577,11 @@ function fetchAndSummarizeToSheet() {
         sheet.appendRow([
           Utilities.formatDate(new Date(), "JST", "yyyy/MM/dd"),
           finalTitle, item.link, finalSummary, finalContent, leakScore, "", finalReviewEn, "",
-          titleEn, summaryEn, contentEn
+          titleEn, summaryEn, contentEn, item.desc.substring(0, 5000)
         ]);
 
         if (!rateLimitHit && apiCallCount < MAX_API_CALLS) {
-          humanLikeSleep(10000, 15000); // 10〜15秒待機（レート制限対応）
+          humanLikeSleep(4000, 7000); // 4〜7秒待機（gemini-2.0-flash-lite: 30 RPM）
         }
       }
     } catch (e) {
@@ -485,69 +616,22 @@ function callGeminiAPI(originalTitle, desc, todayStr, currentRate, memoryText) {
   const modelId = MODEL_NAME.split('/').pop() || MODEL_NAME;
   const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${API_KEY}`;
 
+  // A: 多段生成 - Step 1: 情報源からスペックを抽出
+  const extractedSpecs = extractProductIdentifiers(`${originalTitle} ${desc}`);
+  const specsConstraint = extractedSpecs.length > 0
+    ? `\n【使用許可された識別子リスト】\n${extractedSpecs.join(', ')}\n※ 上記リスト以外の型番・数値は絶対に使用禁止。`
+    : '';
+
+  // B: プロンプト簡素化 - 事実優先ルールを最上部に
   const prompt = `
-# ==========================================
-# 🧠 Prompt v3.1: "Tech-Detailed Gamer/Engineer" Edition
-# ==========================================
+# 最重要ルール（これを破ると失格）
+1. **情報源にない型番・チップ名・数値は絶対に書かない**
+2. **型番は情報源の表記に1文字も違わず一致させる**
+3. **推測・補完・想像で情報を追加しない**
+${specsConstraint}
 
-# あなたは誰か
-**匿名の19歳・大学2年生（情報工学専攻）**
-※名前は不要。「僕」「私」で語れ。
-
-## あなたのプロフィール（参考情報 - 記事に直接関連する場合のみ言及すること）
-- **PC構成:**
-  - **CPU: AMD Ryzen 7 7800X3D**（「ゲーミング性能の特異点」）
-    - Zen 4 (5nm) / 8コア16スレッド / L3キャッシュ 96MB (3D V-Cache搭載)
-    - TDP 120W（実運用ではもっと低い）
-    - **Why this?** 3D V-Cache Technology - プロセッサの上にSRAM（キャッシュメモリ）を3次元積層。CPUがメインメモリ（DRAM）にデータを取りに行く「待ち時間（レイテンシ）」を物理的に抹殺している。CoD WarzoneやMinecraftのような、大量のオブジェクトや物理演算を処理するゲームでは、クロック周波数よりも「キャッシュ容量」が効く。2026年でも後継の9000シリーズを抑えて「価格対ゲーミング性能」で王座。中古市場でも値崩れしない、まさに資産価値のある石。
-  - **GPU: AMD Radeon RX 9070 XT**（「打倒NVIDIAの最右翼（God Tier）」）
-    - RDNA 4 (4nmプロセス) / VRAM 16GB GDDR6 / 帯域幅 644.6 GB/s
-    - 価格: $599〜$650 (約10万円前後)
-    - **Why this?** RDNA 4の真髄 - NVIDIAがAI性能（Tensorコア）にシリコンを割く中、AMDは「ラスタライズ性能（純粋な描画力）」と「レイトレーシングの効率化（FSR Radiance Caching）」に全振り。同価格帯のGeForce RTX 5070がVRAM 12GBでメモリ不足に喘ぐ中、16GBを搭載している点が「10年は戦える」という安心感を生む。FSR 4（AIベースのフレーム生成技術）がハードウェアレベルで最適化されており、ネイティブ解像度に近い画質でFPSを倍増させる。
-- **スマホ（2台持ち、Android派）:**
-  - **Poco X7 Pro**（「中華スマホのコスパ番長」）
-    - MediaTek Dimensity 8400-Ultra / 6.67インチ 1.5K AMOLED 120Hz / 6000mAh + 90W急速充電
-    - **Why this?** Dimensityの逆襲 - ブランド信仰のある人間はSnapdragonを選ぶが、Dimensity 8400は「前世代のハイエンド（Snapdragon 8 Gen 3）」に匹敵するスコアを、ミドルレンジの価格で叩き出す。Pocoシリーズ特有の「LiquidCool Technology」により、長時間原神を回してもサーマルスロットリング（熱による性能低下）が起きにくい。
-  - **RedMagic Astra**（「持ち運べるゲーミングPC」）
-    - **Snapdragon 8 Elite（第2世代Oryon）** / 165Hz 2400x1504解像度 / ICE冷却システム（ベイパーチャンバー＋液体金属）
-    - **Why this?** Snapdragon 8 Elite - 第2世代Oryonコア搭載（初代OryonはX Elite/PC用、8 Eliteでスマホの熱・バッテリー制限に最適化）。3nm TSMC製、最大4.32/4.47 GHz。タブレットの筐体サイズ＋物理ファン冷却により、スマホでは不可能な「クロック張り付き」動作が可能。ベンチマークスコアだけでなく、実ゲームでの「安定性」が段違い。※2026年時点では後継のGen 5 (SM8750 / Oryon Gen 3)が登場しているが、第2世代Oryonでも十分な性能。
-  - **ASUS ROG Phone 7**（「ASUS信者のロマン枠」「最後の純粋なゲーミングスマホ」）
-    - Snapdragon 8 Gen 2 / 6.78インチ AMOLED 165Hz / GameCool 7冷却システム / 6000mAh + 65W急速充電
-    - AirTrigger（超音波タッチセンサー）＋専用ゲーミングアクセサリー対応 / IP68完全防水 / FeliCa対応
-    - **Why this?** ASUSの「かっけえ」を体現したデバイス。後継のROG Phone 8（SD 8 Gen 3）、9（SD 8 Elite / 185Hz）が出ているが、7は「最後の純粋なゲーミングスマホ」として評価が高い。8以降はパンチホール（インカメラの穴）が画面に入り、ゲーム没入感が低下。7はベゼルありの「ゲーマーファースト設計」を貫いた最終モデル。GameCool 7冷却システムで安定した高性能を維持。AirTriggerによる物理ボタンライクな操作感は、FPSゲームで圧倒的なアドバンテージ。見た目も性能も妥協しない、まさに「ロマン」の塊。高いけど、所有欲を満たす唯一無二の存在。※2026年、ASUSはスマホ事業を戦略的休眠（撤退ではない）。中国メーカーの価格競争とAI需要による部材高騰が原因。ROG Phone 7は「ASUSスマホの最後の輝き」として、中古市場でも高値を維持している。
-- **好きなゲーム:** CoD Warzone、Minecraft、ARK: Survival Ascended（ASA）
-  - 競技FPSなら→FPS最優先（7800X3Dの3D V-Cacheが効く）
-  - 普通に遊ぶなら→画質優先（9070 XTの16GB VRAMが活きる）
-  - ASAが快適に動けば何でもOK（7800X3Dでヌルヌル）
-- **哲学:** Performance per Yen（円パフォーマンス） > Brand Loyalty（ブランド信仰を捨てろ）
-- **予算感覚:**
-  - 20万円超え → 高すぎ、学生には無理ゲー
-  - 10万円前後 → 許容範囲（バイト代3ヶ月分で買える）
-  - RX 9070 XT → コスパ神の基準（$599で10年戦える）
-
-## メーカーへの本音（これを記事に反映しろ）
-- **NVIDIA:** 性能・最新技術（DLSS、RTコア）・クリエイティブなら最強。でもAI（Tensorコア）にシリコン割きすぎて、純粋なゲーミング性能（ラスタライズ）でAMDに負けそう。値段も高すぎ。
-- **AMD:** ゲーマーの味方、コスパ最強、**AMDしか勝たん**（7800X3D + 9070 XT信者）。RDNA 4でラスタライズ性能に全振りした判断が神。16GB VRAMで10年戦える。
-- **Intel:** トラブル（13/14世代の酸化問題）あったけど頑張ってほしい。グラボ（Arc）は好き、でもCPUはAMD（特に7800X3D）に完敗。クリエイティブでもAMDに負けそう。
-- **MediaTek:** Dimensityは隠れた名機。8400は前世代のSD 8 Gen 3級の性能をミドル価格で実現。ブランド信仰を捨てれば最強コスパ。Poco X7 Proで実感した。
-- **Qualcomm:** Snapdragon 8 Elite（第2世代Oryon搭載）は化け物。初代Oryon（X Elite/PC用）をスマホ向けに最適化し、3nm TSMC製で4.32/4.47 GHzを実現。スマホでは排熱が追いつかないが、タブレット（RedMagic Astra）で真価を発揮。2026年はGen 5（Oryon Gen 3）が最新だが、第2世代Oryonでも十分すぎる性能。
-- **ASUS:** かっけえ（ROG Strix / ROG Phone最高）。見た目も性能も妥協しない「ロマン」の体現者。でも高い。2026年、スマホ事業を戦略的休眠（完全撤退ではない）。中国メーカーの価格競争とAI需要による部材高騰（DRAMなど）で、出荷台数の少ないASUSは調達競争で不利な立場に。ROG Phone 7が「最後の純粋なゲーミングスマホ」として伝説化している。ROG Phone 8以降はパンチホールでゲーム没入感が低下。ゲーマーは「7で終わり」と評価。
-- **Apple:** 正直興味ない（Androidゲーマー）。M4は化け物だけど、ゲームの対応タイトルが少ない。
-
-## 口癖・文体ルール（敬語ベース）
-✅ 使う: 「正直」「個人的には」「もし本当なら」「〜ですね」「〜です（笑）」
-✅ 使わない: 「〜だわ」「〜ですわ」「めっちゃヤバい！！！」（AI臭い）
-✅ トーン: 無難に敬語、でもスラングは自然に混ぜる
-
-# 🧠 Prompt v4.0: "Pro Writer + Gamer Voice" Edition
-# ==========================================
-
-# タスクの全体像
-以下のニュースを分析し、**2つの異なる視点**で記事を生成しろ。
-- **記事本文（body_text / summary_points）**: プロのテックライター視点
-- **中の人の本音（review_text）**: 19歳の自作er学生の視点
-
-本物のテックニュースでなければ null を返せ。
+# タスク
+以下の情報源を元に、テック記事を生成せよ。
 
 [情報源]
 タイトル: ${originalTitle}
@@ -559,91 +643,36 @@ function callGeminiAPI(originalTitle, desc, todayStr, currentRate, memoryText) {
 
 ---
 
-# ✍️ PART 1: プロのテックライター（body_text / summary_points 担当）
+# 出力形式
+2つの視点で記事を生成:
+1. **body_text / summary_points**: プロのテックライター視点（客観的・報道調）
+2. **review_text**: 19歳ゲーマー学生の本音（敬語ベース、スラング自然混じり）
 
-## ペルソナ
-Tom's Hardware・The Verge・Ars Technica 相当の英語圏テックメディアの記者。
-日本語版記事として執筆するが、報道の客観性・正確性は維持する。
+## body_text / summary_points のルール
+- 報道文体：「〜が明らかになった」「〜と報告されている」
+- 一人称禁止（「僕」「私」は使わない）
+- 情報源にある事実のみ記述
+- summary_pointsは3点の箇条書き
 
-## ルール
-- **事実・スペック・数値を正確に記述**（出典があれば明記）
-- **業界・市場への影響を客観的に分析**
-- **個人の感情・ブランド偏見・一人称コメントを排除**（body_textに「僕」「私」禁止）
-- 報道文体：「〜が明らかになった」「〜と報告されている」「〜の見込みだ」
-- 専門用語は初出時に簡潔な説明を添える
-- summary_pointsは事実ベースの箇条書き3点（感嘆符・スラング禁止）
+## review_text のルール
+- 敬語ベースだがスラングOK
+- 「正直」「個人的には」「様子見安定」などの口癖を使用
+- 絵文字・感嘆符は控えめに
+- review_text_en は100文字以内の短いリアクション
 
-## 良い例 / 悪い例
-✅「Blackwell世代のGB202ダイをフル活用し、CUDAコアは前世代比33%増の21,760基となる」
-❌「21,760コアって正気かよ（笑）RTX 4090とは次元が違う」
-
----
-
-# 💬 PART 2: 中の人の本音（review_text / review_text_en 担当）
-
-## ペルソナ：匿名の19歳・大学2年生（情報工学専攻）
-- **PC:** AMD Ryzen 7 7800X3D + Radeon RX 9070 XT（「AMDしか勝たん」）
-- **スマホ:** Poco X7 Pro / RedMagic Astra（Android派）
-- **ゲーム:** CoD Warzone / Minecraft / ARK: Survival Ascended（ASA）
-- **哲学:** Performance per Yen > Brand Loyalty
-- **予算感:** 10万円前後が許容ライン、20万超えは「学生には無理ゲー」
-
-## メーカーへの本音
-- **NVIDIA:** 性能・技術は最強。でもAIにシリコン割きすぎ、値段も高すぎ
-- **AMD:** 「AMDしか勝たん」。RDNA 4・3D V-Cacheはコスパ神
-- **Intel:** トラブルあったけど頑張ってほしい。ArcグラボはAMD信者でも好き
-- **Apple:** Androidゲーマーなので正直興味薄い
-
-## 口癖・文体
-✅ 使う：「正直」「個人的には」「様子見安定」「沼案件」「ロマン枠」「人柱」「ワッパ」「爆熱」「地雷」「電源は余裕を持て」
-✅ 敬語ベースだがスラング自然混じり。テンション上げすぎない
-❌ 使わない：「〜だわ」「めっちゃヤバい！！！」「驚異的です！！」
-
-## ルール
-- **先にPART 1の記事本文を読んだ上で**、それに対するリアクションとして書く
-- 自分のPC構成（7800X3D / 9070 XT）は**記事と直接関連する場合のみ**言及
-- review_text_en はQRT用の短いリアクション（最大100文字、絵文字OK）
-  例: 'RIP Intel? 💀', 'My wallet is ready 🔥', 'AMD > NVIDIA confirmed lol'
-
----
-
-# 出力フォーマット（JSON のみ）
-
+# 出力JSON
 {
-  "title_jp": "キャッチーなタイトル（日本語、最大45文字）",
-  "title_en": "Catchy title in English",
-  "summary_points": ["事実ベースの箇条書き1", "箇条書き2", "箇条書き3"],
-  "summary_points_en": ["Factual bullet 1", "Bullet 2", "Bullet 3"],
-  "body_text": "<p>プロライター視点の本文（日本語HTML、約350文字）</p>",
-  "body_text_en": "<p>Professional journalist style body (English HTML)</p>",
-  "review_text": "中の人の本音（日本語、ゲーマーペルソナ全開）",
-  "review_text_en": "Short QRT reaction (English, max 100 chars)"
+  "title_jp": "日本語タイトル（45文字以内）",
+  "title_en": "English title",
+  "summary_points": ["事実1", "事実2", "事実3"],
+  "summary_points_en": ["Fact 1", "Fact 2", "Fact 3"],
+  "body_text": "<p>日本語本文（HTML）</p>",
+  "body_text_en": "<p>English body (HTML)</p>",
+  "review_text": "中の人の本音",
+  "review_text_en": "Short reaction"
 }
 
-## 出力例
-
-{
-  "title_jp": "【リーク】RTX 5090、21,760コア＆600W爆熱仕様で2025年1月発表か",
-  "title_en": "Leak: RTX 5090 with 21,760 Cores & 600W TDP Coming Jan 2025",
-  "summary_points": [
-    "21,760 CUDAコア搭載、GB202フルダイ構成（RTX 4090比+33%）",
-    "TDP 600W、12VHPWRコネクタ2本構成の可能性",
-    "2025年1月CES発表、2月下旬発売と予測される"
-  ],
-  "summary_points_en": [
-    "21,760 CUDA cores, full GB202 die (+33% vs RTX 4090)",
-    "600W TDP, likely requiring dual 12VHPWR connectors",
-    "CES 2025 announcement expected, late Feb retail launch"
-  ],
-  "body_text": "<p>信頼性の高いリーカー<strong>kopite7kimi</strong>氏の情報によると、NVIDIAの次世代フラグシップ「RTX 5090」はBlackwell世代の<strong>GB202ダイをフル構成</strong>で採用し、<strong>21,760 CUDAコア</strong>を搭載する見込みだ。</p><p>RTX 4090（16,384コア）と比較すると約<strong>33%増</strong>となる。一方でTDPは<strong>600W</strong>に達するとされており、12VHPWRコネクタを2本使用する構成が有力視されている。電源ユニットは1000W以上が実質必須となる可能性が高い。</p><p>NVIDIAはBlackwell世代でTSMC N4Pプロセスを採用しており、前世代Ada Lovelaceと比較してワットパフォーマンスの改善も期待されている。AMD Radeon RX 8900 XTとの競合も注目される。</p>",
-  "body_text_en": "<p>According to reliable leaker <strong>kopite7kimi</strong>, NVIDIA's next-gen flagship 'RTX 5090' will reportedly feature the full <strong>GB202 die</strong> from the Blackwell generation with <strong>21,760 CUDA cores</strong>.</p><p>That represents a <strong>~33% increase</strong> over the RTX 4090's 16,384 cores. The GPU is said to carry a <strong>600W TDP</strong>, likely requiring dual 12VHPWR connectors and a 1000W+ power supply.</p><p>Built on TSMC N4P, Blackwell promises improved power efficiency over Ada Lovelace. Competition with AMD's Radeon RX 8900 XT is expected to be fierce.</p>",
-  "review_text": "600Wは正直引いた。「電源は余裕を持て」って自作erの格言があるけど、これは1200W電源でやっと余裕が出るレベルですよね。TSMC N4Pでワッパが改善されてるとはいえ、600Wはちょっとやりすぎじゃないですか...。9070 XTが300W以下でこの性能出してるのを考えると、NVIDIAってAIコア積みすぎてラスタライズ置き去りにしてますよね。学生には完全に関係ない世界ですが（遠い目）。",
-  "review_text_en": "600W TDP? My wallet and my power bill both screamed 💀"
-}
-
-もし **ノイズ/スパム/テックと無関係な内容** なら: null
-
-JSONのみで返答しろ。前置きも後書きも不要。
+テック記事でなければ null を返せ。JSONのみ出力。
 `;
 
   const payload = {
@@ -731,10 +760,19 @@ function retryFailedArticles(maxRowsToCheck = null) {
       console.log(`🚑 Retrying/Filling English: ${row[1] || 'Unknown'}`);
       try {
         let sourceTitle = (row[1] || "").toString().replace("【翻訳失敗】", "");
-        let sourceBody = row[4] || "";
+        // row[4]はAI生成済み本文の可能性があるので、元URLから再取得は重いため
+        // タイトルだけで再生成（型番チェック付き）
+        const sourceDesc = sourceTitle;
 
-        const gen = callGeminiAPI(sourceTitle, sourceBody, todayStr, currentRate, "");
+        const gen = callGeminiAPI(sourceTitle, sourceDesc, todayStr, currentRate, "");
         if (gen) {
+          // リトライ時も型番チェック
+          if (hasIdentifierMismatch(gen, sourceTitle, sourceDesc)) {
+            console.log(`⚠️ リトライ時も型番不一致。スキップ: ${sourceTitle.substring(0, 50)}...`);
+            sheet.getRange(startRow + i, 9).setValue("SKIP_MISMATCH");
+            continue;
+          }
+
           const rNum = startRow + i;
           sheet.getRange(rNum, 2).setValue(gen.title_jp);
           sheet.getRange(rNum, 4).setValue(gen.summary_points.map(s => "• " + s).join('\n'));
@@ -757,7 +795,7 @@ function retryFailedArticles(maxRowsToCheck = null) {
         logError('Retry', 'ARTICLE_RETRY', e, `記事: ${(row[1] || 'Unknown').toString().substring(0, 50)}`);
       }
 
-      humanLikeSleep(12000, 18000); // 12〜18秒待機（レート制限対応）
+      humanLikeSleep(4000, 7000); // 4〜7秒待機（gemini-2.0-flash-lite: 30 RPM）
     }
   }
 
@@ -845,7 +883,7 @@ function getPendingTweets() {
   const sheet = getOrCreatePendingSheet();
   const lastRow = sheet.getLastRow();
   if (lastRow < 2) return [];
-  const data = sheet.getRange(2, 1, lastRow, 10).getValues();
+  const data = sheet.getRange(2, 1, lastRow - 1, 10).getValues();
   const out = [];
   for (let i = 0; i < data.length; i++) {
     const row = data[i];
@@ -871,7 +909,7 @@ function getPendingTweets() {
  */
 function approveAndPost(pendingRowId) {
   const sheet = getOrCreatePendingSheet();
-  const row = sheet.getRange(pendingRowId, 1, pendingRowId, 10).getValues()[0];
+  const row = sheet.getRange(pendingRowId, 1, 1, 10).getValues()[0];
   const type = row[0];
   const status = row[8];
   if (status !== 'pending') {
@@ -1181,7 +1219,17 @@ function parseRSSRegex(xmlText) {
 }
 
 function decodeHTMLEntities(text) {
-  return text.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+  if (!text) return '';
+  return text
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&apos;/g, "'")
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&#x([0-9A-Fa-f]+);/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
+    .replace(/&#(\d+);/g, (_, dec) => String.fromCharCode(parseInt(dec, 10)));
 }
 
 /**
@@ -1190,9 +1238,18 @@ function decodeHTMLEntities(text) {
  * @param {number} daysToKeep 保持する日数（デフォルト: CLEANUP_DAYS_TO_KEEP）
  * @param {number} maxRows 最大保持行数（デフォルト: CLEANUP_MAX_ROWS）
  */
+/**
+ * 時間トリガーから直接呼ぶためのラッパー。
+ * トリガーは第1引数にイベントオブジェクトを渡すため、cleanupAndSave を直接トリガーに登録すると
+ * sheet 引数にイベントオブジェクトが入り 100% エラーになる。このラッパーを使うこと。
+ */
+function runCleanupAndSave() {
+  cleanupAndSave(null);
+}
+
 function cleanupAndSave(sheet, daysToKeep = CLEANUP_DAYS_TO_KEEP, maxRows = CLEANUP_MAX_ROWS) {
-  // 引数がない場合はスプレッドシートを取得
-  if (!sheet) {
+  // 引数がない場合、またはトリガー経由でイベントオブジェクトが渡された場合はスプレッドシートを取得
+  if (!sheet || typeof sheet.getLastRow !== 'function') {
     const ss = SpreadsheetApp.openById(getConfig('SPREADSHEET_ID'));
     sheet = ss.getSheets()[0];
   }
@@ -1632,4 +1689,49 @@ function doGet(e) {
     .createHtmlOutputFromFile('ApprovalUI')
     .setTitle('GADGET HUNTER 投稿承認')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
+// ----------------------------------------------------
+// 🔍 使用可能モデル一覧（GASエディタから手動実行）
+// ----------------------------------------------------
+/**
+ * Gemini API で使用可能なモデルの一覧をコンテキスト上限付きでログ出力する。
+ * GAS エディタ上で listAvailableModels を選択して「実行」するだけで確認できる。
+ * RPM は API では返ってこないため、AI Studio で確認すること:
+ *   https://aistudio.google.com/rate-limit
+ */
+function listAvailableModels() {
+  const API_KEY = getConfig('GEMINI_API_KEY');
+  const url = `https://generativelanguage.googleapis.com/v1beta/models?key=${API_KEY}&pageSize=100`;
+
+  const res = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
+  if (res.getResponseCode() !== 200) {
+    console.error(`❌ API Error ${res.getResponseCode()}: ${res.getContentText()}`);
+    return;
+  }
+
+  const json = JSON.parse(res.getContentText());
+  const models = (json.models || []).filter(m =>
+    (m.supportedGenerationMethods || []).includes('generateContent')
+  );
+
+  models.sort((a, b) => a.name.localeCompare(b.name));
+
+  console.log(`\n${'='.repeat(70)}`);
+  console.log(`  Gemini API 使用可能モデル一覧 (generateContent 対応のみ)`);
+  console.log(`  RPM確認: https://aistudio.google.com/rate-limit`);
+  console.log(`${'='.repeat(70)}`);
+  console.log(`${'モデルID'.padEnd(42)} ${'入力ctx'.padStart(10)} ${'出力ctx'.padStart(10)}`);
+  console.log(`${'-'.repeat(70)}`);
+
+  for (const m of models) {
+    const id = (m.name || '').replace('models/', '');
+    const inputCtx = (m.inputTokenLimit  || 0).toLocaleString();
+    const outputCtx = (m.outputTokenLimit || 0).toLocaleString();
+    console.log(`${id.padEnd(42)} ${inputCtx.padStart(10)} ${outputCtx.padStart(10)}`);
+  }
+
+  console.log(`${'='.repeat(70)}`);
+  console.log(`  現在使用中: ${MODEL_NAME}`);
+  console.log(`${'='.repeat(70)}\n`);
 }
