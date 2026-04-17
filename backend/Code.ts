@@ -124,6 +124,13 @@ const STRICT_FILTER = {
   EXCLUDE_KEYWORDS: /\b(PS5|PS4|PlayStation|Xbox|Nintendo|Switch|Steam|Epic Games|GOG|Origin|Battle\.?net|Ubisoft|EA Sports|Activision|Blizzard|Rockstar|game|games|gaming|gamer|esports|e-sports|RPG|MMORPG|FPS|MOBA|battle royale|DLC|expansion pack|patch notes|season pass|loot box|microtransaction|playthrough|speedrun|walkthrough|boss fight|multiplayer|singleplayer|co-op|PvP|PvE|NPC|quest|level up|XP|achievement|trophy|Fortnite|Call of Duty|COD|Warzone|GTA|Grand Theft Auto|Minecraft|Elden Ring|Baldur|Starfield|Hogwarts|Diablo|World of Warcraft|WoW|League of Legends|LoL|Valorant|Apex Legends|PUBG|Overwatch|Cyberpunk|Assassin.*Creed|Final Fantasy|Zelda|Mario|Pokemon|Pokémon|Sonic|Halo|Destiny|Monster Hunter|Resident Evil|Silent Hill|Metal Gear|Dark Souls|Bloodborne|Sekiro|God of War|Spider-Man|Horizon|Ratchet|Uncharted|Last of Us|Ghost of Tsushima|Death Stranding|Persona|Yakuza|Like a Dragon|Tekken|Street Fighter|Mortal Kombat|Smash Bros|Animal Crossing|Splatoon|Kirby|Fire Emblem|Xenoblade|Metroid|Castlevania|Hollow Knight|Hades|Celeste|Stardew|Terraria|Palworld|Lethal Company|Among Us|Fall Guys|Rocket League|FIFA|NBA 2K|Madden|WWE|Gran Turismo|Forza|Need for Speed|Genshin|Honkai|Wuthering|Tower of Fantasy|Blue Archive|Arknights|Azur Lane|Fate.Grand|FGO|Nikke|Zenless|Reverse.1999)\b/i
 };
 
+// ▼ 検索補助設定（記事が薄くなるケースを補強）
+const SEARCH_ENRICHMENT = {
+  ENABLED: true,
+  MAX_RESULTS: 4,
+  MIN_SNIPPET_LENGTH: 80
+};
+
 /**
  * 2つのテキストの類似度を計算（Jaccard係数ベース）
  * @param {string} text1 
@@ -201,6 +208,75 @@ function findDuplicate(newTitle, recentTitles, threshold = 0.7) {
     }
   }
   return null;
+}
+
+/**
+ * 検索クエリを生成（型番優先、なければキーワード抽出）
+ * @param {string} title
+ * @param {string} desc
+ * @return {string}
+ */
+function buildSearchQuery(title, desc) {
+  const ids = extractProductIdentifiers(`${title || ''} ${desc || ''}`);
+  if (ids.length > 0) {
+    return ids.slice(0, 3).join(' ');
+  }
+
+  const text = `${title || ''} ${desc || ''}`.toLowerCase();
+  const words = (text.match(/[a-z0-9][a-z0-9+\-]{2,}/g) || [])
+    .filter(w => !/^(with|from|this|that|have|will|would|about|after|before|their|there|where|which|while|launch|report|rumor|leak|news|today|update|official|specs)$/.test(w));
+
+  const uniq = [];
+  for (const w of words) {
+    if (!uniq.includes(w)) uniq.push(w);
+    if (uniq.length >= 5) break;
+  }
+  return uniq.join(' ');
+}
+
+/**
+ * 外部検索コンテキストを取得（Google News RSS）
+ * - 取得失敗時は空文字を返し、本処理は継続
+ * @param {string} title
+ * @param {string} desc
+ * @param {string} sourceUrl
+ * @return {string}
+ */
+function fetchSearchContext(title, desc, sourceUrl) {
+  if (!SEARCH_ENRICHMENT.ENABLED) return '';
+
+  const query = buildSearchQuery(title, desc);
+  if (!query) return '';
+
+  try {
+    const q = encodeURIComponent(`${query} gadget OR tech`);
+    const searchUrl = `https://news.google.com/rss/search?q=${q}&hl=en-US&gl=US&ceid=US:en`;
+    const res = UrlFetchApp.fetch(searchUrl, {
+      headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" },
+      muteHttpExceptions: true
+    });
+    if (res.getResponseCode() !== 200) return '';
+
+    const sourceDomain = extractDomain(sourceUrl || '');
+    const relatedItems = parseRSSRegex(res.getContentText())
+      .filter(it => it && it.title && it.desc)
+      .filter(it => calculateSimilarity(title, it.title) < 0.95)
+      .filter(it => !sourceDomain || extractDomain(it.link) !== sourceDomain)
+      .filter(it => it.desc.length >= SEARCH_ENRICHMENT.MIN_SNIPPET_LENGTH)
+      .slice(0, SEARCH_ENRICHMENT.MAX_RESULTS);
+
+    if (relatedItems.length === 0) return '';
+
+    const lines = relatedItems.map((it, idx) => {
+      const snippet = it.desc.replace(/\s+/g, ' ').trim().substring(0, 220);
+      return `${idx + 1}. ${it.title}\n   - ${snippet}`;
+    });
+
+    return `\n[外部検索コンテキスト]\nクエリ: ${query}\n${lines.join('\n')}\n`;
+  } catch (e) {
+    console.log(`⚠️ 検索補強スキップ: ${e.message}`);
+    return '';
+  }
 }
 
 /**
@@ -454,6 +530,7 @@ function fetchAndSummarizeToSheet() {
 
         const item = items[i];
         if (!item.title || !item.link) continue;
+        const combinedText = `${item.title} ${item.desc}`;
 
         // URL検証（インジェクション対策）
         if (!isValidUrl(item.link)) {
@@ -463,18 +540,22 @@ function fetchAndSummarizeToSheet() {
 
         if (savedUrls.includes(item.link)) continue;
 
+        // 全ソース共通: ゲーム系トピックは除外
+        if (STRICT_FILTER.EXCLUDE_KEYWORDS && STRICT_FILTER.EXCLUDE_KEYWORDS.test(combinedText)) {
+          console.log(`🎮 ゲーム系を除外: ${item.title.substring(0, 60)}...`);
+          continue;
+        }
+
         // 構造チェック
         if (site.url.includes("nitter") || site.url.includes("xcancel")) {
           if (item.title.startsWith("R to ") || item.title.startsWith("@")) continue;
           if (item.desc.length < STRICT_FILTER.MIN_LENGTH) continue;
 
           const hasLinkOrTag = /http|#/.test(item.desc);
-          const hasKeyword = STRICT_FILTER.REQUIRED_KEYWORDS.test(item.title + " " + item.desc);
-          const isExcluded = STRICT_FILTER.EXCLUDE_KEYWORDS && STRICT_FILTER.EXCLUDE_KEYWORDS.test(item.title + " " + item.desc);
+          const hasKeyword = STRICT_FILTER.REQUIRED_KEYWORDS.test(combinedText);
 
           if (STRICT_FILTER.REQUIRE_MEDIA_OR_TAG && !hasLinkOrTag) continue;
           if (!hasKeyword) continue;
-          if (isExcluded) continue; // ゲーム系は除外
         }
 
         // 重複チェック：過去24時間の記事と類似していないか確認
@@ -487,7 +568,7 @@ function fetchAndSummarizeToSheet() {
           console.log(`📝 情報統合モード: 新規ソースで既存記事を更新します`);
           try {
             // 新規情報のdescだけで生成（既存AI本文を混ぜない = 誤情報増幅を防止）
-            const mergedData = callGeminiAPI(item.title, item.desc, todayStr, currentRate, pastMemory.text);
+            const mergedData = callGeminiAPI(item.title, item.desc, todayStr, currentRate, pastMemory.text, item.link);
 
             if (mergedData) {
               // 型番チェック（統合時も実施）
@@ -530,7 +611,7 @@ function fetchAndSummarizeToSheet() {
 
         try {
           // AI生成
-          const generatedData = callGeminiAPI(item.title, item.desc, todayStr, currentRate, pastMemory.text);
+          const generatedData = callGeminiAPI(item.title, item.desc, todayStr, currentRate, pastMemory.text, item.link);
 
           if (!generatedData) {
             console.log(`🗑️ AI判定ノイズ: ${item.title}`);
@@ -597,6 +678,14 @@ function fetchAndSummarizeToSheet() {
     retryFailedArticles(30); // 通常実行時は直近30行のみ（パフォーマンス考慮）
     cleanupAndSave(sheet);
   }
+
+  // 記事更新後に承認待ちキューを1件だけ補充（トリガー未設定時の取りこぼし防止）
+  try {
+    checkAndTweetNewArticles();
+  } catch (e) {
+    console.log(`⚠️ 承認待ちキュー追加に失敗: ${e.message}`);
+    logError('Queue', 'ENQUEUE_AFTER_FETCH', e, 'fetchAndSummarizeToSheet');
+  }
   console.log(`✅ Run complete. Processed ${apiCallCount} articles.`);
 }
 
@@ -609,9 +698,10 @@ function fetchAndSummarizeToSheet() {
  * @param {string} todayStr
  * @param {number} currentRate
  * @param {string} memoryText
+ * @param {string} sourceUrl
  * @return {GeminiResponse|null}
  */
-function callGeminiAPI(originalTitle, desc, todayStr, currentRate, memoryText) {
+function callGeminiAPI(originalTitle, desc, todayStr, currentRate, memoryText, sourceUrl = '') {
   const API_KEY = getConfig('GEMINI_API_KEY');
   const modelId = MODEL_NAME.split('/').pop() || MODEL_NAME;
   const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${API_KEY}`;
@@ -621,6 +711,7 @@ function callGeminiAPI(originalTitle, desc, todayStr, currentRate, memoryText) {
   const specsConstraint = extractedSpecs.length > 0
     ? `\n【使用許可された識別子リスト】\n${extractedSpecs.join(', ')}\n※ 上記リスト以外の型番・数値は絶対に使用禁止。`
     : '';
+  const searchContext = fetchSearchContext(originalTitle, desc, sourceUrl);
 
   // B: プロンプト簡素化 - 事実優先ルールを最上部に
   const prompt = `
@@ -628,6 +719,7 @@ function callGeminiAPI(originalTitle, desc, todayStr, currentRate, memoryText) {
 1. **情報源にない型番・チップ名・数値は絶対に書かない**
 2. **型番は情報源の表記に1文字も違わず一致させる**
 3. **推測・補完・想像で情報を追加しない**
+4. **外部検索コンテキストは背景説明専用。数値・固有名詞は必ず情報源を優先**
 ${specsConstraint}
 
 # タスク
@@ -636,6 +728,7 @@ ${specsConstraint}
 [情報源]
 タイトル: ${originalTitle}
 内容: ${desc}
+${searchContext}
 
 [コンテキスト]
 - 日付: ${todayStr}
@@ -764,7 +857,7 @@ function retryFailedArticles(maxRowsToCheck = null) {
         // タイトルだけで再生成（型番チェック付き）
         const sourceDesc = sourceTitle;
 
-        const gen = callGeminiAPI(sourceTitle, sourceDesc, todayStr, currentRate, "");
+        const gen = callGeminiAPI(sourceTitle, sourceDesc, todayStr, currentRate, "", "");
         if (gen) {
           // リトライ時も型番チェック
           if (hasIdentifierMismatch(gen, sourceTitle, sourceDesc)) {
@@ -959,14 +1052,66 @@ function discardPending(pendingRowId) {
   sheet.getRange(pendingRowId, 9).setValue('discarded');
 }
 
+/**
+ * 指定した記事行を除外し、紐づく承認待ちキューを破棄する
+ * 例: discardArticleAndPendingByRow(7)
+ * @param {number} articleRowIndex - メインシートの行番号（2始まり）
+ * @return {{ok: boolean, message: string, discardedQueueCount?: number}}
+ */
+function discardArticleAndPendingByRow(articleRowIndex) {
+  if (!articleRowIndex || articleRowIndex < 2) {
+    return { ok: false, message: 'articleRowIndex は2以上を指定してください' };
+  }
+
+  try {
+    const ss = SpreadsheetApp.openById(getConfig('SPREADSHEET_ID'));
+    const mainSheet = ss.getSheets()[0];
+    const lastRow = mainSheet.getLastRow();
+    if (articleRowIndex > lastRow) {
+      return { ok: false, message: `指定行が存在しません: ${articleRowIndex}` };
+    }
+
+    // ツイート状態を除外に更新（行自体は残す）
+    mainSheet.getRange(articleRowIndex, 7).setValue('除外');
+
+    const pendingSheet = getOrCreatePendingSheet();
+    const pendingLastRow = pendingSheet.getLastRow();
+    let discarded = 0;
+    const now = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy/MM/dd HH:mm');
+
+    if (pendingLastRow >= 2) {
+      const data = pendingSheet.getRange(2, 1, pendingLastRow - 1, 10).getValues();
+      for (let i = 0; i < data.length; i++) {
+        const row = data[i];
+        const pendingArticleRow = parseInt(row[6], 10);
+        const status = (row[8] || '').toString();
+        if (pendingArticleRow === articleRowIndex && status === 'pending') {
+          pendingSheet.getRange(i + 2, 9).setValue('discarded');
+          pendingSheet.getRange(i + 2, 10).setValue(now);
+          discarded++;
+        }
+      }
+    }
+
+    return {
+      ok: true,
+      message: `記事行 ${articleRowIndex} を除外し、承認待ち ${discarded} 件を破棄しました`,
+      discardedQueueCount: discarded
+    };
+  } catch (e) {
+    logError('Queue', 'DISCARD_BY_ARTICLE_ROW', e, `row: ${articleRowIndex}`);
+    return { ok: false, message: (e && e.message) || '処理に失敗しました' };
+  }
+}
+
 function checkAndTweetNewArticles() {
   const ss = SpreadsheetApp.openById(getConfig('SPREADSHEET_ID'));
   const sheet = ss.getSheets()[0];
   const lastRow = sheet.getLastRow();
   if (lastRow < 2) return;
 
-  // 最終行まで含める（lastRow-1 だと新着が最下行のときスキャン外になり、キューに載らない）
-  const range = sheet.getRange(2, 1, lastRow, 10);
+  // データ行のみ（2行目〜最終行）を取得
+  const range = sheet.getRange(2, 1, lastRow - 1, 10);
   const data = range.getValues();
 
   const PRIORITY_REGEX = /RTX|GTX|GeForce|NVIDIA|Radeon|AMD|Ryzen|Intel|Core|GPU|CPU|Motherboard|ASRock|ASUS|MSI|GIGABYTE|ZOTAC|Kopite7kimi|Leak|Spec/i;
@@ -976,7 +1121,8 @@ function checkAndTweetNewArticles() {
   // 【フェーズ1】優先キーワード
   for (let i = 0; i < data.length; i++) {
     const row = data[i];
-    if (row[6] === "" && row[1] && !row[1].includes("【翻訳失敗】") && PRIORITY_REGEX.test(row[1] + " " + row[3])) {
+    const tweetStatus = (row[6] || '').toString().trim();
+    if (tweetStatus === "" && row[1] && !row[1].includes("【翻訳失敗】") && PRIORITY_REGEX.test(row[1] + " " + row[3])) {
       console.log(`⚡ 優先ターゲット発見: ${row[1]}`);
       targetIndex = i;
       break;
@@ -987,7 +1133,8 @@ function checkAndTweetNewArticles() {
   if (targetIndex === -1) {
     for (let i = 0; i < data.length; i++) {
       const row = data[i];
-      if (row[6] === "" && row[1] && !row[1].includes("【翻訳失敗】")) {
+      const tweetStatus = (row[6] || '').toString().trim();
+      if (tweetStatus === "" && row[1] && !row[1].includes("【翻訳失敗】")) {
         targetIndex = i;
         break;
       }
@@ -1680,6 +1827,24 @@ function doGet(e) {
       console.error(`❌ doGet news error: ${err.message}`);
       return ContentService
         .createTextOutput(JSON.stringify({ error: 'Failed to fetch news' }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+  }
+
+  // ?action=pending → 承認待ちキューをJSONで返す（デバッグ/外部確認用）
+  if (action === 'pending') {
+    try {
+      const pending = getPendingTweets();
+      return ContentService
+        .createTextOutput(JSON.stringify({
+          count: pending.length,
+          items: pending
+        }))
+        .setMimeType(ContentService.MimeType.JSON);
+    } catch (err) {
+      console.error(`❌ doGet pending error: ${err.message}`);
+      return ContentService
+        .createTextOutput(JSON.stringify({ error: 'Failed to fetch pending queue' }))
         .setMimeType(ContentService.MimeType.JSON);
     }
   }

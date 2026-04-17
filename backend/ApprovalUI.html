@@ -14,6 +14,7 @@
       --accent: #58a6ff;
       --success: #3fb950;
       --danger: #f85149;
+      --warn: #d29922;
     }
     * { box-sizing: border-box; }
     body {
@@ -40,6 +41,7 @@
       display: flex;
       gap: 8px;
       margin-bottom: 16px;
+      flex-wrap: wrap;
     }
     button {
       cursor: pointer;
@@ -125,7 +127,27 @@
     .toast.success { background: var(--success); color: #fff; }
     .toast.error { background: var(--danger); color: #fff; }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    .loading { opacity: 0.7; pointer-events: none; }
+    /* ボタンは絶対に操作可能にする（ローディング中でも refresh を押せる） */
+    .status {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-left: 8px;
+      align-self: center;
+    }
+    .status.error { color: var(--danger); }
+    .status.warn { color: var(--warn); }
+    .debug {
+      font-size: 0.75rem;
+      color: var(--muted);
+      background: rgba(0,0,0,0.2);
+      padding: 8px 10px;
+      border-radius: 6px;
+      margin-bottom: 12px;
+      white-space: pre-wrap;
+      word-break: break-all;
+      display: none;
+    }
+    .debug.show { display: block; }
   </style>
 </head>
 <body>
@@ -134,11 +156,34 @@
 
   <div class="toolbar">
     <button type="button" class="primary" id="btnRefresh">🔄 一覧を更新</button>
+    <button type="button" id="btnDebug">🧪 デバッグON/OFF</button>
+    <span class="status" id="status">起動中...</span>
   </div>
 
-  <div id="list"></div>
+  <div id="debug" class="debug"></div>
+  <div id="list"><div class="empty">読み込み中...</div></div>
 
   <script>
+    var DEBUG = false;
+
+    function setStatus(text, kind) {
+      var el = document.getElementById('status');
+      el.className = 'status' + (kind ? ' ' + kind : '');
+      el.textContent = text || '';
+    }
+
+    function log() {
+      if (!DEBUG) return;
+      var el = document.getElementById('debug');
+      var line = Array.prototype.slice.call(arguments).map(function(a) {
+        if (typeof a === 'object') {
+          try { return JSON.stringify(a); } catch (e) { return String(a); }
+        }
+        return String(a);
+      }).join(' ');
+      el.textContent += line + '\n';
+    }
+
     function showToast(message, isError) {
       var el = document.createElement('div');
       el.className = 'toast ' + (isError ? 'error' : 'success');
@@ -147,10 +192,17 @@
       setTimeout(function() { el.remove(); }, 3000);
     }
 
+    function escapeHtml(s) {
+      if (!s) return '';
+      var div = document.createElement('div');
+      div.textContent = s;
+      return div.innerHTML;
+    }
+
     function render(list) {
       var container = document.getElementById('list');
       if (!list || list.length === 0) {
-        container.innerHTML = '<div class="empty">承認待ちはありません。GAS の checkAndTweetNewArticles でキューに追加されたものがここに表示されます。</div>';
+        container.innerHTML = '<div class="empty">承認待ちはありません。<br>GAS の <code>checkAndTweetNewArticles</code> でキューに追加されたものがここに表示されます。</div>';
         return;
       }
       container.innerHTML = list.map(function(item) {
@@ -179,63 +231,99 @@
       });
     }
 
-    function escapeHtml(s) {
-      if (!s) return '';
-      var div = document.createElement('div');
-      div.textContent = s;
-      return div.innerHTML;
-    }
-
-    function setLoading(loading) {
-      document.body.classList.toggle('loading', loading);
+    function ensureRunApi() {
+      if (typeof google === 'undefined' || !google.script || !google.script.run) {
+        setStatus('google.script.run が未定義（/exec 直叩きが必要）', 'error');
+        log('google.script.run is not available. Open the app via the /exec URL.');
+        return false;
+      }
+      return true;
     }
 
     function load() {
-      setLoading(true);
-      google.script.run
-        .withSuccessFunction(function(list) {
-          setLoading(false);
-          render(list);
-        })
-        .withFailureFunction(function(err) {
-          setLoading(false);
-          document.getElementById('list').innerHTML = '<div class="empty">読み込みに失敗しました: ' + escapeHtml(String(err)) + '</div>';
-        })
-        .getPendingTweets();
+      if (!ensureRunApi()) return;
+
+      setStatus('読み込み中...');
+      var done = false;
+
+      var timeoutId = setTimeout(function() {
+        if (done) return;
+        done = true;
+        setStatus('タイムアウト（15秒）。GAS側の実行権限/デプロイを確認してください', 'error');
+        document.getElementById('list').innerHTML =
+          '<div class="empty">読み込みがタイムアウトしました。<br>' +
+          '1) GASエディタで最新コードを<b>新しいバージョンで再デプロイ</b><br>' +
+          '2) 一度 <code>getPendingTweets()</code> を手動実行して認可を通す<br>' +
+          '3) <a href="?action=pending" target="_blank">?action=pending</a> で生JSONを確認</div>';
+      }, 15000);
+
+      try {
+        google.script.run
+          .withSuccessFunction(function(list) {
+            if (done) return;
+            done = true;
+            clearTimeout(timeoutId);
+            log('getPendingTweets OK', list);
+            setStatus('取得成功: ' + (list ? list.length : 0) + ' 件');
+            render(list || []);
+          })
+          .withFailureFunction(function(err) {
+            if (done) return;
+            done = true;
+            clearTimeout(timeoutId);
+            log('getPendingTweets FAILED', err);
+            setStatus('失敗: ' + String(err), 'error');
+            document.getElementById('list').innerHTML =
+              '<div class="empty">取得に失敗しました: ' + escapeHtml(String(err)) + '</div>';
+          })
+          .getPendingTweets();
+      } catch (e) {
+        done = true;
+        clearTimeout(timeoutId);
+        log('exception', e.message);
+        setStatus('例外: ' + e.message, 'error');
+      }
     }
 
     function onApprove(id) {
-      setLoading(true);
+      if (!ensureRunApi()) return;
+      setStatus('投稿中...');
       google.script.run
         .withSuccessFunction(function(res) {
-          setLoading(false);
-          showToast(res.message, !res.ok);
-          if (res.ok) load();
+          showToast(res && res.message ? res.message : '完了', !(res && res.ok));
+          setStatus('');
+          if (res && res.ok) load();
         })
         .withFailureFunction(function(err) {
-          setLoading(false);
+          setStatus('投稿失敗: ' + String(err), 'error');
           showToast('エラー: ' + String(err), true);
         })
         .approveAndPost(id);
     }
 
     function onDiscard(id) {
+      if (!ensureRunApi()) return;
       if (!confirm('このツイートを破棄しますか？')) return;
-      setLoading(true);
+      setStatus('破棄中...');
       google.script.run
         .withSuccessFunction(function() {
-          setLoading(false);
           showToast('破棄しました');
+          setStatus('');
           load();
         })
         .withFailureFunction(function(err) {
-          setLoading(false);
+          setStatus('破棄失敗: ' + String(err), 'error');
           showToast('エラー: ' + String(err), true);
         })
         .discardPending(id);
     }
 
     document.getElementById('btnRefresh').addEventListener('click', load);
+    document.getElementById('btnDebug').addEventListener('click', function() {
+      DEBUG = !DEBUG;
+      document.getElementById('debug').classList.toggle('show', DEBUG);
+    });
+
     load();
   </script>
 </body>
