@@ -925,7 +925,8 @@ function repairAllFailedArticles(maxRowsToCheck = null) {
 const PENDING_TWEETS_SHEET_NAME = 'PendingTweets';
 
 /**
- * PendingTweets シートを取得または作成（列: type, mainText, replyText, quoteTweetId, title, url, articleRowIndex, createdAt, status, tweetedAt）
+ * PendingTweets シートを取得または作成
+ * 列: type, mainText, replyText, quoteTweetId, title, url, articleRowIndex, createdAt, status, tweetedAt, discordMessageId
  * @return {GoogleAppsScript.Spreadsheet.Sheet}
  */
 function getOrCreatePendingSheet() {
@@ -933,8 +934,13 @@ function getOrCreatePendingSheet() {
   let pendingSheet = ss.getSheetByName(PENDING_TWEETS_SHEET_NAME);
   if (!pendingSheet) {
     pendingSheet = ss.insertSheet(PENDING_TWEETS_SHEET_NAME);
-    pendingSheet.appendRow(['type', 'mainText', 'replyText', 'quoteTweetId', 'title', 'url', 'articleRowIndex', 'createdAt', 'status', 'tweetedAt']);
-    pendingSheet.getRange(1, 1, 1, 10).setFontWeight('bold');
+    pendingSheet.appendRow(['type', 'mainText', 'replyText', 'quoteTweetId', 'title', 'url', 'articleRowIndex', 'createdAt', 'status', 'tweetedAt', 'discordMessageId']);
+    pendingSheet.getRange(1, 1, 1, 11).setFontWeight('bold');
+  } else {
+    const lastCol = pendingSheet.getLastColumn();
+    if (lastCol < 11) {
+      pendingSheet.getRange(1, 11).setValue('discordMessageId').setFontWeight('bold');
+    }
   }
   return pendingSheet;
 }
@@ -964,8 +970,28 @@ function enqueuePendingTweet(opts) {
     opts.articleRowIndex || 0,
     createdAt,
     'pending',
+    '',
     ''
   ]);
+
+  const newRowId = sheet.getLastRow();
+
+  // Discord 通知を送信し、メッセージIDを11列目に記録
+  try {
+    const messageId = sendDiscordNotification(newRowId, {
+      type: opts.type || 'two_stage',
+      mainText: opts.mainText || '',
+      title: opts.title || '',
+      url: opts.url || '',
+      createdAt
+    });
+    if (messageId) {
+      sheet.getRange(newRowId, 11).setValue(messageId);
+    }
+  } catch (e) {
+    console.log(`⚠️ Discord通知失敗: ${e.message}`);
+    logError('Discord', 'NOTIFY_ENQUEUE', e, `pendingRow: ${newRowId}`);
+  }
 }
 
 /**
@@ -1102,6 +1128,225 @@ function discardArticleAndPendingByRow(articleRowIndex) {
     logError('Queue', 'DISCARD_BY_ARTICLE_ROW', e, `row: ${articleRowIndex}`);
     return { ok: false, message: (e && e.message) || '処理に失敗しました' };
   }
+}
+
+// ==========================================
+// 🎮 Discord 承認システム
+// ==========================================
+const DISCORD_CONFIG = {
+  APPROVE_EMOJI: '✅',
+  DISCARD_EMOJI: '❌',
+  API_BASE: 'https://discord.com/api/v10',
+  EMBED_PREVIEW_LIMIT: 500,
+  EMBED_TITLE_LIMIT: 200
+};
+
+/**
+ * Discord Webhook に承認待ち通知を送信
+ * @param {number} pendingRowId
+ * @param {{type:string, mainText:string, title:string, url:string, createdAt:string}} opts
+ * @return {string|null} 作成された Discord メッセージの ID
+ */
+function sendDiscordNotification(pendingRowId, opts) {
+  const webhookUrl = getConfig('DISCORD_WEBHOOK_URL');
+  if (!webhookUrl) {
+    console.log('⚠️ DISCORD_WEBHOOK_URL 未設定のため通知スキップ');
+    return null;
+  }
+
+  const typeLabel = opts.type === 'quote' ? 'Quote RT' : '2段階投稿';
+  const color = opts.type === 'quote' ? 0x8957e5 : 0x238636;
+
+  let preview = (opts.mainText || '(本文なし)').substring(0, DISCORD_CONFIG.EMBED_PREVIEW_LIMIT);
+  if ((opts.mainText || '').length > DISCORD_CONFIG.EMBED_PREVIEW_LIMIT) preview += '…';
+
+  const description = [
+    `**[${typeLabel}]**`,
+    '```',
+    preview,
+    '```',
+    `${DISCORD_CONFIG.APPROVE_EMOJI} = 投稿実行  /  ${DISCORD_CONFIG.DISCARD_EMOJI} = 破棄`
+  ].join('\n');
+
+  const payload = {
+    embeds: [{
+      title: (opts.title || '無題').substring(0, DISCORD_CONFIG.EMBED_TITLE_LIMIT),
+      description,
+      color,
+      fields: [
+        { name: '元URL', value: (opts.url || 'N/A').substring(0, 500), inline: false },
+        { name: 'Row', value: `#${pendingRowId}`, inline: true },
+        { name: '作成', value: opts.createdAt || '-', inline: true }
+      ],
+      footer: { text: `Gadget Hunter | PendingRow ${pendingRowId}` },
+      timestamp: new Date().toISOString()
+    }]
+  };
+
+  // ?wait=true でメッセージオブジェクト（id 含む）を返してもらう
+  const res = UrlFetchApp.fetch(`${webhookUrl}?wait=true`, {
+    method: 'post',
+    contentType: 'application/json',
+    payload: JSON.stringify(payload),
+    muteHttpExceptions: true
+  });
+
+  const code = res.getResponseCode();
+  if (code !== 200) {
+    console.log(`❌ Discord webhook failed: ${code}`);
+    return null;
+  }
+
+  try {
+    const data = JSON.parse(res.getContentText());
+    return data && data.id ? data.id : null;
+  } catch (e) {
+    console.log(`❌ Discord webhook response parse error: ${e.message}`);
+    return null;
+  }
+}
+
+/**
+ * Discord のリアクションをポーリングして承認/破棄を自動実行
+ * 時間主導トリガー（例: 5分ごと）から呼ぶ
+ */
+function processDiscordReactions() {
+  const token = getConfig('DISCORD_BOT_TOKEN');
+  const channelId = getConfig('DISCORD_CHANNEL_ID');
+  if (!token || !channelId) {
+    console.log('⚠️ Discord Bot 未設定（DISCORD_BOT_TOKEN/DISCORD_CHANNEL_ID）');
+    return;
+  }
+
+  const sheet = getOrCreatePendingSheet();
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) {
+    console.log('PendingTweets is empty');
+    return;
+  }
+
+  const data = sheet.getRange(2, 1, lastRow - 1, 11).getValues();
+  let processed = 0;
+
+  for (let i = 0; i < data.length; i++) {
+    const row = data[i];
+    const status = (row[8] || '').toString();
+    const messageId = (row[10] || '').toString();
+    const pendingRowId = i + 2;
+
+    if (status !== 'pending' || !messageId) continue;
+
+    const approveCount = fetchDiscordReactionCount(channelId, messageId, DISCORD_CONFIG.APPROVE_EMOJI, token);
+    const discardCount = fetchDiscordReactionCount(channelId, messageId, DISCORD_CONFIG.DISCARD_EMOJI, token);
+
+    // 破棄優先（両方ついてたら破棄）
+    if (discardCount >= 1) {
+      console.log(`❌ Discord破棄: row ${pendingRowId}`);
+      discardPending(pendingRowId);
+      postDiscordReply(channelId, messageId, `🗑 破棄しました (Row ${pendingRowId})`, token);
+      processed++;
+    } else if (approveCount >= 1) {
+      console.log(`✅ Discord承認: row ${pendingRowId}`);
+      const result = approveAndPost(pendingRowId);
+      const replyText = result && result.ok
+        ? `✅ 投稿完了: ${result.message} (Row ${pendingRowId})`
+        : `⚠️ 投稿失敗: ${(result && result.message) || 'unknown'} (Row ${pendingRowId})`;
+      postDiscordReply(channelId, messageId, replyText, token);
+      processed++;
+    }
+
+    if (processed > 0 && processed % 3 === 0) Utilities.sleep(1000);
+  }
+
+  console.log(`Discord: ${processed} 件処理しました`);
+}
+
+/**
+ * 指定メッセージのリアクション数を取得
+ * @return {number} リアクションをつけたユーザー数（失敗時0）
+ */
+function fetchDiscordReactionCount(channelId, messageId, emoji, token) {
+  const url = `${DISCORD_CONFIG.API_BASE}/channels/${channelId}/messages/${messageId}/reactions/${encodeURIComponent(emoji)}`;
+  try {
+    const res = UrlFetchApp.fetch(url, {
+      method: 'get',
+      headers: { Authorization: `Bot ${token}` },
+      muteHttpExceptions: true
+    });
+    if (res.getResponseCode() !== 200) return 0;
+    const users = JSON.parse(res.getContentText());
+    return Array.isArray(users) ? users.length : 0;
+  } catch (e) {
+    console.log(`❌ fetchDiscordReactionCount error: ${e.message}`);
+    return 0;
+  }
+}
+
+/**
+ * 元メッセージに対して返信を送信（承認/破棄の結果通知）
+ */
+function postDiscordReply(channelId, messageId, content, token) {
+  const url = `${DISCORD_CONFIG.API_BASE}/channels/${channelId}/messages`;
+  const payload = {
+    content: content.substring(0, 1800),
+    message_reference: { message_id: messageId, fail_if_not_exists: false }
+  };
+  try {
+    UrlFetchApp.fetch(url, {
+      method: 'post',
+      contentType: 'application/json',
+      headers: { Authorization: `Bot ${token}` },
+      payload: JSON.stringify(payload),
+      muteHttpExceptions: true
+    });
+  } catch (e) {
+    console.log(`❌ postDiscordReply error: ${e.message}`);
+  }
+}
+
+/**
+ * Discord 承認システムの接続テスト
+ * GAS エディタから手動実行して設定を確認
+ */
+function testDiscordSetup() {
+  const webhook = getConfig('DISCORD_WEBHOOK_URL');
+  const token = getConfig('DISCORD_BOT_TOKEN');
+  const channelId = getConfig('DISCORD_CHANNEL_ID');
+
+  console.log('=== Discord Setup Test ===');
+  console.log(`DISCORD_WEBHOOK_URL: ${webhook ? '✅ 設定済み' : '❌ 未設定'}`);
+  console.log(`DISCORD_BOT_TOKEN:   ${token ? '✅ 設定済み' : '❌ 未設定'}`);
+  console.log(`DISCORD_CHANNEL_ID:  ${channelId ? '✅ 設定済み' : '❌ 未設定'}`);
+
+  if (!webhook) {
+    console.log('➡ 先に DISCORD_WEBHOOK_URL を設定してください');
+    return;
+  }
+
+  const testId = sendDiscordNotification(0, {
+    type: 'two_stage',
+    mainText: '🧪 Discord連携テスト\nこのメッセージが届けばWebhookはOK',
+    title: 'Gadget Hunter テスト通知',
+    url: 'https://gadget-hunter-xi.vercel.app/',
+    createdAt: Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy/MM/dd HH:mm')
+  });
+
+  if (testId) {
+    console.log(`✅ Webhook投稿成功 (messageId: ${testId})`);
+  } else {
+    console.log('❌ Webhook投稿失敗');
+    return;
+  }
+
+  if (!token || !channelId) {
+    console.log('ℹ️ Bot未設定のためリアクション取得テストはスキップ');
+    return;
+  }
+
+  Utilities.sleep(1000);
+  const approve = fetchDiscordReactionCount(channelId, testId, DISCORD_CONFIG.APPROVE_EMOJI, token);
+  console.log(`✅ Bot API アクセス成功 (approve reactions: ${approve})`);
+  console.log('📌 テスト通知に ✅ または ❌ を付けてから processDiscordReactions を実行してみてください');
 }
 
 function checkAndTweetNewArticles() {
