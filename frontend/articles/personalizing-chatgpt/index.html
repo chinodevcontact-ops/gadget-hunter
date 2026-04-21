@@ -21,21 +21,21 @@
     <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
     <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
     
-    <title>AIのTCO再考：コスト/トークンが唯一の重要指標 | GADGET HUNTER</title>
+    <title>ChatGPTのパーソナライズ：カスタム指示と記憶を活用 | GADGET HUNTER</title>
     
     <!-- OGP -->
     <meta property="og:type" content="article">
-    <meta property="og:title" content="AIのTCO再考：コスト/トークンが唯一の重要指標">
-    <meta property="og:description" content="• 従来のデータセンターはデータの保存・取得・処理が主な役割だった。 • 生成AIやエージェントAI時代において、データセンターはAIトークン工場へと進化している。 • AI推論が主要なワークロードとなり、その主なアウトプットはトークンの形で製造された知能である。...">
-    <meta property="og:url" content="https://gadget-hunter-xi.vercel.app/articles/rethinking-ai-tco-why-cost-per-token-is-the-only-metric-that-matters">
+    <meta property="og:title" content="ChatGPTのパーソナライズ：カスタム指示と記憶を活用">
+    <meta property="og:description" content="• ChatGPTをカスタム指示でパーソナライズできる。 • ChatGPTの記憶を活用することで、より関連性の高い応答を得られる。 • パーソナライズにより、一貫性があり、より個別化された応答が期待できる。...">
+    <meta property="og:url" content="https://gadget-hunter-xi.vercel.app/articles/personalizing-chatgpt">
     <meta property="og:image" content="https://gadget-hunter-xi.vercel.app/ogp-default.svg">
     <meta property="og:site_name" content="GADGET HUNTER">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="AIのTCO再考：コスト/トークンが唯一の重要指標">
-    <meta name="twitter:description" content="• 従来のデータセンターはデータの保存・取得・処理が主な役割だった。 • 生成AIやエージェントAI時代において、データセンターはAIトークン工場へと進化している。 • AI推論が主要なワークロードとなり、その主なアウトプットはトークンの形で製造された知能である。...">
+    <meta name="twitter:title" content="ChatGPTのパーソナライズ：カスタム指示と記憶を活用">
+    <meta name="twitter:description" content="• ChatGPTをカスタム指示でパーソナライズできる。 • ChatGPTの記憶を活用することで、より関連性の高い応答を得られる。 • パーソナライズにより、一貫性があり、より個別化された応答が期待できる。...">
     <meta name="twitter:image" content="https://gadget-hunter-xi.vercel.app/ogp-default.svg">
-    <link rel="canonical" href="https://gadget-hunter-xi.vercel.app/articles/rethinking-ai-tco-why-cost-per-token-is-the-only-metric-that-matters">
-    <meta name="description" content="• 従来のデータセンターはデータの保存・取得・処理が主な役割だった。 • 生成AIやエージェントAI時代において、データセンターはAIトークン工場へと進化している。 • AI推論が主要なワークロードとなり、その主なアウトプットはトークンの形で製造された知能である。...">
+    <link rel="canonical" href="https://gadget-hunter-xi.vercel.app/articles/personalizing-chatgpt">
+    <meta name="description" content="• ChatGPTをカスタム指示でパーソナライズできる。 • ChatGPTの記憶を活用することで、より関連性の高い応答を得られる。 • パーソナライズにより、一貫性があり、より個別化された応答が期待できる。...">
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -507,8 +507,8 @@
         </div>
 
         <!-- タイトル -->
-        <h1 class="article-title" data-lang="ja">AIのTCO再考：コスト/トークンが唯一の重要指標</h1>
-        <h1 class="article-title" data-lang="en">Rethinking AI TCO: Why Cost per Token Is the Only Metric That Matters</h1>
+        <h1 class="article-title" data-lang="ja">ChatGPTのパーソナライズ：カスタム指示と記憶を活用</h1>
+        <h1 class="article-title" data-lang="en">Personalizing ChatGPT</h1>
 
         <!-- リーク信頼度 -->
         <div class="leak-score-container">
@@ -527,16 +527,16 @@
         <div class="summary-section">
             <h2 data-lang="ja">📋 要約</h2>
             <h2 data-lang="en">📋 Summary</h2>
-            <div data-lang="ja"><ul class="summary-points"><li>従来のデータセンターはデータの保存・取得・処理が主な役割だった。</li><li>生成AIやエージェントAI時代において、データセンターはAIトークン工場へと進化している。</li><li>AI推論が主要なワークロードとなり、その主なアウトプットはトークンの形で製造された知能である。</li></ul></div>
-            <div data-lang="en"><ul class="summary-points"><li>Traditional data centers only stored, retrieved and processed data.</li><li>In the generative and agentic AI era, these facilities have evolved into AI token factories.</li><li>With AI inference becoming their primary workload, their primary output is intelligence manufactured in the form of tokens.</li></ul></div>
+            <div data-lang="ja"><ul class="summary-points"><li>ChatGPTをカスタム指示でパーソナライズできる。</li><li>ChatGPTの記憶を活用することで、より関連性の高い応答を得られる。</li><li>パーソナライズにより、一貫性があり、より個別化された応答が期待できる。</li></ul></div>
+            <div data-lang="en"><ul class="summary-points"><li>ChatGPT can be personalized using custom instructions.</li><li>Utilizing ChatGPT&#039;s memory allows for more relevant responses.</li><li>Personalization enables consistent and tailored responses.</li></ul></div>
         </div>
 
         <!-- 本文 -->
         <div class="article-content" data-lang="ja">
-            <p>従来のデータセンターは、データの保存、取得、処理を主な役割としていた。しかし、生成AIやエージェントAI時代に入り、これらの施設はAIトークン工場へと進化していることが明らかになった。AI推論が主要なワークロードとなり、その主なアウトプットはトークンの形で製造された知能であると報告されている。この変革は、AIインフラストラクチャの経済性を評価する上で、従来の指標から「コスト/トークン」へと対応するシフトを必要とする。</p><h3>中の人の本音 (JP)</h3><p>AIのコストって、今までなんとなくデータ量とか計算量で見てたけど、トークン単位で考えるのが正解らしいですね。正直、まだピンと来ない部分もあるけど、これからはトークン単価が重要になるってことみたい。様子見安定ですが、注目していきたいところです。</p>
+            <p>ChatGPTをパーソナライズする方法が明らかになった。カスタム指示と記憶を活用することで、より関連性が高く、一貫性があり、個別化された応答を得ることが可能となる。</p><h3>中の人の本音 (JP)</h3><p>ChatGPTのパーソナライズ機能、正直結構便利そうですね。カスタム指示で応答を調整できるって、かなり使い勝手が良さそうです。記憶機能も、会話の流れを覚えてくれるなら嬉しいかも。個人的には、まだ触ってないので様子見安定ですが、期待してます！</p>
         </div>
         <div class="article-content" data-lang="en">
-            <p>Traditional data centers only stored, retrieved and processed data. In the generative and agentic AI era, these facilities have evolved into AI token factories. With AI inference becoming their primary workload, their primary output is intelligence manufactured in the form of tokens. This transformation demands a corresponding shift in how the economics of AI infrastructure, […]</p><h3>Review (EN)</h3><p>Hmm, cost per token... interesting.</p>
+            <p>It has been learned how to personalize ChatGPT. By utilizing custom instructions and memory, it is possible to obtain more relevant, consistent, and tailored responses.</p><h3>Review (EN)</h3><p>Sounds pretty useful! Custom instructions are a nice touch. Looking forward to trying it out.</p>
         </div>
 
         <!-- ソースリンク -->
@@ -544,7 +544,7 @@
         <div class="source-section">
             <span class="source-label" data-lang="ja">📎 元記事を確認する</span>
             <span class="source-label" data-lang="en">📎 View original source</span>
-            <a href="https://blogs.nvidia.com/blog/lowest-token-cost-ai-factories/" target="_blank" rel="noopener noreferrer" class="source-link">
+            <a href="https://openai.com/academy/personalization" target="_blank" rel="noopener noreferrer" class="source-link">
                 <span data-lang="ja">元記事を見る ↗</span>
                 <span data-lang="en">View Source ↗</span>
             </a>
@@ -596,7 +596,7 @@
             });
             
             // Utterances コメント欄を読み込む
-            const articleUrl = 'https://blogs.nvidia.com/blog/lowest-token-cost-ai-factories/';
+            const articleUrl = 'https://openai.com/academy/personalization';
             if (articleUrl) {
                 const container = document.getElementById('utterances-container');
                 const script = document.createElement('script');
