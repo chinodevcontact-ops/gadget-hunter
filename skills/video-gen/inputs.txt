@@ -1,0 +1,7 @@
+file 'C:/gadget-hunter/skills/video-gen/bg_intro.jpg'
+duration 7
+file 'C:/gadget-hunter/skills/video-gen/bg_main.jpg'
+duration 32
+file 'C:/gadget-hunter/skills/video-gen/bg_outro.jpg'
+duration 9
+file 'C:/gadget-hunter/skills/video-gen/bg_outro.jpg'

@@ -1160,12 +1160,18 @@ function sendDiscordNotification(pendingRowId, opts) {
   let preview = (opts.mainText || '(本文なし)').substring(0, DISCORD_CONFIG.EMBED_PREVIEW_LIMIT);
   if ((opts.mainText || '').length > DISCORD_CONFIG.EMBED_PREVIEW_LIMIT) preview += '…';
 
+  // 承認/破棄用のURL（クリックで doGet に飛ぶ）
+  const webAppUrl = getOrCreateApprovalWebAppUrl();
+  const token = getOrCreateApprovalToken();
+  const approveUrl = `${webAppUrl}?action=approve&row=${pendingRowId}&token=${token}`;
+  const discardUrl = `${webAppUrl}?action=discard&row=${pendingRowId}&token=${token}`;
+
   const description = [
     `**[${typeLabel}]**`,
     '```',
     preview,
     '```',
-    `${DISCORD_CONFIG.APPROVE_EMOJI} = 投稿実行  /  ${DISCORD_CONFIG.DISCARD_EMOJI} = 破棄`
+    `🟢 [**投稿する**](${approveUrl})  |  🔴 [**破棄する**](${discardUrl})`
   ].join('\n');
 
   const payload = {
@@ -1183,7 +1189,8 @@ function sendDiscordNotification(pendingRowId, opts) {
     }]
   };
 
-  // ?wait=true でメッセージオブジェクト（id 含む）を返してもらう
+  Utilities.sleep(1000);
+
   const res = UrlFetchApp.fetch(`${webhookUrl}?wait=true`, {
     method: 'post',
     contentType: 'application/json',
@@ -1192,7 +1199,7 @@ function sendDiscordNotification(pendingRowId, opts) {
   });
 
   const code = res.getResponseCode();
-  if (code !== 200) {
+  if (code !== 200 && code !== 201 && code !== 204) {
     console.log(`❌ Discord webhook failed: ${code}`);
     return null;
   }
@@ -1203,6 +1210,51 @@ function sendDiscordNotification(pendingRowId, opts) {
   } catch (e) {
     console.log(`❌ Discord webhook response parse error: ${e.message}`);
     return null;
+  }
+}
+
+/**
+ * Webアプリの /exec URL を取得してキャッシュ
+ */
+function getOrCreateApprovalWebAppUrl() {
+  const props = PropertiesService.getScriptProperties();
+  const cached = props.getProperty('WEB_APP_URL');
+  if (cached) return cached;
+  const url = ScriptApp.getService().getUrl();
+  if (url) props.setProperty('WEB_APP_URL', url);
+  return url;
+}
+
+/**
+ * 承認用のシークレットトークンを取得（無ければ生成）
+ */
+function getOrCreateApprovalToken() {
+  const props = PropertiesService.getScriptProperties();
+  let token = props.getProperty('APPROVAL_TOKEN');
+  if (!token) {
+    token = Utilities.getUuid().replace(/-/g, '');
+    props.setProperty('APPROVAL_TOKEN', token);
+  }
+  return token;
+}
+
+/**
+ * Bot として指定メッセージにリアクションを付ける
+ */
+function addDiscordReaction(channelId, messageId, emoji, token) {
+  const url = `${DISCORD_CONFIG.API_BASE}/channels/${channelId}/messages/${messageId}/reactions/${encodeURIComponent(emoji)}/@me`;
+  try {
+    const res = UrlFetchApp.fetch(url, {
+      method: 'put',
+      headers: { Authorization: `Bot ${token}` },
+      muteHttpExceptions: true
+    });
+    const code = res.getResponseCode();
+    if (code !== 204 && code !== 200) {
+      console.log(`⚠️ addReaction(${emoji}) failed: ${code} ${res.getContentText()}`);
+    }
+  } catch (e) {
+    console.log(`⚠️ addReaction error: ${e.message}`);
   }
 }
 
@@ -1239,13 +1291,14 @@ function processDiscordReactions() {
     const approveCount = fetchDiscordReactionCount(channelId, messageId, DISCORD_CONFIG.APPROVE_EMOJI, token);
     const discardCount = fetchDiscordReactionCount(channelId, messageId, DISCORD_CONFIG.DISCARD_EMOJI, token);
 
+    // Botが事前に1つ付けているため、人間が押すと 2 以上になる
     // 破棄優先（両方ついてたら破棄）
-    if (discardCount >= 1) {
+    if (discardCount >= 2) {
       console.log(`❌ Discord破棄: row ${pendingRowId}`);
       discardPending(pendingRowId);
       postDiscordReply(channelId, messageId, `🗑 破棄しました (Row ${pendingRowId})`, token);
       processed++;
-    } else if (approveCount >= 1) {
+    } else if (approveCount >= 2) {
       console.log(`✅ Discord承認: row ${pendingRowId}`);
       const result = approveAndPost(pendingRowId);
       const replyText = result && result.ok
@@ -1273,12 +1326,64 @@ function fetchDiscordReactionCount(channelId, messageId, emoji, token) {
       headers: { Authorization: `Bot ${token}` },
       muteHttpExceptions: true
     });
-    if (res.getResponseCode() !== 200) return 0;
+    const code = res.getResponseCode();
+    if (code !== 200) {
+      const bodyPreview = (res.getContentText() || '').substring(0, 200);
+      console.log(`⚠️ fetchDiscordReactionCount ${code}: ${bodyPreview}`);
+      return 0;
+    }
     const users = JSON.parse(res.getContentText());
     return Array.isArray(users) ? users.length : 0;
   } catch (e) {
     console.log(`❌ fetchDiscordReactionCount error: ${e.message}`);
     return 0;
+  }
+}
+
+/**
+ * DISCORD_CHANNEL_ID の整合性チェック
+ * - 設定した channelId に Bot がアクセスできるかチェック
+ * - チャンネル情報と最新メッセージを表示
+ */
+function debugDiscordChannelAccess() {
+  const token = getConfig('DISCORD_BOT_TOKEN');
+  const channelId = getConfig('DISCORD_CHANNEL_ID');
+
+  if (!token || !channelId) {
+    console.log('❌ Bot未設定');
+    return;
+  }
+
+  console.log(`=== Discord Channel Access Test ===`);
+  console.log(`channelId: ${channelId}`);
+
+  // チャンネル情報を取得
+  const chInfoUrl = `${DISCORD_CONFIG.API_BASE}/channels/${channelId}`;
+  const chRes = UrlFetchApp.fetch(chInfoUrl, {
+    method: 'get',
+    headers: { Authorization: `Bot ${token}` },
+    muteHttpExceptions: true
+  });
+  console.log(`チャンネル情報 status: ${chRes.getResponseCode()}`);
+  console.log(`  body: ${chRes.getContentText().substring(0, 300)}`);
+
+  // 最新メッセージを10件取得
+  const msgUrl = `${DISCORD_CONFIG.API_BASE}/channels/${channelId}/messages?limit=10`;
+  const msgRes = UrlFetchApp.fetch(msgUrl, {
+    method: 'get',
+    headers: { Authorization: `Bot ${token}` },
+    muteHttpExceptions: true
+  });
+  console.log(`\n最新メッセージ status: ${msgRes.getResponseCode()}`);
+  if (msgRes.getResponseCode() === 200) {
+    const msgs = JSON.parse(msgRes.getContentText());
+    console.log(`取得件数: ${msgs.length}`);
+    for (const m of msgs) {
+      const reactions = (m.reactions || []).map(r => `${r.emoji.name}:${r.count}`).join(' ');
+      console.log(`  id=${m.id} | ${reactions || '(リアクションなし)'} | ${(m.content || m.embeds[0]?.title || '').substring(0, 40)}`);
+    }
+  } else {
+    console.log(`  body: ${msgRes.getContentText().substring(0, 300)}`);
   }
 }
 
@@ -1302,6 +1407,234 @@ function postDiscordReply(channelId, messageId, content, token) {
   } catch (e) {
     console.log(`❌ postDiscordReply error: ${e.message}`);
   }
+}
+
+/**
+ * URL クリック承認の設定確認（GASエディタから手動実行）
+ */
+function testUrlApprovalSetup() {
+  const webhookUrl = getConfig('DISCORD_WEBHOOK_URL');
+  const webAppUrl = getOrCreateApprovalWebAppUrl();
+  const token = getOrCreateApprovalToken();
+
+  console.log('=== URL Approval Setup ===');
+  console.log(`DISCORD_WEBHOOK_URL: ${webhookUrl ? '✅ 設定済み' : '❌ 未設定'}`);
+  console.log(`WEB_APP_URL: ${webAppUrl || '❌ 取得失敗'}`);
+  console.log(`APPROVAL_TOKEN: ${token ? '✅ 生成済み' : '❌ 生成失敗'}`);
+
+  if (!webhookUrl) {
+    console.log('\n⚠️ DISCORD_WEBHOOK_URL を Script Properties に設定してください');
+    return;
+  }
+  if (!webAppUrl) {
+    console.log('\n⚠️ Web App としてデプロイしてください（デプロイ → 新しいデプロイ → ウェブアプリ）');
+    return;
+  }
+
+  // テスト通知を送る
+  const testRow = 99999;
+  const approveUrl = `${webAppUrl}?action=approve&row=${testRow}&token=${token}`;
+  const discardUrl = `${webAppUrl}?action=discard&row=${testRow}&token=${token}`;
+
+  const payload = {
+    embeds: [{
+      title: '🧪 URLクリック承認テスト',
+      description: `このメッセージのリンクをクリックして動作確認。\n\n🟢 [**投稿する**](${approveUrl})  |  🔴 [**破棄する**](${discardUrl})\n\n⚠️ テストなのでクリックしても「存在しないRow」エラーが出ればOK`,
+      color: 0x5865F2
+    }]
+  };
+
+  const res = UrlFetchApp.fetch(webhookUrl, {
+    method: 'post',
+    contentType: 'application/json',
+    payload: JSON.stringify(payload),
+    muteHttpExceptions: true
+  });
+  console.log(`\n送信結果: ${res.getResponseCode()}`);
+  console.log('➡ Discordを開いてテスト通知のリンクをクリックしてみてください');
+}
+
+/**
+ * Bot で複数のエンドポイントを試して、どこまで通るか切り分け
+ */
+function debugDiscordEndpoints() {
+  const token = getConfig('DISCORD_BOT_TOKEN');
+  const channelId = getConfig('DISCORD_CHANNEL_ID');
+  if (!token) { console.log('❌ DISCORD_BOT_TOKEN 未設定'); return; }
+
+  const call = function(label, url) {
+    const res = UrlFetchApp.fetch(url, {
+      method: 'get',
+      headers: { Authorization: `Bot ${token}` },
+      muteHttpExceptions: true
+    });
+    const code = res.getResponseCode();
+    const body = res.getContentText().substring(0, 200);
+    console.log(`${label}\n  status: ${code}\n  body: ${body}\n`);
+    return { code: code, text: res.getContentText() };
+  };
+
+  console.log('=== Discord API endpoint test ===\n');
+
+  // ① Bot自身
+  call('① GET /users/@me', `${DISCORD_CONFIG.API_BASE}/users/@me`);
+
+  // ② 参加ギルド一覧
+  const guildsRes = call('② GET /users/@me/guilds', `${DISCORD_CONFIG.API_BASE}/users/@me/guilds`);
+  let guildId = null;
+  if (guildsRes.code === 200) {
+    const guilds = JSON.parse(guildsRes.text);
+    if (guilds.length > 0) guildId = guilds[0].id;
+  }
+
+  if (guildId) {
+    // ③ 単一ギルドの取得
+    call(`③ GET /guilds/${guildId}`, `${DISCORD_CONFIG.API_BASE}/guilds/${guildId}`);
+
+    // ④ ギルドのメンバー一覧（MEMBERS intent必要）
+    call(`④ GET /guilds/${guildId}/members?limit=5`, `${DISCORD_CONFIG.API_BASE}/guilds/${guildId}/members?limit=5`);
+
+    // ⑤ ギルドのチャンネル一覧
+    call(`⑤ GET /guilds/${guildId}/channels`, `${DISCORD_CONFIG.API_BASE}/guilds/${guildId}/channels`);
+  }
+
+  if (channelId) {
+    // ⑥ 単一チャンネル
+    call(`⑥ GET /channels/${channelId}`, `${DISCORD_CONFIG.API_BASE}/channels/${channelId}`);
+  }
+}
+
+/**
+ * サーバー内のチャンネル一覧と、DISCORD_CHANNEL_ID との照合
+ */
+function debugDiscordGuildChannels() {
+  const token = getConfig('DISCORD_BOT_TOKEN');
+  const targetChannelId = getConfig('DISCORD_CHANNEL_ID');
+  if (!token) {
+    console.log('❌ DISCORD_BOT_TOKEN 未設定');
+    return;
+  }
+
+  const guildsRes = UrlFetchApp.fetch(`${DISCORD_CONFIG.API_BASE}/users/@me/guilds`, {
+    method: 'get',
+    headers: { Authorization: `Bot ${token}` },
+    muteHttpExceptions: true
+  });
+  if (guildsRes.getResponseCode() !== 200) {
+    console.log(`❌ guilds 取得失敗: ${guildsRes.getContentText()}`);
+    return;
+  }
+  const guilds = JSON.parse(guildsRes.getContentText());
+  if (guilds.length === 0) {
+    console.log('❌ Bot はどのサーバーにも入っていません');
+    return;
+  }
+
+  console.log(`=== 設定中の DISCORD_CHANNEL_ID: ${targetChannelId} ===\n`);
+
+  for (const g of guilds) {
+    console.log(`📂 Server: ${g.name} (id: ${g.id})`);
+    const chRes = UrlFetchApp.fetch(`${DISCORD_CONFIG.API_BASE}/guilds/${g.id}/channels`, {
+      method: 'get',
+      headers: { Authorization: `Bot ${token}` },
+      muteHttpExceptions: true
+    });
+    if (chRes.getResponseCode() !== 200) {
+      console.log(`  ❌ channels 取得失敗: ${chRes.getResponseCode()} ${chRes.getContentText()}`);
+      continue;
+    }
+    const channels = JSON.parse(chRes.getContentText());
+    const textChannels = channels.filter(function(c) { return c.type === 0 || c.type === 5; });
+    console.log(`  テキスト系チャンネル数: ${textChannels.length}`);
+    for (const c of textChannels) {
+      const match = c.id === targetChannelId ? '  ⬅ ✅ これが設定中のID' : '';
+      console.log(`    - #${c.name} (id: ${c.id})${match}`);
+    }
+  }
+
+  console.log('\n👉 ✅ マークが付いたチャンネルが無ければ、DISCORD_CHANNEL_ID が間違っています');
+  console.log('   一覧の中から、通知を流したいチャンネルのIDに差し替えてください');
+}
+
+/**
+ * Botがどのサーバー（Guild）にいるかを確認
+ * もし表示されないサーバーがあれば、そこに Bot が入っていない＝招待できていない
+ */
+function debugDiscordBotGuilds() {
+  const token = getConfig('DISCORD_BOT_TOKEN');
+  if (!token) {
+    console.log('❌ DISCORD_BOT_TOKEN 未設定');
+    return;
+  }
+
+  const url = `${DISCORD_CONFIG.API_BASE}/users/@me/guilds`;
+  const res = UrlFetchApp.fetch(url, {
+    method: 'get',
+    headers: { Authorization: `Bot ${token}` },
+    muteHttpExceptions: true
+  });
+
+  console.log(`=== Bot Guilds ===`);
+  console.log(`status: ${res.getResponseCode()}`);
+  if (res.getResponseCode() !== 200) {
+    console.log(`body: ${res.getContentText()}`);
+    return;
+  }
+
+  const guilds = JSON.parse(res.getContentText());
+  console.log(`Bot が参加しているサーバー数: ${guilds.length}`);
+  for (const g of guilds) {
+    console.log(`  - ${g.name} (id: ${g.id})`);
+  }
+
+  if (guilds.length === 0) {
+    console.log('\n⚠️ Bot はどのサーバーにも参加していません');
+    console.log('➡ OAuth2 URL Generator で招待URLを再生成し、Botをサーバーに招待してください');
+  }
+}
+
+/**
+ * PendingTweets の現状をデバッグ出力（ログのみ、変更しない）
+ * GAS エディタで実行するとどの行がどんな状態か確認できる
+ */
+function debugPendingTweets() {
+  const token = getConfig('DISCORD_BOT_TOKEN');
+  const channelId = getConfig('DISCORD_CHANNEL_ID');
+  const sheet = getOrCreatePendingSheet();
+  const lastRow = sheet.getLastRow();
+  const lastCol = sheet.getLastColumn();
+  console.log(`=== PendingTweets 状態 ===`);
+  console.log(`lastRow: ${lastRow}, lastCol: ${lastCol}`);
+
+  if (lastRow < 2) {
+    console.log('シートが空です');
+    return;
+  }
+
+  const data = sheet.getRange(2, 1, lastRow - 1, Math.max(lastCol, 11)).getValues();
+  let pendingCount = 0;
+
+  for (let i = 0; i < data.length; i++) {
+    const row = data[i];
+    const status = (row[8] || '').toString();
+    const messageId = (row[10] || '').toString();
+    const title = (row[4] || '').toString().substring(0, 40);
+    const rowNum = i + 2;
+
+    if (status === 'pending') {
+      pendingCount++;
+      console.log(`Row ${rowNum}: status=${status} | messageId=${messageId || '(空)'} | title=${title}`);
+
+      if (messageId && token && channelId) {
+        const approve = fetchDiscordReactionCount(channelId, messageId, DISCORD_CONFIG.APPROVE_EMOJI, token);
+        const discard = fetchDiscordReactionCount(channelId, messageId, DISCORD_CONFIG.DISCARD_EMOJI, token);
+        console.log(`   → ✅:${approve} ❌:${discard}`);
+      } else if (!messageId) {
+        console.log(`   ⚠️ discordMessageId が空（通知失敗 or 未送信）`);
+      }
+    }
+  }
+  console.log(`=== pending 合計: ${pendingCount} 件 ===`);
 }
 
 /**
@@ -1492,8 +1825,37 @@ function postMainText(text) {
     muteHttpExceptions: true
   });
 
-  const responseData = JSON.parse(response.getContentText());
-  return responseData.data ? responseData.data.id : null;
+  const code = response.getResponseCode();
+  const body = response.getContentText();
+  if (code < 200 || code >= 300) {
+    console.error(`❌ postMainText HTTP ${code}: ${body}`);
+    const safeText = (text == null) ? '' : String(text);
+    console.error(`   文字数: ${safeText.length} / text先頭: ${safeText.substring(0, 80)}`);
+    if (code === 429) {
+      const headers = response.getAllHeaders() || {};
+      const resetTs = headers['x-rate-limit-reset'] || headers['X-Rate-Limit-Reset'];
+      if (resetTs) {
+        const resetDate = new Date(parseInt(resetTs, 10) * 1000);
+        const resetStr = Utilities.formatDate(resetDate, 'Asia/Tokyo', 'yyyy/MM/dd HH:mm');
+        PropertiesService.getScriptProperties().setProperty('X_RATE_LIMIT_RESET', resetStr);
+        console.error(`   ⏰ レート制限リセット: ${resetStr} (JST)`);
+      }
+    }
+    return null;
+  }
+
+  try {
+    const responseData = JSON.parse(body);
+    if (!responseData.data) {
+      console.error(`❌ postMainText no data field: ${body}`);
+      return null;
+    }
+    PropertiesService.getScriptProperties().deleteProperty('X_RATE_LIMIT_RESET');
+    return responseData.data.id;
+  } catch (e) {
+    console.error(`❌ postMainText parse error: ${e.message} body=${body}`);
+    return null;
+  }
 }
 
 // ★★★ Task B: リプライ投稿 ★★★
@@ -1530,12 +1892,16 @@ function postReplyUrl(text, replyToId) {
     encodeURIComponent(k) + '="' + encodeURIComponent(oauthParams[k]) + '"'
   ).join(", ");
 
-  UrlFetchApp.fetch(url, {
+  const response = UrlFetchApp.fetch(url, {
     method: "post",
     headers: { "Authorization": authHeader, "Content-Type": "application/json" },
     payload: JSON.stringify(payload),
     muteHttpExceptions: true
   });
+  const code = response.getResponseCode();
+  if (code < 200 || code >= 300) {
+    console.error(`❌ postReplyUrl HTTP ${code}: ${response.getContentText()}`);
+  }
 }
 
 // 既存のpostTweet (QuoteRT用)
@@ -2033,8 +2399,103 @@ function checkXApiConfig() {
  * @param {GoogleAppsScript.Events.DoGet} e
  * @return {GoogleAppsScript.HTML.HtmlOutput | GoogleAppsScript.Content.TextOutput}
  */
+/**
+ * Discord 通知のリンクから呼ばれる、ワンクリック承認/破棄ハンドラ
+ */
+function handleApprovalClick(action, params) {
+  const row = parseInt(params.row, 10);
+  const token = (params.token || '').toString();
+  const expectedToken = getOrCreateApprovalToken();
+
+  if (!token || token !== expectedToken) {
+    return renderResultPage('error', '認証エラー', 'トークンが一致しません。URLが正しいか確認してください。');
+  }
+  if (!row || isNaN(row) || row < 2) {
+    return renderResultPage('error', '不正なRow', `row=${params.row} は無効です`);
+  }
+
+  // 既に処理済みかチェック
+  const sheet = getOrCreatePendingSheet();
+  if (row > sheet.getLastRow()) {
+    return renderResultPage('error', '存在しないRow', `Row ${row} は存在しません`);
+  }
+  const currentStatus = (sheet.getRange(row, 9).getValue() || '').toString();
+  if (currentStatus && currentStatus !== 'pending') {
+    return renderResultPage('info', '処理済み', `Row ${row} は既に「${currentStatus}」です（重複クリック？）`);
+  }
+
+  try {
+    if (action === 'discard') {
+      discardPending(row);
+      return renderResultPage('discard', '🗑 破棄しました', `Row ${row} を破棄キューに移動しました。`);
+    }
+
+    // approve
+    const result = approveAndPost(row);
+    if (result && result.ok) {
+      return renderResultPage('approve', '✅ 投稿完了', `Row ${row}: ${result.message || '投稿に成功しました'}`);
+    }
+    // レート制限情報があれば追記
+    let extraMsg = '';
+    const resetAt = PropertiesService.getScriptProperties().getProperty('X_RATE_LIMIT_RESET');
+    if (resetAt) {
+      extraMsg = `\n\n⏰ X API レート制限\n次のリセット: ${resetAt} (JST)\n→ この時刻以降に再度承認してください`;
+    }
+    return renderResultPage('error', '⚠️ 投稿失敗',
+      `Row ${row}: ${(result && result.message) || 'unknown error'}${extraMsg}`);
+  } catch (err) {
+    console.error(`handleApprovalClick error: ${err.message}`);
+    return renderResultPage('error', 'エラー', err.message);
+  }
+}
+
+/**
+ * ブラウザに表示する完了ページ
+ */
+function renderResultPage(kind, title, message) {
+  const colors = {
+    approve: { bg: '#d4edda', bd: '#28a745', fg: '#155724' },
+    discard: { bg: '#f8d7da', bd: '#dc3545', fg: '#721c24' },
+    info:    { bg: '#d1ecf1', bd: '#17a2b8', fg: '#0c5460' },
+    error:   { bg: '#fff3cd', bd: '#ffc107', fg: '#856404' }
+  };
+  const c = colors[kind] || colors.info;
+  const safeTitle = (title || '').toString().replace(/</g, '&lt;');
+  const safeMessage = (message || '').toString().replace(/</g, '&lt;');
+
+  const html = `<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><title>${safeTitle}</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  background:#f5f5f5;margin:0;padding:40px 20px;min-height:100vh;box-sizing:border-box}
+.card{max-width:520px;margin:40px auto;background:#fff;border-radius:12px;
+  padding:32px;box-shadow:0 4px 16px rgba(0,0,0,0.08);
+  border-left:6px solid ${c.bd}}
+h1{color:${c.fg};margin:0 0 12px;font-size:22px}
+p{color:#444;line-height:1.6;margin:0;white-space:pre-wrap;word-break:break-word}
+.btn{display:inline-block;margin-top:20px;padding:10px 20px;
+  background:#5865F2;color:#fff;text-decoration:none;border-radius:6px;font-size:14px}
+.btn:hover{background:#4752C4}
+</style></head>
+<body><div class="card">
+<h1>${safeTitle}</h1>
+<p>${safeMessage}</p>
+<a href="javascript:window.close()" class="btn">タブを閉じる</a>
+</div></body></html>`;
+
+  return HtmlService.createHtmlOutput(html)
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
 function doGet(e) {
   const action = e && e.parameter && e.parameter.action;
+  const params = (e && e.parameter) || {};
+
+  // ?action=approve / ?action=discard → Discord通知からのワンクリック承認/破棄
+  if (action === 'approve' || action === 'discard') {
+    return handleApprovalClick(action, params);
+  }
 
   // ?action=news → スプレッドシートのデータをJSONで返す
   if (action === 'news') {

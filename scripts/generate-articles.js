@@ -165,7 +165,13 @@ function generateArticleHTML(data) {
     <meta name="twitter:image" content="${data.image}">
     <link rel="canonical" href="${data.url}">
     <meta name="description" content="${data.description}">
-    
+
+    <!-- ✅ Vercel Web Analytics -->
+    <script>
+        window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+    </script>
+    <script defer src="/_vercel/insights/script.js"></script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">

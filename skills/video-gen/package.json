@@ -1,0 +1,11 @@
+{
+    "name": "gadget-hunter-video-gen",
+    "version": "1.0.0",
+    "description": "GADGET HUNTER video generation engine",
+    "dependencies": {
+        "ag-psd": "^30.1.0",
+        "canvas": "^3.2.1",
+        "ffmpeg-static": "^5.2.0",
+        "fluent-ffmpeg": "^2.1.3"
+    }
+}

@@ -6,6 +6,7 @@
     "build": "node scripts/generate-articles.js"
   },
   "dependencies": {
+    "@vercel/analytics": "^2.0.1",
     "fs-extra": "^11.2.0"
   },
   "engines": {
